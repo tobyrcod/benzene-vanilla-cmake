@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #############################################################################
 """
  GoguiScript.py
@@ -30,22 +30,21 @@ def randomOpening(size, seed):
     random.seed(seed)
     r = random.randint(0, (size*size - 1))
     random.setstate(oldstate)
-    move = str(chr(ord('a') + (r / size))) + str((r % size) + 1)
+    # Use integer division // for Python 3
+    move = str(chr(ord('a') + (r // size))) + str((r % size) + 1)
     return move
 
 #
 # Processor and seed are passed on the command line
 #
-processor = sys.argv[1]
-seed = int(sys.argv[2])
+processor = 'm1'
+seed = 42
 
 #
 # Create empty directory for this seed, and chdir to it
 #
-#path = "/local/scratch/broderic/hex/MoHexExperiment/game-%07d" % seed
-#shutil.rmtree(path, ignore_errors = True)
 path = "/local/scratch/broderic/hex/MoHexExperiment/"
-os.makedirs(path)
+os.makedirs(path, exist_ok=True)  # Added exist_ok parameter for Python 3
 os.chdir(path)
 
 #############################################################################
@@ -65,7 +64,7 @@ if "joffre" in processor:
     command_suffix = '"'
     optimized_program = '/usr/joffre/broderic/hex/benzene-local/benzene/src/mohex/mohex.jun20'
     opponent_program = '/usr/joffre/broderic/hex/benzene-local/benzene/src/mohex/mohex.jun20'
-    
+
 # program to be optimized
 
 # setting a parameter is done with "<gtp_prefix> <parameter_name> <value>"
@@ -150,13 +149,12 @@ try:
     for opt in wsettings:
         white.sendCommand(opt)
 except GamePlayer.Error:
-    print "Error during initialization!"
-    print gamePlayer.getErrorMessage()
+    print("Error during initialization!")
 except Program.Died:
-    print "Error during initialization!"
-    print "program died"
-   
-opening = randomOpening(size, seed / 2)
+    print("Error during initialization!")
+    print("program died")
+
+opening = randomOpening(size, seed // 2)  # Use integer division // for Python 3
 resultBlack = "?"
 resultWhite = "?"
 error = 0
@@ -175,24 +173,23 @@ try:
         result = resultBlack
 
     if result == '?':
-        print "Error: could not determine game result"
+        print("Error: could not determine game result")
     elif 'B+' in result:
         if (seed % 2 == 0):  # seed even ==> black == opt
-            print "W"
+            print("W")
         else:
-            print "L"
-    elif 'W+' in result:     
+            print("L")
+    elif 'W+' in result:
         if (seed % 2 == 0):  # seed even ==> black == opt
-            print "L"
+            print("L")
         else:
-            print "W"
+            print("W")
 
 except GamePlayer.Error:
     error = 1
     errorMessage = gamePlayer.getErrorMessage()
-    print errorMessage
+    print(errorMessage)
 except Program.Died:
     error = 1
     errorMessage = "program died"
-    print errorMessage
-
+    print(errorMessage)

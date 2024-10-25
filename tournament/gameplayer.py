@@ -2,106 +2,124 @@
 # Plays a game of Hex.
 #----------------------------------------------------------------------------
 
-import fcntl, getopt, os, socket, string, sys, time
+import fcntl
+import getopt
+import os
+import socket
+import string
+import sys
+import time
 
 from random import randrange
-from program import Program 
+from program import Program
 from game import Game
 
 #----------------------------------------------------------------------------
 
 # Plays a game.
 class GamePlayer:
-    class Error:
+    class Error(Exception):
         pass
 
     # Constructor.
     #  black and white are programs.
-    #  size is boardsize. 
+    #  size is boardsize.
     def __init__(self, black, white, size):
         self._black = self._origblack = black
         self._white = self._origwhite = white
         self._size = size
         self._game = Game()
         self._verbose = False
-        
+
         for program in [self._black, self._white]:
-            program.sendCommand("boardsize " + `size` + " " + `size`)
+            program.sendCommand(f"boardsize {size} {size}")
+
         self._blackName = self._black.getName()
         self._whiteName = self._white.getName()
+        self._errorMessage = None
 
     def getErrorMessage(self):
         return self._errorMessage
 
     #--------------------------------------------------------------------------
-    
+
     # Set who plays next
     def adjustToMove(self, last):
-        if (last == 'swap-pieces'):   # flip who is playing what color!
-            temp = self._black
-            self._black = self._white
-            self._white = temp
+        if last == 'swap-pieces':   # flip who is playing what color!
+            self._black, self._white = self._white, self._black
         else:
             self._blackToMove = not self._blackToMove
 
-    # ask black to dump board if verbose so that anybody
-    # watching can see what is going on. 
+    # Ask black to dump board if verbose so that anybody watching can see what is going on.
     def showBoard(self):
         if self._verbose:
             self._sendCommand(self._black, "showboard")
 
     # Sends the opening moves to each program
     def playOpening(self, opening):
-        if (opening == ''):
+        if opening == '':
             return
         moves = opening.split(' ')
         for move in moves:
             if self._blackToMove:
-                self._sendCommand(self._black, "play b " + move)
-                self._sendCommand(self._white, "play b " + move)
+                self._sendCommand(self._black, f"play b {move}")
+                self._sendCommand(self._white, f"play b {move}")
             else:
-                self._sendCommand(self._black, "play w " + move)
-                self._sendCommand(self._white, "play w " + move)
+                self._sendCommand(self._black, f"play w {move}")
+                self._sendCommand(self._white, f"play w {move}")
             self._game.addMove(move)
             self.adjustToMove(move)
-            self.showBoard()            
+            self.showBoard()
 
-    # plays the game after the opening until a player resigns
+    # Plays the game after the opening until a player resigns
     def continueGame(self):
+        # COME BACK HERE
+
+        # SOMEWHERE IN HERE WE HAVE AN EXCEPTION THAT IS FALLING BACK INTO TOURNAMENT AND
+        # ENDING THE GAME
+
         resigned = False
         elapsedBlack = 0.0
         elapsedWhite = 0.0
+
         while not resigned:
+            start = time.time()
             if self._blackToMove:
-                start = time.time()
                 move = self._sendCommand(self._black, "genmove b")
-                elapsedBlack = elapsedBlack + (time.time() - start)
+                elapsedBlack += (time.time() - start)
             else:
-                start = time.time()                
+
+                # MOST LIKELY IN _SENDCOMMAND for 'genmove w'
+
                 move = self._sendCommand(self._white, "genmove w")
-                elapsedWhite = elapsedWhite + (time.time() - start)
-                
-            move = string.lower(string.strip(move))
+
+                elapsedWhite += (time.time() - start)
+
+            move = move.strip().lower()
+            print(f"move: {move}")
             self._game.addMove(move)
-            
+
             if self._blackToMove:
-                self._sendCommand(self._white, "play b " + move)
+                self._sendCommand(self._white, f"play b {move}")
             else:
-                self._sendCommand(self._black, "play w " + move)
-           
-            if string.find(move, "resign") >= 0:
+                self._sendCommand(self._black, f"play w {move}")
+
+            if "resign" in move:
                 resigned = True
-            
-            self.adjustToMove(move)                
+
+            self.adjustToMove(move)
             self.showBoard()
+
         self._game.setElapsed("black", elapsedBlack)
         self._game.setElapsed("white", elapsedWhite)
 
-    # plays the opening then the remainder of the game
+    # Plays the opening then the remainder of the game
     def play(self, opening, verbose):
         self._verbose = verbose
         self._blackToMove = True
+        print("Play Opening")
         self.playOpening(opening)
+        print("Continue Game")
         self.continueGame()
         return self._game
 
@@ -113,67 +131,65 @@ class GamePlayer:
         longDate = time.strftime("%Y-%m-%d %X %Z", t)
         hostname = socket.gethostbyaddr(socket.gethostname())[0]
         result = self._mergeResults(resultBlack, resultWhite)
-        f = open(fileName, "w")
-        f.write("(\n;" \
-                "GM[11]SZ[%i]PB[%s]PW[%s]\n" \
-                "RE[%s]DT[%s]GN[%s]US[twogtp.py]\n" \
-                "GC[Generated by twogtp.py.\n"
-                "Black Cmd: %s\n" \
-                "White Cmd: %s\n"
-                "Host: %s\n" \
-                "Time: %s\n" \
-                "Result according to B: %s\n" \
-                "Result according to W: %s]\n"
-                % (self._size, self._sgfText(self._blackName), \
-                   self._sgfText(self._whiteName), \
-                   result, sgfDate, name, \
-                   self._sgfText(self._origblack.getCommand()), \
-                   self._sgfText(self._origwhite.getCommand()), \
-                   self._sgfText(hostname), self._sgfText(longDate), \
-                   resultBlack, resultWhite))
-        blackToMove = 1
-        for move in self._game.moveList():
-            if blackToMove:
-                f.write(";B[")
-            else:
-                f.write(";W[")
-            if move == "swap-pieces":
-                f.write("swap-pieces]\n");
-            elif move == "resign":
-                f.write("resign]\n")
-                break;
-            else:
-                f.write(move + "]")
-                blackToMove = not blackToMove;
-            f.write("\n")
-            
-        f.write(")\n");
-        f.close()
+
+        with open(fileName, "w") as f:
+            f.write("(\n;" \
+                    f"GM[11]SZ[{self._size}]PB[{self._sgfText(self._blackName)}]PW[{self._sgfText(self._whiteName)}]\n" \
+                    f"RE[{result}]DT[{sgfDate}]GN[{name}]US[twogtp.py]\n" \
+                    "GC[Generated by twogtp.py.\n"
+                    f"Black Cmd: {self._sgfText(self._origblack.getCommand())}\n" \
+                    f"White Cmd: {self._sgfText(self._origwhite.getCommand())}\n" \
+                    f"Host: {self._sgfText(hostname)}\n" \
+                    f"Time: {self._sgfText(longDate)}\n" \
+                    f"Result according to B: {resultBlack}\n" \
+                    f"Result according to W: {resultWhite}]\n")
+
+            blackToMove = True
+            for move in self._game.moveList():
+                if blackToMove:
+                    f.write(";B[")
+                else:
+                    f.write(";W[")
+                if move == "swap-pieces":
+                    f.write("swap-pieces]\n")
+                elif move == "resign":
+                    f.write("resign]\n")
+                    break
+                else:
+                    f.write(move + "]")
+                    blackToMove = not blackToMove
+                f.write("\n")
+
+            f.write(")\n")
 
     def _mergeResults(self, result1, result2):
         if result1 == result2:
             return result1
-        if result1[0:2] == "B+" and result2[0:2] == "B+":
+        if result1.startswith("B+") and result2.startswith("B+"):
             return "B+"
-        if result1[0:2] == "W+" and result2[0:2] == "W+":
+        if result1.startswith("W+") and result2.startswith("W+"):
             return "W+"
         return "?"
 
-    # Sends htp command down the channel.
+    # Sends command down the channel.
     # Raises GamePlayer.Error if program dies, etc.
     def _sendCommand(self, program, command):
+
+        print(f"Sending command from game player to c++ program: {command}")
+
         try:
-            return program.sendCommand(command)
+            out = program.sendCommand(command)
+            print(f"out {out}")
+            return out
         except Program.CommandDenied:
             reason = program.getDenyReason()
-            self._errorMessage = program.getColor() + ": "  + reason
+            self._errorMessage = f"{program.getColor()}: {reason}"
             raise GamePlayer.Error
         except Program.Died:
-            self._errorMessage = program.getColor() + ": program died"
+            self._errorMessage = f"{program.getColor()}: program died"
             raise GamePlayer.Error
 
     def _sgfText(self, s):
         s = s.replace("\\", "\\\\")
-        s = s.replace("]", "\]")
+        s = s.replace("]", "\\]")
         return s
-
