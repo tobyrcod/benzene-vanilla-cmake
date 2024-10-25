@@ -63,5 +63,6 @@ run_tournament()
         --openings $OPENINGS \
         --size $SIZE --rounds $ROUNDS \
         --p1cmd "$PROGRAM1 --config $CONFIG1.htp" --p1name $NAME1 \
-        --p2cmd "$PROGRAM2 --config $CONFIG2.htp" --p2name $NAME2
+        --p2cmd "$PROGRAM2 --config $CONFIG2.htp" --p2name $NAME2 \
+        --quiet
 }

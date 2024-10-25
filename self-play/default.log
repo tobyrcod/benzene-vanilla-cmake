@@ -1,0 +1,54 @@
+70771 config: MoHex v2.0.CMake Oct 24 2024.
+70771 config: ============ InitializeSystem ============
+70771 config: BenzeneProgram::InitRandom()
+70771 config: Seed = 1729869401
+70771 info: Prior Patterns:
+70771 info: Global:
+70771 info: Size            = 565 32648 
+70771 info: TableEntries    = 65932 65910
+70771 info: MirrorsAdded    = 0 0
+70771 info: PrunableCount   = 30593 30629
+70771 info: LargestGamma    = 5820.77
+70771 info: SmallestGamma   = 6.6e-05
+70771 info: Local:
+70771 info: Size            = 550 5318 
+70771 info: TableEntries    = 11602 11588
+70771 info: MirrorsAdded    = 0 0
+70771 info: PrunableCount   = 3659 3667
+70771 info: LargestGamma    = 11281.8
+70771 info: SmallestGamma   = 0.026235
+70771 info: Playout Patterns:
+70771 info: Global:
+70771 info: Size            = 565 32648 
+70771 info: TableEntries    = 70329 70329
+70771 info: MirrorsAdded    = 4397 4419
+70771 info: PrunableCount   = 30593 30629
+70771 info: LargestGamma    = 5820.77
+70771 info: SmallestGamma   = 6.6e-05
+70771 info: Local:
+70771 info: Size            = 550 5318 
+70771 info: TableEntries    = 11602 11588
+70771 info: MirrorsAdded    = 0 0
+70771 info: PrunableCount   = 3659 3667
+70771 info: LargestGamma    = 11281.8
+70771 info: SmallestGamma   = 0.026235
+70771 config: IcePatternSet: reading from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/ice-patterns.txt'.
+70771 config: IcePatternSet: parsed 708 patterns.
+70771 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+70771 config: VCS:: parsed 2 patterns.
+70771 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+70771 config: VCS:: parsed 2 patterns.
+70771 config: IcePatternSet: reading from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/ice-patterns.txt'.
+70771 config: IcePatternSet: parsed 708 patterns.
+70771 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+70771 config: VCS:: parsed 2 patterns.
+70771 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+70771 config: VCS:: parsed 2 patterns.
+70771 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+70771 config: VCS:: parsed 2 patterns.
+70771 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+70771 config: VCS:: parsed 2 patterns.
+70771 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+70771 config: VCS:: parsed 2 patterns.
+70771 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+70771 config: VCS:: parsed 2 patterns.

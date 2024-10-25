@@ -96,7 +96,7 @@ class GamePlayer:
                 elapsedWhite += (time.time() - start)
 
             move = move.strip().lower()
-            print(f"move: {move}")
+
             self._game.addMove(move)
 
             if self._blackToMove:
@@ -117,9 +117,7 @@ class GamePlayer:
     def play(self, opening, verbose):
         self._verbose = verbose
         self._blackToMove = True
-        print("Play Opening")
         self.playOpening(opening)
-        print("Continue Game")
         self.continueGame()
         return self._game
 
@@ -174,12 +172,8 @@ class GamePlayer:
     # Sends command down the channel.
     # Raises GamePlayer.Error if program dies, etc.
     def _sendCommand(self, program, command):
-
-        print(f"Sending command from game player to c++ program: {command}")
-
         try:
             out = program.sendCommand(command)
-            print(f"out {out}")
             return out
         except Program.CommandDenied:
             reason = program.getDenyReason()

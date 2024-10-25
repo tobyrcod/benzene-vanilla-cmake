@@ -150,7 +150,6 @@ class Tournament:
         game = Game()  # just a temporary
         gamePlayer = GamePlayer(black, white, self._size)
         try:
-            print(f"Try Play Game From Opening: {opening}")
             # Play an entire game from the opening move given, or fail on the way
             # COME BACK HERE
             game = gamePlayer.play(opening, verbose)
@@ -158,16 +157,11 @@ class Tournament:
             resultBlack = self.handleResult(swapped, black.getResult())
             resultWhite = self.handleResult(swapped, white.getResult())
         except GamePlayer.Error:
-            print("Error Type: Game Player Error")
             error = 1
             errorMessage = gamePlayer.getErrorMessage()
         except Program.Died:
-            print("Error Type: Program Died")
             error = 1
             errorMessage = "program died"
-
-        print(f"error: {error}")
-        print(f"error message: {errorMessage}")
 
         name = f"{self._outdir}/{gameIndex:04d}"
 

@@ -31,6 +31,7 @@ class Program:
                              stdin=subprocess.PIPE,
                              stdout=subprocess.PIPE,
                              stderr=subprocess.PIPE)
+
         (self._stdin,
          self._stdout,
          self._stderr) = (p.stdin, p.stdout, p.stderr)
@@ -77,23 +78,17 @@ class Program:
 
     def sendCommand(self, cmd):
         try:
-            print(f"sending command {cmd}")
             self._log.write(">" + cmd + "\n")
             if self._verbose:
                 print(self._color + "< " + cmd)
             self._stdin.write((cmd + "\n").encode())
-            print(f"std written command {cmd}")
             self._stdin.flush()
-            print(f"std flushed command {cmd}")
             answer = self._getAnswer()
-            print(f"command answer: {answer}")
             return answer
         except IOError:
-            print("command answer: died")
             self._programDied()
 
     def _getAnswer(self):
-        print("getting answer")
         self._logStdErr()
         answer = ""
         done = False
@@ -105,7 +100,6 @@ class Program:
             # WHEN IT SHOULD BE E.G. '= B3'
 
             line = self._stdout.readline().decode()
-            print(f"line empty {line == ""}, line new {line == "\n"}")
             if line == "":
                 self._programDied()
             self._log.write("<" + line)
