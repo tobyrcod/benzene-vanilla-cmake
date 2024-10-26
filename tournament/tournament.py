@@ -217,6 +217,9 @@ class IterativeTournament(Tournament):
 
             opening = self._openings[openingIndex]
 
+            pretty_time = time.strftime("%H:%M:%S", time.localtime(time.time()))
+            print(f"round: {currentRound}, game: {gameInRound}, time, {pretty_time}, opening: {opening}")
+
             if (i % 2) == 0:
                 self.playGame(i, currentRound,
                               self._p1name, self._p1cmd,

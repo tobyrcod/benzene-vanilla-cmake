@@ -1,46 +1,51 @@
-006c1 config: MoHex v2.0.CMake Oct 24 2024.
-006c1 config: ============ InitializeSystem ============
-006c1 config: BenzeneProgram::InitRandom()
-006c1 config: Seed = 853902
-006c1 info: Prior Patterns:
-006c1 info: Global:
-006c1 info: Size            = 565 32648 
-006c1 info: TableEntries    = 65932 65910
-006c1 info: MirrorsAdded    = 0 0
-006c1 info: PrunableCount   = 30593 30629
-006c1 info: LargestGamma    = 5820.77
-006c1 info: SmallestGamma   = 6.6e-05
-006c1 info: Local:
-006c1 info: Size            = 550 5318 
-006c1 info: TableEntries    = 11602 11588
-006c1 info: MirrorsAdded    = 0 0
-006c1 info: PrunableCount   = 3659 3667
-006c1 info: LargestGamma    = 11281.8
-006c1 info: SmallestGamma   = 0.026235
-006c1 info: Playout Patterns:
-006c1 info: Global:
-006c1 info: Size            = 565 32648 
-006c1 info: TableEntries    = 70329 70329
-006c1 info: MirrorsAdded    = 4397 4419
-006c1 info: PrunableCount   = 30593 30629
-006c1 info: LargestGamma    = 5820.77
-006c1 info: SmallestGamma   = 6.6e-05
-006c1 info: Local:
-006c1 info: Size            = 550 5318 
-006c1 info: TableEntries    = 11602 11588
-006c1 info: MirrorsAdded    = 0 0
-006c1 info: PrunableCount   = 3659 3667
-006c1 info: LargestGamma    = 11281.8
-006c1 info: SmallestGamma   = 0.026235
-006c1 config: IcePatternSet: reading from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/ice-patterns.txt'.
-006c1 config: IcePatternSet: parsed 708 patterns.
-006c1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
-006c1 config: VCS:: parsed 2 patterns.
-006c1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
-006c1 config: VCS:: parsed 2 patterns.
-006c1 config: IcePatternSet: reading from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/ice-patterns.txt'.
-006c1 config: IcePatternSet: parsed 708 patterns.
-006c1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
-006c1 config: VCS:: parsed 2 patterns.
-006c1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
-006c1 config: VCS:: parsed 2 patterns.
+89821 config: MoHex v2.0.CMake Oct 24 2024.
+89821 config: ============ InitializeSystem ============
+89821 config: BenzeneProgram::InitRandom()
+89821 config: Seed = 853902
+89821 info: Prior Patterns:
+89821 info: Global:
+89821 info: Size            = 565 32648 
+89821 info: TableEntries    = 65932 65910
+89821 info: MirrorsAdded    = 0 0
+89821 info: PrunableCount   = 30593 30629
+89821 info: LargestGamma    = 5820.77
+89821 info: SmallestGamma   = 6.6e-05
+89821 info: Local:
+89821 info: Size            = 550 5318 
+89821 info: TableEntries    = 11602 11588
+89821 info: MirrorsAdded    = 0 0
+89821 info: PrunableCount   = 3659 3667
+89821 info: LargestGamma    = 11281.8
+89821 info: SmallestGamma   = 0.026235
+89821 info: Playout Patterns:
+89821 info: Global:
+89821 info: Size            = 565 32648 
+89821 info: TableEntries    = 70329 70329
+89821 info: MirrorsAdded    = 4397 4419
+89821 info: PrunableCount   = 30593 30629
+89821 info: LargestGamma    = 5820.77
+89821 info: SmallestGamma   = 6.6e-05
+89821 info: Local:
+89821 info: Size            = 550 5318 
+89821 info: TableEntries    = 11602 11588
+89821 info: MirrorsAdded    = 0 0
+89821 info: PrunableCount   = 3659 3667
+89821 info: LargestGamma    = 11281.8
+89821 info: SmallestGamma   = 0.026235
+89821 config: IcePatternSet: reading from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/ice-patterns.txt'.
+89821 config: IcePatternSet: parsed 708 patterns.
+89821 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+89821 config: VCS:: parsed 2 patterns.
+89821 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+89821 config: VCS:: parsed 2 patterns.
+89821 config: IcePatternSet: reading from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/ice-patterns.txt'.
+89821 config: IcePatternSet: parsed 708 patterns.
+89821 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+89821 config: VCS:: parsed 2 patterns.
+89821 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+89821 config: VCS:: parsed 2 patterns.
+89821 config: ============ BenzeneShutdown =============
+89821 config: MoHexProgram:: ShutdownSystem()
+89821 config: CommonProgram:: ShutdownSystem()
+89821 config: BenzeneProgram:: ShutdownSystem()
+Flushing and closing this stream...
