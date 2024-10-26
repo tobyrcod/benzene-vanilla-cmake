@@ -83,7 +83,7 @@ class ResultsFile:
 class Tournament:
     def __init__(self,
                  p1name, p1cmd, p2name, p2cmd, size, rounds, outdir,
-                 openings, verbose):
+                 openings, verbose, log):
 
         self._p1name = p1name
         self._p1cmd = p1cmd
@@ -93,6 +93,7 @@ class Tournament:
         self._rounds = rounds
         self._outdir = outdir
         self._verbose = verbose
+        self._log = log
 
         info = [
             f"p1name: {p1name}",
@@ -130,16 +131,23 @@ class Tournament:
 
     def playGame(self, gameIndex, currentRound,
                  blackName, blackCmd, whiteName, whiteCmd,
-                 opening, verbose):
+                 opening, verbose, log):
         if verbose:
             print("\n===========================================================")
             print(f"Game {gameIndex}")
             print("===========================================================\n")
 
-        bcmd = f"nice {blackCmd} --seed %SRAND --logfile-name {self._outdir}/{blackName}-{gameIndex}.log"
-        wcmd = f"nice {whiteCmd} --seed %SRAND --logfile-name {self._outdir}/{whiteName}-{gameIndex}.log"
-        bLogName = os.path.join(self._outdir, f"{blackName}-{gameIndex}-stderr.log")
-        wLogName = os.path.join(self._outdir, f"{whiteName}-{gameIndex}-stderr.log")
+
+        bcmd = f"nice {blackCmd} --seed %SRAND"
+        wcmd = f"nice {whiteCmd} --seed %SRAND"
+        bLogName = ""
+        wLogName = ""
+        if log:
+            bcmd += f" --logfile-name {self._outdir}/{blackName}-{gameIndex}.log"
+            wcmd += f" --logfile-name {self._outdir}/{whiteName}-{gameIndex}.log"
+            bLogName = os.path.join(self._outdir, f"{blackName}-{gameIndex}-stderr.log")
+            wLogName = os.path.join(self._outdir, f"{whiteName}-{gameIndex}-stderr.log")
+
         black = Program("B", bcmd, bLogName, verbose)
         white = Program("W", wcmd, wLogName, verbose)
 
@@ -151,7 +159,6 @@ class Tournament:
         gamePlayer = GamePlayer(black, white, self._size)
         try:
             # Play an entire game from the opening move given, or fail on the way
-            # COME BACK HERE
             game = gamePlayer.play(opening, verbose)
             swapped = game.playedSwap()
             resultBlack = self.handleResult(swapped, black.getResult())
@@ -176,7 +183,8 @@ class Tournament:
         self._resultsFile.addResult(currentRound, opening,
                                     blackName, whiteName,
                                     resultBlack, resultWhite,
-                                    # -1 so we don't count "resign" as a move
+                                    # -1 so we don't count "resign" as a move,
+                                    # As every game ends with one player 'resigning' when they can see the opponent has won
                                     game.getLength()-1,
                                     game.getElapsed("black"),
                                     game.getElapsed("white"),
@@ -185,7 +193,7 @@ class Tournament:
         # save game
         gamePlayer.save(name + ".sgf", name, resultBlack, resultWhite)
         if error:
-            print(f"Error: Game {gameIndex}")
+            print(f"Error: Game {gameIndex}, Message {errorMessage}")
         for program in [black, white]:
             try:
                 program.sendCommand("quit")
@@ -208,14 +216,12 @@ class IterativeTournament(Tournament):
                 self._openings.append(line.strip())
 
     def playTournament(self):
-        gamesPerRound = 2 * len(self._openings)
+        gamesPerRound = len(self._openings)
         first = self._resultsFile.getLastIndex() + 1
         for i in range(first, self._rounds * gamesPerRound):
             currentRound = i // gamesPerRound
             gameInRound = i % gamesPerRound
-            openingIndex = gameInRound // 2
-
-            opening = self._openings[openingIndex]
+            opening = self._openings[gameInRound]
 
             pretty_time = time.strftime("%H:%M:%S", time.localtime(time.time()))
             print(f"round: {currentRound}, game: {gameInRound}, time, {pretty_time}, opening: {opening}")
@@ -224,12 +230,14 @@ class IterativeTournament(Tournament):
                 self.playGame(i, currentRound,
                               self._p1name, self._p1cmd,
                               self._p2name, self._p2cmd,
-                              opening, self._verbose)
+                              opening, self._verbose,
+                              self._log)
             else:
                 self.playGame(i, currentRound,
                               self._p2name, self._p2cmd,
                               self._p1name, self._p1cmd,
-                              opening, self._verbose)
+                              opening, self._verbose,
+                              self._log)
 
 #----------------------------------------------------------------------------
 

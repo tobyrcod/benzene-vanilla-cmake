@@ -37,8 +37,12 @@ class Program:
          self._stderr) = (p.stdin, p.stdout, p.stderr)
 
         self._isDead = False
-        self._log = open(logName, "w")
-        self._log.write("# " + self._command + "\n")
+        self._log = open(logName, "w") if logName else None
+        self.writeLog("# " + self._command + "\n")
+
+    def writeLog(self, message):
+        if self._log:
+            self._log.write(message)
 
     def getColor(self):
         return self._color
@@ -78,7 +82,7 @@ class Program:
 
     def sendCommand(self, cmd):
         try:
-            self._log.write(">" + cmd + "\n")
+            self.writeLog(">" + cmd + "\n")
             if self._verbose:
                 print(self._color + "< " + cmd)
             self._stdin.write((cmd + "\n").encode())
@@ -94,15 +98,10 @@ class Program:
         done = False
         numberLines = 0
         while not done:
-
-            # AFTER A GENMOVE W COMMAND,
-            # FOR SOME REASON THE LINE IS ""
-            # WHEN IT SHOULD BE E.G. '= B3'
-
             line = self._stdout.readline().decode()
             if line == "":
                 self._programDied()
-            self._log.write("<" + line)
+            self.writeLog("<" + line)
             if self._verbose:
                 sys.stdout.write(self._color + "> " + line)
             numberLines += 1
@@ -117,6 +116,9 @@ class Program:
         return answer[2:]
 
     def _logStdErr(self):
+        if not self._log:
+            return
+
         list = select([self._stderr], [], [], 0)[0]
         for s in list:
             self._log.write(os.read(s.fileno(), 8192).decode())
