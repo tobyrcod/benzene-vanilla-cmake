@@ -5,7 +5,9 @@
 #
 #----------------------------------------------------------------------------
 
-import string, os, sys, subprocess
+import os
+import sys
+import subprocess
 
 #----------------------------------------------------------------------------
 
@@ -20,9 +22,18 @@ class Program:
         self._command = command
         self._verbose = verbose
         if self._verbose:
-            print "Creating program:", command
-        self._stdin, self._stdout, self._stderr = os.popen3(command)
-        self._isDead = 0
+            print("Creating program:", command)
+
+        # Using `subprocess.Popen` instead of `os.popen3`
+        self._process = subprocess.Popen(
+            command,
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            shell=True,
+            text=True  # Set text mode for automatic encoding/decoding
+        )
+        self._isDead = False
 
     def getCommand(self):
         return self._command
@@ -33,8 +44,8 @@ class Program:
     def getName(self):
         name = "?"
         try:
-            name = string.strip(self.sendCommand("name"))
-            version = string.strip(self.sendCommand("version"))
+            name = self.sendCommand("name").strip()
+            version = self.sendCommand("version").strip()
             name += " " + version
         except Program.CommandDenied:
             pass
@@ -44,36 +55,38 @@ class Program:
         return self._isDead
 
     def sendCommand(self, cmd):
+        if self._isDead:
+            raise Program.Died("Program is dead and cannot process commands.")
+
         try:
             if self._verbose:
-                print "< " + cmd
-            self._stdin.write(cmd + "\n")
-            self._stdin.flush()
+                print("< " + cmd)
+            self._process.stdin.write(cmd + "\n")
+            self._process.stdin.flush()
             return self._getAnswer()
-        except IOError:
+        except (IOError, BrokenPipeError):
             self._programDied()
 
     def _getAnswer(self):
         answer = ""
-        done = 0
         numberLines = 0
-        while not done:
-            line = self._stdout.readline()
+        while True:
+            line = self._process.stdout.readline()
             if line == "":
                 self._programDied()
             if self._verbose:
                 sys.stdout.write("> " + line)
             numberLines += 1
-            done = (line == "\n")
-            if not done:
-                answer += line
+            if line == "\n":
+                break
+            answer += line
+
+        # Process and validate answer format
         if answer[0] != '=':
-            self._denyReason = string.strip(answer[2:])
+            self._denyReason = answer[2:].strip()
             raise Program.CommandDenied
-        if numberLines == 1:
-            return string.strip(answer[1:])
-        return answer[2:]
+        return answer[1:].strip() if numberLines == 1 else answer[2:].strip()
 
     def _programDied(self):
-        self._isDead = 1
-        raise Program.Died
+        self._isDead = True
+        raise Program.Died("The GTP program has terminated unexpectedly.")

@@ -1,17 +1,18 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #----------------------------------------------------------------------------
 # Solves given set of positions using dfpn.
-# 
+#
 # Such a set of positions can be generated using the HTP command
 #   'book-dump-non-terminal [min # of stones] [output file]'
 # to dump all leaf states with at least the given number of stones.
 # The output file can then be used as the input file for this script.
 #
 # Results are dumped to [thread-name].solved and [thread-name].unsolved
-# files for processing by other scripts. 
+# files for processing by other scripts.
 #----------------------------------------------------------------------------
 
-import getopt, sys
+import getopt
+import sys
 from threading import Thread, Lock
 from program import Program
 
@@ -19,28 +20,25 @@ from program import Program
 
 class Positions:
     def __init__(self, positionsFile):
-        f = open(positionsFile, "r")
-        self._lines = f.readlines()
-        f.close()
+        with open(positionsFile, "r") as f:
+            self._lines = f.readlines()
         self._lock = Lock()
 
     def getPosition(self):
-        self._lock.acquire();
-        ret = "";
-        if len(self._lines) > 0:
-            ret = self._lines[0].strip()
-            self._lines.pop(0)
-        self._lock.release();
-        return ret;
+        with self._lock:
+            ret = ""
+            if len(self._lines) > 0:
+                ret = self._lines.pop(0).strip()
+            return ret
 
 #----------------------------------------------------------------------------
 
 class DfpnSolver(Thread):
-    class Error:
+    class Error(Exception):
         pass
 
     def __init__(self, name, command, positions, verbose):
-        Thread.__init__(self)
+        super().__init__()
         self._name = name
         self._positions = positions
         self._verbose = verbose
@@ -49,57 +47,52 @@ class DfpnSolver(Thread):
 
     def sendCommand(self, command):
         try:
-            return self._program.sendCommand(command);
+            return self._program.sendCommand(command)
         except Program.CommandDenied:
             reason = self._program.getDenyReason()
-            self._errorMessage = _name + ": "  + reason
+            self._errorMessage = f"{self._name}: {reason}"
             raise DfpnSolver.Error
         except Program.Died:
-            self._errorMessage = _name + ": program died"
+            self._errorMessage = f"{self._name}: program died"
             raise DfpnSolver.Error
 
     def playVariation(self, variation):
-        self.sendCommand("clear_board");
-        moves = variation.split(' ');
-        color = "B";
+        self.sendCommand("clear_board")
+        moves = variation.split()
+        color = "B"
         for move in moves:
-            cmd = "play " + color + " " + move.strip();
-            self.sendCommand(cmd);
-            if color == "B":
-                color = "W";
-            else:
-                color = "B";
-            
+            cmd = f"play {color} {move.strip()}"
+            self.sendCommand(cmd)
+            color = "W" if color == "B" else "B"
+
     def solvePosition(self, variation):
-        if (self._verbose):
-            print "#####################################"
-            print self._name + ": " + variation
-            print "#####################################"
+        if self._verbose:
+            print("#####################################")
+            print(f"{self._name}: {variation}")
+            print("#####################################")
         else:
-            print self._name + ": " + variation
-        self.playVariation(variation);
-        return self.sendCommand("dfpn-solve-state");
+            print(f"{self._name}: {variation}")
+        self.playVariation(variation)
+        return self.sendCommand("dfpn-solve-state")
 
     def addResult(self, variation, winner):
-        if (winner == "empty"):
-            f = open(self._name + ".unsolved", "a");
-            print >> f, variation;
-            f.close();
+        if winner == "empty":
+            with open(f"{self._name}.unsolved", "a") as f:
+                print(variation, file=f)
         else:
-            f = open(self._name + ".solved", "a");
-            print >> f, variation + " " + winner
-            f.close();
+            with open(f"{self._name}.solved", "a") as f:
+                print(f"{variation} {winner}", file=f)
 
     def run(self):
         while True:
-            variation = self._positions.getPosition();
+            variation = self._positions.getPosition()
             if variation == "":
-                return;
+                return
             else:
-                winner = self.solvePosition(variation).strip();
-                self.addResult(variation, winner);
-                print self._name + ": " + winner
-                
+                winner = self.solvePosition(variation).strip()
+                self.addResult(variation, winner)
+                print(f"{self._name}: {winner}")
+
 #----------------------------------------------------------------------------
 
 def printUsage():
@@ -110,8 +103,8 @@ def printUsage():
         "  --positions |-p: openings to use (required)\n"
         "  --program   |-c: program to run (required)\n"
         "  --threads   |-n: number of threads (default is 1)\n"
-        "  --quiet     |-q: be quiet\n");
-    
+        "  --quiet     |-q: be quiet\n")
+
 #----------------------------------------------------------------------------
 
 def main():
@@ -119,41 +112,42 @@ def main():
     program = ""
     positionFile = ""
     numThreads = 1
-    
+
     try:
         options = "hp:c:n:q"
-        longOptions = ["help", "positions=", "program=", "threads=", "quiet"];
+        longOptions = ["help", "positions=", "program=", "threads=", "quiet"]
         opts, args = getopt.getopt(sys.argv[1:], options, longOptions)
     except getopt.GetoptError:
         printUsage()
         sys.exit(1)
-        
+
     for o, v in opts:
         if o in ("-h", "--help"):
-            printUsage();
-            sys.exit();
+            printUsage()
+            sys.exit()
         elif o in ("-p", "--positions"):
-            positionFile = v;
+            positionFile = v
         elif o in ("-c", "--program"):
-            program = v;
+            program = v
         elif o in ("-n", "--threads"):
-            numThreads = int(v);
+            numThreads = int(v)
         elif o in ("-q", "--quiet"):
             verbose = False
 
-    if (positionFile == "" or program == ""):
+    if not positionFile or not program:
         printUsage()
         sys.exit(1)
 
-    positions = Positions(positionFile);
+    positions = Positions(positionFile)
 
     solverlist = []
     for i in range(numThreads):
-        solver = DfpnSolver("thread" + str(i), program, positions, verbose);
+        solver = DfpnSolver(f"thread{i}", program, positions, verbose)
         solverlist.append(solver)
         solver.start()
     for solver in solverlist:
         solver.join()
-    print "All threads finished."
-    
-main()
+    print("All threads finished.")
+
+if __name__ == "__main__":
+    main()
