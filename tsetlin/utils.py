@@ -1,13 +1,16 @@
 import sys
+import csv
 from pathlib import Path
+from typing import Tuple, List, Any
+
 from pysgf import SGF
 
 # TODO: document every method
 
-class TournamentUtils:
+class Utils:
 
     @staticmethod
-    def load_tournament_games(tournament_path: Path) ->  list[tuple[str, list]]:
+    def load_tournament_games(tournament_path: Path) -> tuple[list[tuple[int, list]], int]:
         result_keys = ['GAME', 'ROUND', 'OPENING', 'BLACK', 'WHITE', 'RES_B', 'RES_W', 'LENGTH', 'TIME_B', 'TIME_W', 'ERR', 'ERR_MSG']
 
         try:
@@ -60,20 +63,103 @@ class TournamentUtils:
                         player = move_node.player
                         game_moves.append(move_node.get_property(player))
                         move_node = children[0]
-                    print(game_moves)
                     game_moves = game_moves[:-1]
 
                     # Save the game
+                    game_winner = 1 if game_winner == "B+" else 0                                       # 1 if black wins, 0 if white wins (black loses)
                     games.append((game_winner, game_moves))
 
-            return games
+            return games, game_boardsize
 
         except (FileNotFoundError, NotADirectoryError) as e:
             print(e, file=sys.stderr)
 
 
+    @staticmethod
+    def games_to_winner_prediction_dataset(games:  list[tuple[int, list]], boardsize: int, dataset_path: Path):
+        try:
+            csv_headers = ["Winner"] + [f"x{i}" for i in range(2*boardsize**2)]
+            with open(dataset_path, mode='w', newline='') as dataset:
+                csv_writer = csv.writer(dataset)
+                csv_writer.writerow(csv_headers)
+                for game in games:
+                    winner, moves = game
+                    states = Utils._get_literal_states_from_moves(moves, boardsize)
+                    for state in states:
+                        csv_writer.writerow([winner] + state)
+                    break
+        except (FileNotFoundError, NotADirectoryError) as e:
+            print(e, file=sys.stderr)
+
+
+    @staticmethod
+    def _hex_string_to_number(hex_string: str) -> int:
+        # Treat the hex_string as a base 26 number, increasing powers left-to-right
+        number = 0
+        for c in hex_string:
+            value = ord(c) - ord('a') + 1
+            number *= 26
+            number += value
+        return number
+
+
+    @staticmethod
+    def _hex_position_to_index(position: str, boardsize: int) -> int:
+        # move will be e.g. 'a1'
+        # First job is to split this into 'a' and '1'
+        split_index = -1
+        for i, c in enumerate(position):
+            if c.isalpha():
+                continue
+            if i != 0:
+                split_index = i
+            break
+        if split_index == -1:
+            return -1
+        string = position[:split_index]
+        number = position[split_index:]
+
+        # Second, convert from letter, number to x, y coordinates
+        x = Utils._hex_string_to_number(string) - 1
+        y = int(number) - 1
+        if x < 0 or x >= boardsize or y < 0 or y >= boardsize:  # Ensure the coordinate is on the board
+            return -1
+
+        # Finally, convert from 2D coordinates to 1D index
+        return y * boardsize + x
+
+
+    @staticmethod
+    def _get_literal_states_from_moves(moves: list[str], boardsize: int):
+
+        # TODO: Check literal representation process from Giri et al.
+        # Logic-based AI for Interpretable Board Game Winner Prediction with Tsetlin Machine
+        # https://ieeexplore.ieee.org/document/9892796
+
+        states = []
+        literals_per_player = boardsize**2
+        literals = [0 for _ in range(2 * literals_per_player)]
+
+        for i, move in enumerate(moves):
+            is_white_move = i % 2 != 0
+            index = Utils._hex_position_to_index(move, boardsize)
+            index += is_white_move * literals_per_player
+            literals[index] = 1
+            states.append(literals.copy())
+
+        # for state in states:
+        #     print(sum(state))
+
+        return states
+
+
 if __name__ == "__main__":
-    # Test tournament loader with default path
-    games = TournamentUtils.load_tournament_games(Path("test_tournament/6x6-mohex-mohex-simple-a-vs-mohex-mohex-simple-b"))
-    print(games)
-    print(len(games))
+    test_path = Path("test_tournament")
+    tournament_path = test_path / "6x6-mohex-mohex-simple-a-vs-mohex-mohex-simple-b"
+    dataset_path = test_path / "dataset.csv"
+
+    # Loader the tournament results file
+    games, boardsize = Utils.load_tournament_games(tournament_path)
+
+    # Convert it to a winner prediction dataset
+    Utils.games_to_winner_prediction_dataset(games, boardsize, dataset_path)
