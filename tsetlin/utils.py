@@ -1,13 +1,13 @@
 import sys
 import csv
 from pathlib import Path
-from typing import Tuple, List, Any
+from typing import Callable
 
 from pysgf import SGF
 
 # TODO: document every method
 
-class Utils:
+class UtilsBenzene:
 
     @staticmethod
     def load_tournament_games(tournament_path: Path) -> tuple[list[tuple[int, list]], int]:
@@ -81,10 +81,11 @@ class Utils:
             csv_headers = ["Winner"] + [f"x{i}" for i in range(2*boardsize**2)]
             with open(dataset_path, mode='w', newline='') as dataset:
                 csv_writer = csv.writer(dataset)
+                csv_writer.writerow(['boardsize', boardsize])
                 csv_writer.writerow(csv_headers)
                 for game in games:
                     winner, moves = game
-                    states = Utils._get_literal_states_from_moves(moves, boardsize)
+                    states = UtilsBenzene._get_literal_states_from_moves(moves, boardsize)
                     for state in states:
                         csv_writer.writerow([winner] + state)
                     break
@@ -120,7 +121,7 @@ class Utils:
         number = position[split_index:]
 
         # Second, convert from letter, number to x, y coordinates
-        x = Utils._hex_string_to_number(string) - 1
+        x = UtilsBenzene._hex_string_to_number(string) - 1
         y = int(number) - 1
         if x < 0 or x >= boardsize or y < 0 or y >= boardsize:  # Ensure the coordinate is on the board
             return -1
@@ -142,16 +143,50 @@ class Utils:
 
         for i, move in enumerate(moves):
             is_white_move = i % 2 != 0
-            index = Utils._hex_position_to_index(move, boardsize)
+            index = UtilsBenzene._hex_position_to_index(move, boardsize)
             index += is_white_move * literals_per_player
             literals[index] = 1
             states.append(literals.copy())
 
-        # for state in states:
-        #     print(sum(state))
-
         return states
 
+
+class UtilsTM:
+
+    @staticmethod
+    def tm_from_dataset(dataset_path: Path, batch_size=10):
+        try:
+
+            tm = None
+
+            with open(dataset_path, mode='r', newline='') as dataset:
+                reader = csv.reader(dataset)
+                boardsize = int(next(reader)[1])
+                headers = next(reader)
+                batch = []
+                for row in reader:
+                    winner = int(row[0])
+                    literals = [int(l) for l in row[1:]]
+                    assert len(literals) == 2*boardsize**2
+
+                    batch.append((winner, literals))
+                    if len(batch) >= batch_size:
+                        UtilsTM.train_tm_from_batch(tm, batch, boardsize)
+                        batch.clear()
+                if batch:
+                    UtilsTM.train_tm_from_batch(tm, batch, boardsize)
+                    batch.clear()
+
+        except (FileNotFoundError, NotADirectoryError) as e:
+            print(e, file=sys.stderr)
+        except Exception as e:
+            print(e, file=sys.stderr)
+
+
+    @staticmethod
+    def train_tm_from_batch(tm, batch, boardsize: int):
+        # Placeholder function, replace with real TM
+        print(boardsize, len(batch))
 
 if __name__ == "__main__":
     test_path = Path("test_tournament")
@@ -159,7 +194,10 @@ if __name__ == "__main__":
     dataset_path = test_path / "dataset.csv"
 
     # Loader the tournament results file
-    games, boardsize = Utils.load_tournament_games(tournament_path)
+    games, boardsize = UtilsBenzene.load_tournament_games(tournament_path)
 
     # Convert it to a winner prediction dataset
-    Utils.games_to_winner_prediction_dataset(games, boardsize, dataset_path)
+    UtilsBenzene.games_to_winner_prediction_dataset(games, boardsize, dataset_path)
+
+    # Train a TM for hex winner prediction from the dataset
+    UtilsTM.tm_from_dataset(dataset_path, batch_size=4)
