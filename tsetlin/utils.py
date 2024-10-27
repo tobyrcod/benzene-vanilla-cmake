@@ -2,10 +2,12 @@ import sys
 from pathlib import Path
 from pysgf import SGF
 
+# TODO: document every method
+
 class TournamentUtils:
 
     @staticmethod
-    def load_tournament_games(tournament_path: Path):
+    def load_tournament_games(tournament_path: Path) ->  list[tuple[str, list]]:
         result_keys = ['GAME', 'ROUND', 'OPENING', 'BLACK', 'WHITE', 'RES_B', 'RES_W', 'LENGTH', 'TIME_B', 'TIME_W', 'ERR', 'ERR_MSG']
 
         try:
@@ -33,7 +35,7 @@ class TournamentUtils:
                         continue
                     if result['RES_B'] != result['RES_W']:                                              # Players need to agree on a winner
                         continue
-                    if result['RES_B'] not in ("B+", "W+"):                                             # The winner must be a player (may be '?' if game isn't over)
+                    if result['RES_B'] not in ("B+", "W+"):                                             # The winner must be a player
                         continue
                     game_winner = result['RES_B']
 
@@ -54,13 +56,12 @@ class TournamentUtils:
                     # Convert the sgf move tree into a list
                     game_moves = []
                     move_node = sgf.children[0]
-                    while move_node:
+                    while children := move_node.children:
                         player = move_node.player
                         game_moves.append(move_node.get_property(player))
-
-                        children = move_node.children
-                        move_node = move_node.children[0] if children else None
-                    game_moves = game_moves[1:-1]  # First node in tree is metadata, last node is "resign"
+                        move_node = children[0]
+                    print(game_moves)
+                    game_moves = game_moves[:-1]
 
                     # Save the game
                     games.append((game_winner, game_moves))
