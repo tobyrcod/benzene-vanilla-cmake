@@ -4,7 +4,7 @@ from enum import IntFlag
 from pathlib import Path
 from pysgf import SGF
 
-# TODO: document every method
+# TODO: document every method with """ """
 
 class UtilsBenzene:
 
