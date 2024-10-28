@@ -181,6 +181,7 @@ class UtilsTM:
                 # Instead of listing all black and then all white literals,
                 # We list positions in order, alternating black then white
                 # for 6x6, x1, x2,..., x37, x38,... becomes x1, x37, x2, x38,...
+                # Idea: May help positional reasoning, especially for CTM
                 literals_per_player = boardsize**2
                 old_literals = literals.copy()
                 for new_index in range(len(literals)):
