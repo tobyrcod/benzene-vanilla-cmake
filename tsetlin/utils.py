@@ -6,7 +6,56 @@ from pysgf import SGF
 
 # TODO: document every method with """ """
 
-class UtilsBenzene:
+class UtilsHex:
+
+    @staticmethod
+    def coordinates_2d_to_1d(x: int, y: int, boardsize: int) -> int:
+        return y * boardsize + x
+
+
+    @staticmethod
+    def coordinates_1d_to_2d(i: int, boardsize: int) -> tuple[int, int]:
+        return i % boardsize, i // boardsize
+
+
+    @staticmethod
+    def string_to_number(hex_string: str) -> int:
+        # Treat the hex_string as a base 26 number, increasing powers left-to-right
+        number = 0
+        for c in hex_string:
+            value = ord(c) - ord('a') + 1
+            number *= 26
+            number += value
+        return number
+
+
+    @staticmethod
+    def position_to_index(position: str, boardsize: int) -> int:
+        # move will be e.g. 'a1'
+        # First job is to split this into 'a' and '1'
+        split_index = -1
+        for i, c in enumerate(position):
+            if c.isalpha():
+                continue
+            if i != 0:
+                split_index = i
+            break
+        if split_index == -1:
+            return -1
+        string = position[:split_index]
+        number = position[split_index:]
+
+        # Second, convert from letter, number to x, y coordinates
+        x = UtilsHex.string_to_number(string) - 1
+        y = int(number) - 1
+        if x < 0 or x >= boardsize or y < 0 or y >= boardsize:  # Ensure the coordinate is on the board
+            return -1
+
+        # Finally, convert from 2D coordinates to 1D index
+        return UtilsHex.coordinates_2d_to_1d(x, y, boardsize)
+
+
+class UtilsTournament:
 
     @staticmethod
     def load_tournament_games(tournament_path: Path) -> tuple[list[tuple[int, list]], int]:
@@ -84,49 +133,12 @@ class UtilsBenzene:
                 csv_writer.writerow(csv_headers)
                 for i, game in enumerate(games):
                     winner, moves = game
-                    states = UtilsBenzene._get_literal_states_from_moves(moves, boardsize)
+                    states = UtilsTournament._get_literal_states_from_moves(moves, boardsize)
                     for state in states:
                         csv_writer.writerow([i, winner] + state)
 
         except (FileNotFoundError, NotADirectoryError) as e:
             print(e, file=sys.stderr)
-
-
-    @staticmethod
-    def _hex_string_to_number(hex_string: str) -> int:
-        # Treat the hex_string as a base 26 number, increasing powers left-to-right
-        number = 0
-        for c in hex_string:
-            value = ord(c) - ord('a') + 1
-            number *= 26
-            number += value
-        return number
-
-
-    @staticmethod
-    def _hex_position_to_index(position: str, boardsize: int) -> int:
-        # move will be e.g. 'a1'
-        # First job is to split this into 'a' and '1'
-        split_index = -1
-        for i, c in enumerate(position):
-            if c.isalpha():
-                continue
-            if i != 0:
-                split_index = i
-            break
-        if split_index == -1:
-            return -1
-        string = position[:split_index]
-        number = position[split_index:]
-
-        # Second, convert from letter, number to x, y coordinates
-        x = UtilsBenzene._hex_string_to_number(string) - 1
-        y = int(number) - 1
-        if x < 0 or x >= boardsize or y < 0 or y >= boardsize:  # Ensure the coordinate is on the board
-            return -1
-
-        # Finally, convert from 2D coordinates to 1D index
-        return y * boardsize + x
 
 
     @staticmethod
@@ -142,7 +154,7 @@ class UtilsBenzene:
 
         for i, move in enumerate(moves):
             is_white_move = i % 2
-            index = UtilsBenzene._hex_position_to_index(move, boardsize)
+            index = UtilsHex.position_to_index(move, boardsize)
             index += is_white_move * literals_per_player
             literals[index] = 1
             states.append(literals.copy())
@@ -260,10 +272,10 @@ if __name__ == "__main__":
     dataset_path = test_path / "dataset.csv"
 
     # Loader the tournament results file
-    games, boardsize = UtilsBenzene.load_tournament_games(tournament_path)
+    games, boardsize = UtilsTournament.load_tournament_games(tournament_path)
 
     # Convert it to a winner prediction dataset
-    UtilsBenzene.games_to_winner_prediction_dataset(games, boardsize, dataset_path)
+    UtilsTournament.games_to_winner_prediction_dataset(games, boardsize, dataset_path)
 
     # Train a TM for hex winner prediction from the dataset
     UtilsTM.train_tm_from_dataset(dataset_path, batch_size=5, augmentation=UtilsTM.LiteralAugmentation.AUG_PAIR_POSITIONS)
