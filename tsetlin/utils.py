@@ -77,17 +77,17 @@ class UtilsBenzene:
     @staticmethod
     def games_to_winner_prediction_dataset(games:  list[tuple[int, list]], boardsize: int, dataset_path: Path):
         try:
-            csv_headers = ["Winner"] + [f"x{i}" for i in range(2*boardsize**2)]
+            csv_headers = ["Game#", "Winner"] + [f"x{i}" for i in range(2*boardsize**2)]
             with open(dataset_path, mode='w', newline='') as dataset:
                 csv_writer = csv.writer(dataset)
                 csv_writer.writerow(['boardsize', boardsize])
                 csv_writer.writerow(csv_headers)
-                for game in games:
+                for i, game in enumerate(games):
                     winner, moves = game
                     states = UtilsBenzene._get_literal_states_from_moves(moves, boardsize)
                     for state in states:
-                        csv_writer.writerow([winner] + state)
-                    break
+                        csv_writer.writerow([i, winner] + state)
+
         except (FileNotFoundError, NotADirectoryError) as e:
             print(e, file=sys.stderr)
 
@@ -250,7 +250,8 @@ class UtilsTM:
     @staticmethod
     def _train_tm_from_batch(tm, batch, boardsize: int):
         # Placeholder function, replace with real TM
-        print(boardsize, len(batch))
+        # print(boardsize, len(batch))
+        pass
 
 if __name__ == "__main__":
     test_path = Path("test_tournament")
