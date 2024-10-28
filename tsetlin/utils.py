@@ -157,8 +157,44 @@ class UtilsTM:
         AUG_MOVE_COUNTER    = 1 << 0
         AUG_TURN_INDICATOR  = 1 << 1
         AUG_PADDING         = 1 << 2
-        AUG_MOVE_HISTORY    = 1 << 3
-        AUG_ALL             = ~0
+        AUG_PAIR_POSITIONS  = 1 << 3
+        AUG_STATE_HISTORY   = 1 << 4
+        AUG_MOVE_HISTORY    = 1 << 5
+        # AUG_ALL             = ~0
+
+        @staticmethod
+        def is_valid(augmentation: "UtilsTM.LiteralAugmentation") -> bool:
+            if augmentation <= 0:
+                return False
+            if (augmentation & UtilsTM.LiteralAugmentation.AUG_STATE_HISTORY) and \
+               (augmentation & UtilsTM.LiteralAugmentation.AUG_MOVE_HISTORY):
+                return False  # Only one type of history can be used
+            return True
+
+        @staticmethod
+        def augment_literals(literals, augmentation: "UtilsTM.LiteralAugmentation", boardsize: int):
+            # Check to see this augmentation makes sense
+            if not UtilsTM.LiteralAugmentation.is_valid(augmentation):
+                return
+
+            if augmentation & UtilsTM.LiteralAugmentation.AUG_MOVE_COUNTER:
+                # Add a binary counter for how many moves into the game we are
+                # Idea: although this is implicit already, does making it explicit help?
+
+                max_move_count = (boardsize ** 2)
+                max_count_length = max_move_count.bit_length()
+                move_count = sum(literals) + 1
+                move_count_binary = f'{move_count:b}'.zfill(max_count_length)
+                move_count_literals = list(map(int, move_count_binary))
+                literals.extend(move_count_literals)
+
+            if augmentation & UtilsTM.LiteralAugmentation.AUG_TURN_INDICATOR:
+                # Add a binary bit to represent if it is black (1) or white (0) to play
+                # Idea: although this is implicit already, does making it explicit help?
+
+                move_count = sum(literals) + 1
+                is_blacks_turn = move_count % 2 != 0
+                literals.append(int(is_blacks_turn))
 
     @staticmethod
     def train_tm_from_dataset(dataset_path: Path, batch_size=10, augmentation: LiteralAugmentation=LiteralAugmentation.NONE):
@@ -177,7 +213,7 @@ class UtilsTM:
                     assert len(literals) == 2*boardsize**2
 
                     # We may want to modify the board representation to see if it helps/hinders training
-                    UtilsTM._augment_literals(literals, augmentation, boardsize)
+                    UtilsTM.LiteralAugmentation.augment_literals(literals, augmentation, boardsize)
 
                     batch.append((winner, literals))
                     if len(batch) >= batch_size:
@@ -191,28 +227,6 @@ class UtilsTM:
             print(e, file=sys.stderr)
         except Exception as e:
             print(e, file=sys.stderr)
-
-
-    @staticmethod
-    def _augment_literals(literals, augmentation: LiteralAugmentation, boardsize: int):
-        if augmentation & UtilsTM.LiteralAugmentation.AUG_MOVE_COUNTER:
-            # Add a binary counter for how many moves into the game we are
-            # Idea: although this is implicit already, does making it explicit help?
-
-            max_move_count = (boardsize**2)
-            max_count_length = max_move_count.bit_length()
-            move_count = sum(literals) + 1
-            move_count_binary = f'{move_count:b}'.zfill(max_count_length)
-            move_count_literals = list(map(int, move_count_binary))
-            literals.extend(move_count_literals)
-
-        if augmentation & UtilsTM.LiteralAugmentation.AUG_TURN_INDICATOR:
-            # Add a binary bit to represent if it is black (1) or white (0) to play
-            # Idea: although this is implicit already, does making it explicit help?
-
-            move_count = sum(literals) + 1
-            is_blacks_turn = move_count % 2 != 0
-            literals.append(int(is_blacks_turn))
 
 
     @staticmethod
