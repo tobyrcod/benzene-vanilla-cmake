@@ -138,10 +138,10 @@ class UtilsBenzene:
 
         states = []
         literals_per_player = boardsize**2
-        literals = [0 for _ in range(2 * literals_per_player)]
+        literals = UtilsTM.make_new_literals(boardsize)
 
         for i, move in enumerate(moves):
-            is_white_move = i % 2 != 0
+            is_white_move = i % 2
             index = UtilsBenzene._hex_position_to_index(move, boardsize)
             index += is_white_move * literals_per_player
             literals[index] = 1
@@ -177,6 +177,19 @@ class UtilsTM:
             if not UtilsTM.LiteralAugmentation.is_valid(augmentation):
                 return
 
+            if augmentation & UtilsTM.LiteralAugmentation.AUG_PAIR_POSITIONS:
+                # Instead of listing all black and then all white literals,
+                # We list positions in order, alternating black then white
+                # for 6x6, x1, x2,..., x37, x38,... becomes x1, x37, x2, x38,...
+                literals_per_player = boardsize**2
+                old_literals = literals.copy()
+                for new_index in range(len(literals)):
+                    colour_index = new_index // 2
+                    is_white = new_index % 2
+                    old_index = colour_index + is_white * literals_per_player
+                    literals[new_index] = old_literals[old_index]
+
+
             if augmentation & UtilsTM.LiteralAugmentation.AUG_MOVE_COUNTER:
                 # Add a binary counter for how many moves into the game we are
                 # Idea: although this is implicit already, does making it explicit help?
@@ -195,6 +208,11 @@ class UtilsTM:
                 move_count = sum(literals) + 1
                 is_blacks_turn = move_count % 2 != 0
                 literals.append(int(is_blacks_turn))
+
+    @staticmethod
+    def make_new_literals(boardsize: int) -> list[int]:
+        literals_per_player = boardsize ** 2
+        return [0 for _ in range(2 * literals_per_player)]
 
     @staticmethod
     def train_tm_from_dataset(dataset_path: Path, batch_size=10, augmentation: LiteralAugmentation=LiteralAugmentation.NONE):
@@ -246,4 +264,4 @@ if __name__ == "__main__":
     UtilsBenzene.games_to_winner_prediction_dataset(games, boardsize, dataset_path)
 
     # Train a TM for hex winner prediction from the dataset
-    UtilsTM.train_tm_from_dataset(dataset_path, batch_size=5, augmentation=UtilsTM.LiteralAugmentation.AUG_TURN_INDICATOR)
+    UtilsTM.train_tm_from_dataset(dataset_path, batch_size=5, augmentation=UtilsTM.LiteralAugmentation.AUG_PAIR_POSITIONS)

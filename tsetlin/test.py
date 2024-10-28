@@ -1,4 +1,4 @@
-from utils import UtilsBenzene
+from utils import UtilsBenzene, UtilsTM
 
 class Tests:
 
@@ -22,6 +22,22 @@ class Tests:
         assert UtilsBenzene._hex_position_to_index('g1', 6) == -1
 
 
+    @staticmethod
+    def test_pair_position_literal_augmentation():
+        for boardsize in range(6, 14):
+            literals_per_player = boardsize**2
+
+            black = [i                          for i in range(literals_per_player)]
+            white = [i + literals_per_player    for i in range(literals_per_player)]
+            before = black + white
+            after = [x for pair in zip(black, white) for x in pair]
+
+            literals = before
+            assert literals == before
+            UtilsTM.LiteralAugmentation.augment_literals(literals, UtilsTM.LiteralAugmentation.AUG_PAIR_POSITIONS, boardsize)
+            assert literals == after
+
 if __name__ == "__main__":
     Tests.test_hex_string_to_index()
     Tests.test_hex_coord_to_index()
+    Tests.test_pair_position_literal_augmentation()
