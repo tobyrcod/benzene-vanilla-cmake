@@ -236,13 +236,14 @@ class UtilsTM:
             with open(dataset_path, mode='r', newline='') as dataset:
                 reader = csv.reader(dataset)
                 boardsize = int(next(reader)[1])
+                num_literals = len(UtilsTM.make_new_literals(boardsize))
                 headers = next(reader)
                 batch = []
                 for row in reader:
                     game_number = int(row[headers.index('Game#')])
                     winner = int(row[headers.index('Winner')])
                     literals = [int(l) for l in row[headers.index('x0'):]]
-                    assert len(literals) == 2*boardsize**2
+                    assert len(literals) == num_literals
 
                     # We may want to modify the board representation to see if it helps/hinders training
                     UtilsTM.LiteralAugmentation.augment_literals(literals, augmentation, boardsize)
