@@ -166,10 +166,13 @@ class UtilsTM:
 
     class LiteralAugmentation(IntFlag):
         NONE = 0
+        # Append Information
         AUG_MOVE_COUNTER    = 1 << 0
         AUG_TURN_INDICATOR  = 1 << 1
+        # Make Literals more Spatially Aware
         AUG_PADDING         = 1 << 2
         AUG_PAIR_POSITIONS  = 1 << 3
+        # Give Literals 'Memory'
         AUG_STATE_HISTORY   = 1 << 4
         AUG_MOVE_HISTORY    = 1 << 5
         # AUG_ALL             = ~0
@@ -181,17 +184,16 @@ class UtilsTM:
             if (augmentation & UtilsTM.LiteralAugmentation.AUG_STATE_HISTORY) and \
                (augmentation & UtilsTM.LiteralAugmentation.AUG_MOVE_HISTORY):
                 return False  # Only one type of history can be used
-            if (augmentation & UtilsTM.LiteralAugmentation.AUG_PADDING) and \
-               (augmentation != UtilsTM.LiteralAugmentation.AUG_PADDING):
-                # TODO: make it work with other augmentations
-                return False  # Only allow padding to be applied by itself
             return True
 
         @staticmethod
         def augment_literals(literals, augmentation: "UtilsTM.LiteralAugmentation", boardsize: int):
             # Check to see this augmentation makes sense
             if not UtilsTM.LiteralAugmentation.is_valid(augmentation):
-                return
+                return literals
+
+            new_literals = literals.copy()
+            new_boardsize = boardsize
 
             if augmentation & UtilsTM.LiteralAugmentation.AUG_PADDING:
                 # Add a border of filled in tiles around the outside of the board,
@@ -232,26 +234,19 @@ class UtilsTM:
                         i = UtilsHex.coordinates_2d_to_1d(x, y, new_boardsize)
                         new_literals[new_literals_per_player + i] = 1
 
-                # Copy the new literals into the old literals list
-                for i in range(len(new_literals)):
-                    if i < len(literals):
-                        literals[i] = new_literals[i]
-                    else:
-                        literals.append(new_literals[i])
-
             if augmentation & UtilsTM.LiteralAugmentation.AUG_PAIR_POSITIONS:
                 # Instead of listing all black and then all white literals,
                 # We list positions in order, alternating black then white
                 # for 6x6, x1, x2,..., x37, x38,... becomes x1, x37, x2, x38,...
                 # Idea: May help positional reasoning, especially for CTM
-                literals_per_player = boardsize**2
-                old_literals = literals.copy()
-                for new_index in range(len(literals)):
+
+                literals_per_player = new_boardsize**2
+                copy_new_literals = new_literals.copy()
+                for new_index in range(len(new_literals)):
                     colour_index = new_index // 2
                     is_white = new_index % 2
                     old_index = colour_index + is_white * literals_per_player
-                    literals[new_index] = old_literals[old_index]
-
+                    new_literals[new_index] = copy_new_literals[old_index]
 
             if augmentation & UtilsTM.LiteralAugmentation.AUG_MOVE_COUNTER:
                 # Add a binary counter for how many moves into the game we are
@@ -262,7 +257,7 @@ class UtilsTM:
                 move_count = sum(literals) + 1
                 move_count_binary = f'{move_count:b}'.zfill(max_count_length)
                 move_count_literals = list(map(int, move_count_binary))
-                literals.extend(move_count_literals)
+                new_literals.extend(move_count_literals)
 
             if augmentation & UtilsTM.LiteralAugmentation.AUG_TURN_INDICATOR:
                 # Add a binary bit to represent if it is black (1) or white (0) to play
@@ -270,7 +265,9 @@ class UtilsTM:
 
                 move_count = sum(literals) + 1
                 is_blacks_turn = move_count % 2 != 0
-                literals.append(int(is_blacks_turn))
+                new_literals.append(int(is_blacks_turn))
+
+            return new_literals
 
     @staticmethod
     def make_new_literals(boardsize: int) -> list[int]:
@@ -296,7 +293,7 @@ class UtilsTM:
                     assert len(literals) == num_literals
 
                     # We may want to modify the board representation to see if it helps/hinders training
-                    UtilsTM.LiteralAugmentation.augment_literals(literals, augmentation, boardsize)
+                    literals = UtilsTM.LiteralAugmentation.augment_literals(literals, augmentation, boardsize)
 
                     batch.append((winner, literals))
                     if len(batch) >= batch_size:
