@@ -252,7 +252,7 @@ class UtilsTM:
                 # Add a binary counter for how many moves into the game we are
                 # Idea: although this is implicit already, does making it explicit help?
 
-                max_move_count = (boardsize ** 2)
+                max_move_count = boardsize ** 2
                 max_count_length = max_move_count.bit_length()
                 move_count = sum(literals) + 1
                 move_count_binary = f'{move_count:b}'.zfill(max_count_length)
