@@ -50,7 +50,7 @@ class Tests:
         class LiteralAugmentation:
 
             @staticmethod
-            def test_tm_padding_literal_augmentation():
+            def test_padding():
 
                 def split_list(list, split_size):
                     return [list[i:i + split_size] for i in range(0, len(list), split_size)]
@@ -107,7 +107,7 @@ class Tests:
 
 
             @staticmethod
-            def test_tm_pair_position_literal_augmentation():
+            def test_pair_position():
                 for boardsize in range(6, 14):
                     literals_per_player = boardsize**2
 
@@ -123,7 +123,7 @@ class Tests:
 
 
             @staticmethod
-            def test_tm_move_counter_literal_augmentation():
+            def test_move_counter():
                 for boardsize in range(6, 14):
                     for _ in range(10*boardsize**2):
                         max_move_count = boardsize ** 2
@@ -145,7 +145,7 @@ class Tests:
 
 
             @staticmethod
-            def test_tm_turn_indicator_augmentation():
+            def test_turn_indicator():
                 for boardsize in range(6, 14):
                     for _ in range(10*boardsize**2):
                         max_turn = boardsize ** 2
@@ -168,7 +168,7 @@ if __name__ == "__main__":
     Tests.UtilsHex.test_hex_string_to_number()
     Tests.UtilsHex.test_hex_coord_to_index()
 
-    Tests.UtilsTM.LiteralAugmentation.test_tm_pair_position_literal_augmentation()
-    Tests.UtilsTM.LiteralAugmentation.test_tm_padding_literal_augmentation()
-    Tests.UtilsTM.LiteralAugmentation.test_tm_move_counter_literal_augmentation()
-    Tests.UtilsTM.LiteralAugmentation.test_tm_turn_indicator_augmentation()
+    Tests.UtilsTM.LiteralAugmentation.test_pair_position()
+    Tests.UtilsTM.LiteralAugmentation.test_padding()
+    Tests.UtilsTM.LiteralAugmentation.test_move_counter()
+    Tests.UtilsTM.LiteralAugmentation.test_turn_indicator()
