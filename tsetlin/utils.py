@@ -239,8 +239,9 @@ class UtilsTM:
                 headers = next(reader)
                 batch = []
                 for row in reader:
-                    winner = int(row[0])
-                    literals = [int(l) for l in row[1:]]
+                    game_number = int(row[headers.index('Game#')])
+                    winner = int(row[headers.index('Winner')])
+                    literals = [int(l) for l in row[headers.index('x0'):]]
                     assert len(literals) == 2*boardsize**2
 
                     # We may want to modify the board representation to see if it helps/hinders training
