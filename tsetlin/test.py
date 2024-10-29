@@ -160,10 +160,31 @@ class Tests:
                             literals = UtilsTM.LiteralAugmentation.augment_literals(literals, UtilsTM.LiteralAugmentation.AUG_TURN_INDICATOR, boardsize)
                             assert literals == after
 
+                def test_padding_position_pair():
+                    for boardsize in range(6, 14):
+                        for _ in range(10*boardsize**2):
+                            max_move_count = boardsize ** 2
+                            move_count = random.randint(1, max_move_count)
+
+                            before = UtilsTM.make_new_literals(boardsize)
+                            for i in random.sample(range(len(before)), move_count):
+                                before[i] = 1
+
+                            mid_step_1 = UtilsTM.LiteralAugmentation.augment_literals(before, UtilsTM.LiteralAugmentation.AUG_PADDING, boardsize)
+                            final_step = UtilsTM.LiteralAugmentation.augment_literals(mid_step_1, UtilsTM.LiteralAugmentation.AUG_PAIR_POSITIONS, boardsize+2)
+
+                            aug = UtilsTM.LiteralAugmentation.AUG_PADDING | UtilsTM.LiteralAugmentation.AUG_PAIR_POSITIONS
+                            all_in_one = UtilsTM.LiteralAugmentation.augment_literals(before, aug, boardsize)
+
+                            assert final_step == all_in_one
+
                 test_padding()
                 test_pair_position()
                 test_move_counter()
                 test_turn_indicator()
+
+                test_padding_position_pair()
+
 
 
 if __name__ == "__main__":
