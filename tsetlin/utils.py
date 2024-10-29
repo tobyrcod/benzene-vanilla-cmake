@@ -181,6 +181,10 @@ class UtilsTM:
             if (augmentation & UtilsTM.LiteralAugmentation.AUG_STATE_HISTORY) and \
                (augmentation & UtilsTM.LiteralAugmentation.AUG_MOVE_HISTORY):
                 return False  # Only one type of history can be used
+            if (augmentation & UtilsTM.LiteralAugmentation.AUG_PADDING) and \
+               (augmentation != UtilsTM.LiteralAugmentation.AUG_PADDING):
+                # TODO: make it work with other augmentations
+                return False  # Only allow padding to be applied by itself
             return True
 
         @staticmethod
@@ -188,6 +192,52 @@ class UtilsTM:
             # Check to see this augmentation makes sense
             if not UtilsTM.LiteralAugmentation.is_valid(augmentation):
                 return
+
+            if augmentation & UtilsTM.LiteralAugmentation.AUG_PADDING:
+                # Add a border of filled in tiles around the outside of the board,
+                # Matching the colours the players need to connect to win.
+                # Idea: May help to reinforce how to win / making connections between pieces being good
+
+                # nxn board must become (n+2)x(n+2) board
+                new_boardsize = boardsize + 2
+                new_literals = UtilsTM.make_new_literals(new_boardsize)
+                literals_per_player = boardsize ** 2
+                new_literals_per_player = new_boardsize ** 2
+
+                # Move the literals on the nxn board to the centre of the new (n+2)x(n+2) board
+                for i in range(literals_per_player):
+                    # First, convert from nxn 1d coordinates to nxn 2d coordinates
+                    x1, y1 = UtilsHex.coordinates_1d_to_2d(i, boardsize)
+
+                    # Second, add 1 to the coordinate to get the new coordinates in the (n+2)x(n_2) grid
+                    x2, y2 = x1 + 1, y1 + 1
+
+                    # Next, convert from (n+2)x(n+2) 2d coordinates to (n+2)x(n_2) 1d coordinates
+                    j = UtilsHex.coordinates_2d_to_1d(x2, y2, boardsize+2)
+
+                    # Finally, move the literal to its new position
+                    new_literals[j] = literals[i]                                                   # black
+                    new_literals[new_literals_per_player + j] = literals[literals_per_player + i]   # white
+
+                # Add the border cells to the new larger board
+                # NOTE: we leave the corner positions empty
+                # Black wins top to bottom, so the first and last row should be all black
+                for y in [0, new_boardsize-1]:
+                    for x in range(1, new_boardsize-1):
+                        i = UtilsHex.coordinates_2d_to_1d(x, y, new_boardsize)
+                        new_literals[i] = 1
+                # White wins left to right, so each row should begin and end with white
+                for y in range(1, new_boardsize-1):
+                    for x in [0, new_boardsize-1]:
+                        i = UtilsHex.coordinates_2d_to_1d(x, y, new_boardsize)
+                        new_literals[new_literals_per_player + i] = 1
+
+                # Copy the new literals into the old literals list
+                for i in range(len(new_literals)):
+                    if i < len(literals):
+                        literals[i] = new_literals[i]
+                    else:
+                        literals.append(new_literals[i])
 
             if augmentation & UtilsTM.LiteralAugmentation.AUG_PAIR_POSITIONS:
                 # Instead of listing all black and then all white literals,
@@ -280,4 +330,4 @@ if __name__ == "__main__":
     UtilsTournament.games_to_winner_prediction_dataset(games, boardsize, dataset_path)
 
     # Train a TM for hex winner prediction from the dataset
-    UtilsTM.train_tm_from_dataset(dataset_path, batch_size=5, augmentation=UtilsTM.LiteralAugmentation.AUG_PAIR_POSITIONS)
+    UtilsTM.train_tm_from_dataset(dataset_path, batch_size=5, augmentation=UtilsTM.LiteralAugmentation.AUG_PADDING)

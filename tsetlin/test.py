@@ -44,7 +44,7 @@ class Tests:
             literals_per_player = boardsize**2
 
             black = [i                          for i in range(literals_per_player)]
-            white = [i + literals_per_player    for i in range(literals_per_player)]
+            white = [literals_per_player + i    for i in range(literals_per_player)]
             before = black + white
             after = [x for pair in zip(black, white) for x in pair]
 
@@ -53,6 +53,63 @@ class Tests:
             UtilsTM.LiteralAugmentation.augment_literals(literals, UtilsTM.LiteralAugmentation.AUG_PAIR_POSITIONS, boardsize)
             assert literals == after
 
+
+    @staticmethod
+    def test_tm_padding_literal_augmentation():
+
+        def split_list(list, split_size):
+            return [list[i:i + split_size] for i in range(0, len(list), split_size)]
+
+        def print_literal_grid(literals, boardsize):
+            for row in split_list(literals, boardsize):
+                print([str(n).zfill(2) for n in row])
+            print('------')
+
+        def pad_literals(literals, is_black, boardsize):
+            split_literals = split_list(literals, boardsize)
+            after = []
+            after_boardsize = boardsize + 2
+            for row in range(after_boardsize):
+                if row == 0 or row == after_boardsize - 1:
+                    top_bottom = int(is_black)
+                    after.extend([top_bottom for _ in range(after_boardsize)])
+                else:
+                    side = int(not is_black)
+                    after.extend([side] + split_literals[row-1] + [side])
+            after[UtilsHex.coordinates_2d_to_1d(0, 0, after_boardsize)] = 0
+            after[UtilsHex.coordinates_2d_to_1d(0, after_boardsize-1, after_boardsize)] = 0
+            after[UtilsHex.coordinates_2d_to_1d(after_boardsize-1, 0, after_boardsize)] = 0
+            after[UtilsHex.coordinates_2d_to_1d(after_boardsize-1, after_boardsize-1, after_boardsize)] = 0
+            return after
+
+        boardsize = 3
+        literals_per_player = boardsize ** 2
+
+        before_black = [i                           for i in range(literals_per_player)]
+        before_white = [literals_per_player + i     for i in range(literals_per_player)]
+
+        after_black = pad_literals(before_black, True, boardsize)
+        after_white = pad_literals(before_white, False, boardsize)
+
+        before = before_black + before_white
+        assert len(before) == 2*literals_per_player
+        after = after_black + after_white
+        after_boardsize = boardsize + 2
+        after_literals_per_player = after_boardsize**2
+        assert len(after) == 2*after_literals_per_player
+
+        # print(before)
+        # print(after)
+        # print_literal_grid(before_black, boardsize)
+        # print_literal_grid(after_black, after_boardsize)
+        # print_literal_grid(before_white, boardsize)
+        # print_literal_grid(after_white, after_boardsize)
+
+        literals = before
+        assert literals == before
+        UtilsTM.LiteralAugmentation.augment_literals(literals, UtilsTM.LiteralAugmentation.AUG_PADDING, boardsize)
+        assert literals == after
+
 if __name__ == "__main__":
     Tests.test_hex_coordinates_1d_to_2d()
     Tests.test_hex_coordinates_2d_to_1d()
@@ -60,3 +117,4 @@ if __name__ == "__main__":
     Tests.test_hex_coord_to_index()
 
     Tests.test_tm_pair_position_literal_augmentation()
+    Tests.test_tm_padding_literal_augmentation()
