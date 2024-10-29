@@ -10,6 +10,7 @@ class Tests:
         assert UtilsHex.coordinates_1d_to_2d(7, 6) == (1, 1)
         assert UtilsHex.coordinates_1d_to_2d(35, 6) == (5, 5)
 
+
     @staticmethod
     def test_hex_coordinates_2d_to_1d():
         assert UtilsHex.coordinates_2d_to_1d(0, 0, 6) == 0
@@ -18,8 +19,9 @@ class Tests:
         assert UtilsHex.coordinates_2d_to_1d(1, 1, 6) == 7
         assert UtilsHex.coordinates_2d_to_1d(5, 5, 6) == 35
 
+
     @staticmethod
-    def test_hex_string_to_index():
+    def test_hex_string_to_number():
         assert UtilsHex.string_to_number('a') == 1
         assert UtilsHex.string_to_number('b') == 2
         assert UtilsHex.string_to_number('z') == 26
@@ -113,7 +115,7 @@ class Tests:
 if __name__ == "__main__":
     Tests.test_hex_coordinates_1d_to_2d()
     Tests.test_hex_coordinates_2d_to_1d()
-    Tests.test_hex_string_to_index()
+    Tests.test_hex_string_to_number()
     Tests.test_hex_coord_to_index()
 
     Tests.test_tm_pair_position_literal_augmentation()
