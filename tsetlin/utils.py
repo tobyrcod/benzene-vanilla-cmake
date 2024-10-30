@@ -7,6 +7,12 @@ from pysgf import SGF
 
 # TODO: document every method with """ """
 
+class Helpers:
+
+    @staticmethod
+    def clamp(value, min_value, max_value):
+        return max(min(value, max_value), min_value)
+
 class UtilsHex:
 
     @staticmethod
@@ -276,6 +282,21 @@ class UtilsTM:
         def make_empty_board(boardsize: int) -> list[int]:
             literals_per_player = boardsize ** 2
             return [0 for _ in range(2 * literals_per_player)]
+
+        @staticmethod
+        def make_random_board(boardsize: int, num_pieces: int) -> list[int]:
+            max_num_pieces = boardsize ** 2
+            num_pieces = Helpers.clamp(num_pieces, 0, max_num_pieces)
+
+            # For even #pieces, half should be black and half should be white
+            # For odd #pieces, black should have one more than white
+            # For all #pieces, black and white can never have a piece in the same place
+            num_black_pieces = (num_pieces + 1) // 2
+            piece_indices = random.sample(range(max_num_pieces), num_pieces)
+            black_literals = [1 if i in piece_indices[:num_black_pieces] else 0 for i in range(max_num_pieces)]
+            white_literals = [1 if i in piece_indices[num_black_pieces:] else 0 for i in range(max_num_pieces)]
+            return black_literals + white_literals
+
 
     @staticmethod
     def train_tm_from_dataset(dataset_path: Path, batch_size=10,

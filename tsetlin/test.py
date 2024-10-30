@@ -6,7 +6,6 @@ class Tests:
 
     # TODO: add failed case test for all
     # TODO: write tests for history
-    # TODO: look for all random usages and add UtilsTM.Literals.make_random_board
 
     class UtilsHex:
 
@@ -49,143 +48,168 @@ class Tests:
 
     class UtilsTM:
 
-        class LiteralAugmentation:
+        class Literals:
+
+            class Augmentation:
+
+                @staticmethod
+                def test():
+
+                    # HELPERS
+
+                    def split_list(list, split_size):
+                        return [list[i:i + split_size] for i in range(0, len(list), split_size)]
+
+                    def print_literal_grid(literals, boardsize):
+                        for row in split_list(literals, boardsize):
+                            print([str(n).zfill(2) for n in row])
+                        print('------')
+
+                    def pad_player_literals(player_literals, is_black, boardsize):
+                        split_literals = split_list(player_literals, boardsize)
+                        after = []
+                        after_boardsize = boardsize + 2
+                        for row in range(after_boardsize):
+                            if row == 0 or row == after_boardsize - 1:
+                                top_bottom = int(is_black)
+                                after.extend([top_bottom for _ in range(after_boardsize)])
+                            else:
+                                side = int(not is_black)
+                                after.extend([side] + split_literals[row-1] + [side])
+                        after[UtilsHex.coordinates_2d_to_1d(0, 0, after_boardsize)] = 0
+                        after[UtilsHex.coordinates_2d_to_1d(0, after_boardsize-1, after_boardsize)] = 0
+                        after[UtilsHex.coordinates_2d_to_1d(after_boardsize-1, 0, after_boardsize)] = 0
+                        after[UtilsHex.coordinates_2d_to_1d(after_boardsize-1, after_boardsize-1, after_boardsize)] = 0
+                        return after
+
+                    # TESTS
+
+                    def test_padding():
+                        for boardsize in range(6, 14):
+                            literals_per_player = boardsize ** 2
+
+                            before_black = [i                           for i in range(literals_per_player)]
+                            before_white = [literals_per_player + i     for i in range(literals_per_player)]
+
+                            after_black = pad_player_literals(before_black, True, boardsize)
+                            after_white = pad_player_literals(before_white, False, boardsize)
+
+                            before = before_black + before_white
+                            assert len(before) == 2*literals_per_player
+                            after = after_black + after_white
+                            after_boardsize = boardsize + 2
+                            after_literals_per_player = after_boardsize**2
+                            assert len(after) == 2*after_literals_per_player
+
+                            # print(before)
+                            # print(after)
+                            # print_literal_grid(before_black, boardsize)
+                            # print_literal_grid(after_black, after_boardsize)
+                            # print_literal_grid(before_white, boardsize)
+                            # print_literal_grid(after_white, after_boardsize)
+
+                            literals = before
+                            assert literals == before
+                            literals = UtilsTM.Literals.Augmentation.AUG_PADDING.apply(literals, boardsize)
+                            assert literals == after
+
+                    def test_pair_position():
+                        for boardsize in range(6, 14):
+                            literals_per_player = boardsize**2
+
+                            black = [i                          for i in range(literals_per_player)]
+                            white = [literals_per_player + i    for i in range(literals_per_player)]
+                            before = black + white
+                            after = [x for pair in zip(black, white) for x in pair]
+
+                            literals = before
+                            assert literals == before
+                            literals = UtilsTM.Literals.Augmentation.AUG_PAIR_POSITIONS.apply(literals, boardsize)
+                            assert literals == after
+
+                    def test_move_counter():
+                        for boardsize in range(6, 14):
+                            for _ in range(10*boardsize**2):
+                                max_move_count = boardsize ** 2
+                                move_count = random.randint(1, max_move_count)
+                                before = UtilsTM.Literals.make_random_board(boardsize, move_count - 1)
+
+                                max_count_length = max_move_count.bit_length()
+                                move_count_binary = f'{move_count:b}'.zfill(max_count_length)
+                                move_count_literals = list(map(int, move_count_binary))
+                                after = before + move_count_literals
+
+                                literals = before
+                                assert literals == before
+                                literals = UtilsTM.Literals.Augmentation.AUG_MOVE_COUNTER.apply(literals, boardsize)
+                                assert literals == after
+
+                    def test_turn_indicator():
+                        for boardsize in range(6, 14):
+                            for _ in range(10*boardsize**2):
+                                max_turn = boardsize ** 2
+                                turn = random.randint(1, max_turn)
+
+                                before = UtilsTM.Literals.make_random_board(boardsize, turn - 1)
+                                after = before + [turn % 2]
+
+                                literals = before
+                                assert literals == before
+                                literals = UtilsTM.Literals.Augmentation.AUG_TURN_INDICATOR.apply(literals, boardsize)
+                                assert literals == after
+
+                    def test_padding_position_pair():
+                        for boardsize in range(6, 14):
+                            for _ in range(10*boardsize**2):
+                                max_piece_count = boardsize ** 2
+                                piece_count = random.randint(1, max_piece_count)
+
+                                before = UtilsTM.Literals.make_random_board(boardsize, piece_count)
+
+                                mid_step_1 = UtilsTM.Literals.Augmentation.AUG_PADDING.apply(before, boardsize)
+                                final_step = UtilsTM.Literals.Augmentation.AUG_PAIR_POSITIONS.apply(mid_step_1, boardsize+2)
+
+                                aug = UtilsTM.Literals.Augmentation.AUG_PADDING | UtilsTM.Literals.Augmentation.AUG_PAIR_POSITIONS
+                                all_in_one = aug.apply(before, boardsize)
+
+                                assert final_step == all_in_one
+
+                    test_padding()
+                    test_pair_position()
+                    test_move_counter()
+                    test_turn_indicator()
+
+                    test_padding_position_pair()
 
             @staticmethod
             def test():
 
-                # HELPERS
-
-                def split_list(list, split_size):
-                    return [list[i:i + split_size] for i in range(0, len(list), split_size)]
-
-                def print_literal_grid(literals, boardsize):
-                    for row in split_list(literals, boardsize):
-                        print([str(n).zfill(2) for n in row])
-                    print('------')
-
-                def pad_player_literals(player_literals, is_black, boardsize):
-                    split_literals = split_list(player_literals, boardsize)
-                    after = []
-                    after_boardsize = boardsize + 2
-                    for row in range(after_boardsize):
-                        if row == 0 or row == after_boardsize - 1:
-                            top_bottom = int(is_black)
-                            after.extend([top_bottom for _ in range(after_boardsize)])
-                        else:
-                            side = int(not is_black)
-                            after.extend([side] + split_literals[row-1] + [side])
-                    after[UtilsHex.coordinates_2d_to_1d(0, 0, after_boardsize)] = 0
-                    after[UtilsHex.coordinates_2d_to_1d(0, after_boardsize-1, after_boardsize)] = 0
-                    after[UtilsHex.coordinates_2d_to_1d(after_boardsize-1, 0, after_boardsize)] = 0
-                    after[UtilsHex.coordinates_2d_to_1d(after_boardsize-1, after_boardsize-1, after_boardsize)] = 0
-                    return after
-
-                # TESTS
-
-                def test_padding():
+                def test_make_random_board():
                     for boardsize in range(6, 14):
-                        literals_per_player = boardsize ** 2
+                        for _ in range(10 * boardsize ** 2):
+                            boardsize = 6
+                            literals_per_player = boardsize ** 2
+                            max_num_pieces = boardsize ** 2
+                            num_pieces = random.randint(1, max_num_pieces)
 
-                        before_black = [i                           for i in range(literals_per_player)]
-                        before_white = [literals_per_player + i     for i in range(literals_per_player)]
+                            literals = UtilsTM.Literals.make_random_board(boardsize, num_pieces)
+                            assert len(literals) == len(UtilsTM.Literals.make_empty_board(boardsize))
 
-                        after_black = pad_player_literals(before_black, True, boardsize)
-                        after_white = pad_player_literals(before_white, False, boardsize)
+                            black_literals = literals[:literals_per_player]
+                            white_literals = literals[literals_per_player:]
+                            assert len(black_literals) == len(white_literals) == literals_per_player
 
-                        before = before_black + before_white
-                        assert len(before) == 2*literals_per_player
-                        after = after_black + after_white
-                        after_boardsize = boardsize + 2
-                        after_literals_per_player = after_boardsize**2
-                        assert len(after) == 2*after_literals_per_player
+                            assert sum(black_literals) + sum(white_literals) == num_pieces
+                            assert abs(sum(black_literals) - sum(white_literals)) <= 1
 
-                        # print(before)
-                        # print(after)
-                        # print_literal_grid(before_black, boardsize)
-                        # print_literal_grid(after_black, after_boardsize)
-                        # print_literal_grid(before_white, boardsize)
-                        # print_literal_grid(after_white, after_boardsize)
+                            for i in range(literals_per_player):
+                                black = black_literals[i]
+                                white = white_literals[i]
+                                assert not (black and white)
+                                assert black + white <= 1
 
-                        literals = before
-                        assert literals == before
-                        literals = UtilsTM.Literals.Augmentation.AUG_PADDING.apply(literals, boardsize)
-                        assert literals == after
-
-                def test_pair_position():
-                    for boardsize in range(6, 14):
-                        literals_per_player = boardsize**2
-
-                        black = [i                          for i in range(literals_per_player)]
-                        white = [literals_per_player + i    for i in range(literals_per_player)]
-                        before = black + white
-                        after = [x for pair in zip(black, white) for x in pair]
-
-                        literals = before
-                        assert literals == before
-                        literals = UtilsTM.Literals.Augmentation.AUG_PAIR_POSITIONS.apply(literals, boardsize)
-                        assert literals == after
-
-                def test_move_counter():
-                    for boardsize in range(6, 14):
-                        for _ in range(10*boardsize**2):
-                            max_move_count = boardsize ** 2
-                            move_count = random.randint(1, max_move_count)
-
-                            before = UtilsTM.Literals.make_empty_board(boardsize)
-                            for i in random.sample(range(len(before)), move_count - 1):
-                                before[i] = 1
-
-                            max_count_length = max_move_count.bit_length()
-                            move_count_binary = f'{move_count:b}'.zfill(max_count_length)
-                            move_count_literals = list(map(int, move_count_binary))
-                            after = before + move_count_literals
-
-                            literals = before
-                            assert literals == before
-                            literals = UtilsTM.Literals.Augmentation.AUG_MOVE_COUNTER.apply(literals, boardsize)
-                            assert literals == after
-
-                def test_turn_indicator():
-                    for boardsize in range(6, 14):
-                        for _ in range(10*boardsize**2):
-                            max_turn = boardsize ** 2
-                            turn = random.randint(1, max_turn)
-
-                            before = UtilsTM.Literals.make_empty_board(boardsize)
-                            for i in random.sample(range(len(before)), turn - 1):
-                                before[i] = 1
-                            after = before + [turn % 2]
-
-                            literals = before
-                            assert literals == before
-                            literals = UtilsTM.Literals.Augmentation.AUG_TURN_INDICATOR.apply(literals, boardsize)
-                            assert literals == after
-
-                def test_padding_position_pair():
-                    for boardsize in range(6, 14):
-                        for _ in range(10*boardsize**2):
-                            max_move_count = boardsize ** 2
-                            move_count = random.randint(1, max_move_count)
-
-                            before = UtilsTM.Literals.make_empty_board(boardsize)
-                            for i in random.sample(range(len(before)), move_count):
-                                before[i] = 1
-
-                            mid_step_1 = UtilsTM.Literals.Augmentation.AUG_PADDING.apply(before, boardsize)
-                            final_step = UtilsTM.Literals.Augmentation.AUG_PAIR_POSITIONS.apply(mid_step_1, boardsize+2)
-
-                            aug = UtilsTM.Literals.Augmentation.AUG_PADDING | UtilsTM.Literals.Augmentation.AUG_PAIR_POSITIONS
-                            all_in_one = aug.apply(before, boardsize)
-
-                            assert final_step == all_in_one
-
-                test_padding()
-                test_pair_position()
-                test_move_counter()
-                test_turn_indicator()
-
-                test_padding_position_pair()
+                test_make_random_board()
+                Tests.UtilsTM.Literals.Augmentation.test()
 
 
 
@@ -195,4 +219,4 @@ if __name__ == "__main__":
     Tests.UtilsHex.test_hex_string_to_number()
     Tests.UtilsHex.test_hex_coord_to_index()
 
-    Tests.UtilsTM.LiteralAugmentation.test()
+    Tests.UtilsTM.Literals.test()
