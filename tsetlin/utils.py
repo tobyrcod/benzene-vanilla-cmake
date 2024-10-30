@@ -1,6 +1,7 @@
+import random
 import sys
 import csv
-from enum import IntFlag
+from enum import IntFlag, Enum
 from pathlib import Path
 from pysgf import SGF
 
@@ -150,7 +151,7 @@ class UtilsTournament:
 
         states = []
         literals_per_player = boardsize**2
-        literals = UtilsTM.make_new_literals(boardsize)
+        literals = UtilsTM.Literals.make_empty_board(boardsize)
 
         for i, move in enumerate(moves):
             is_white_move = i % 2
@@ -164,156 +165,181 @@ class UtilsTournament:
 
 class UtilsTM:
 
-    class LiteralAugmentation(IntFlag):
-        NONE = 0
-        # Append Information
-        AUG_MOVE_COUNTER    = 1 << 0
-        AUG_TURN_INDICATOR  = 1 << 1
-        # Make Literals more Spatially Aware
-        AUG_PADDING         = 1 << 2
-        AUG_PAIR_POSITIONS  = 1 << 3
-        # Give Literals 'Memory'
-        AUG_STATE_HISTORY   = 1 << 4
-        AUG_MOVE_HISTORY    = 1 << 5
-        # AUG_ALL             = ~0
+    class Literals:
+
+        class History(Enum):
+            NONE = 0
+            # Give Literals 'Memory'
+            HISTORY_STATE       = 1
+            HISTORY_MOVE        = 2
+
+        class Augmentation(IntFlag):
+            NONE = 0
+            # Append Information
+            AUG_MOVE_COUNTER    = 1 << 0
+            AUG_TURN_INDICATOR  = 1 << 1
+            # Make Literals more Spatially Aware
+            AUG_PADDING         = 1 << 2
+            AUG_PAIR_POSITIONS  = 1 << 3
+            # AUG_ALL           = ~0
+
+            def _is_valid(self):
+                if self <= 0:
+                    return False
+                # Add any explicit cases that aren't allowed here
+                return True
+
+            def apply(self, literals: list[int], boardsize: int) -> list[int]:
+                new_boardsize = boardsize
+                new_literals = literals.copy()
+
+                # Check to see this augmentation makes sense
+                if not self._is_valid():
+                    return new_literals
+
+                if self & UtilsTM.Literals.Augmentation.AUG_PADDING:
+                    # Add a border of filled in tiles around the outside of the board,
+                    # Matching the colours the players need to connect to win.
+                    # Idea: May help to reinforce how to win / making connections between pieces being good
+
+                    # nxn board must become (n+2)x(n+2) board
+                    new_boardsize = boardsize + 2
+                    new_literals = UtilsTM.Literals.make_empty_board(new_boardsize)
+                    literals_per_player = boardsize ** 2
+                    new_literals_per_player = new_boardsize ** 2
+
+                    # Move the literals on the nxn board to the centre of the new (n+2)x(n+2) board
+                    for i in range(literals_per_player):
+                        # First, convert from nxn 1d coordinates to nxn 2d coordinates
+                        x1, y1 = UtilsHex.coordinates_1d_to_2d(i, boardsize)
+
+                        # Second, add 1 to the coordinate to get the new coordinates in the (n+2)x(n_2) grid
+                        x2, y2 = x1 + 1, y1 + 1
+
+                        # Next, convert from (n+2)x(n+2) 2d coordinates to (n+2)x(n_2) 1d coordinates
+                        j = UtilsHex.coordinates_2d_to_1d(x2, y2, boardsize + 2)
+
+                        # Finally, move the literal to its new position
+                        new_literals[j] = literals[i]  # black
+                        new_literals[new_literals_per_player + j] = literals[literals_per_player + i]  # white
+
+                    # Add the border cells to the new larger board
+                    # NOTE: we leave the corner positions empty
+                    # Black wins top to bottom, so the first and last row should be all black
+                    for y in [0, new_boardsize - 1]:
+                        for x in range(1, new_boardsize - 1):
+                            i = UtilsHex.coordinates_2d_to_1d(x, y, new_boardsize)
+                            new_literals[i] = 1
+                    # White wins left to right, so each row should begin and end with white
+                    for y in range(1, new_boardsize - 1):
+                        for x in [0, new_boardsize - 1]:
+                            i = UtilsHex.coordinates_2d_to_1d(x, y, new_boardsize)
+                            new_literals[new_literals_per_player + i] = 1
+
+                if self & UtilsTM.Literals.Augmentation.AUG_PAIR_POSITIONS:
+                    # Instead of listing all black and then all white literals,
+                    # We list positions in order, alternating black then white
+                    # for 6x6, x1, x2,..., x37, x38,... becomes x1, x37, x2, x38,...
+                    # Idea: May help positional reasoning, especially for CTM
+
+                    literals_per_player = new_boardsize ** 2
+                    copy_new_literals = new_literals.copy()
+                    for new_index in range(len(new_literals)):
+                        colour_index = new_index // 2
+                        is_white = new_index % 2
+                        old_index = colour_index + is_white * literals_per_player
+                        new_literals[new_index] = copy_new_literals[old_index]
+
+                if self & UtilsTM.Literals.Augmentation.AUG_MOVE_COUNTER:
+                    # Add a binary counter for how many moves into the game we are
+                    # Idea: although this is implicit already, does making it explicit help?
+
+                    max_move_count = boardsize ** 2
+                    max_count_length = max_move_count.bit_length()
+                    move_count = sum(literals) + 1
+                    move_count_binary = f'{move_count:b}'.zfill(max_count_length)
+                    move_count_literals = list(map(int, move_count_binary))
+                    new_literals.extend(move_count_literals)
+
+                if self & UtilsTM.Literals.Augmentation.AUG_TURN_INDICATOR:
+                    # Add a binary bit to represent if it is black (1) or white (0) to play
+                    # Idea: although this is implicit already, does making it explicit help?
+
+                    move_count = sum(literals) + 1
+                    is_blacks_turn = move_count % 2 != 0
+                    new_literals.append(int(is_blacks_turn))
+
+                return new_literals
+
 
         @staticmethod
-        def is_valid(augmentation: "UtilsTM.LiteralAugmentation") -> bool:
-            if augmentation <= 0:
-                return False
-            if (augmentation & UtilsTM.LiteralAugmentation.AUG_STATE_HISTORY) and \
-               (augmentation & UtilsTM.LiteralAugmentation.AUG_MOVE_HISTORY):
-                return False  # Only one type of history can be used
-            return True
-
-        @staticmethod
-        def augment_literals(literals, augmentation: "UtilsTM.LiteralAugmentation", boardsize: int):
-            # Check to see this augmentation makes sense
-            if not UtilsTM.LiteralAugmentation.is_valid(augmentation):
-                return literals
-
-            new_literals = literals.copy()
-            new_boardsize = boardsize
-
-            if augmentation & UtilsTM.LiteralAugmentation.AUG_PADDING:
-                # Add a border of filled in tiles around the outside of the board,
-                # Matching the colours the players need to connect to win.
-                # Idea: May help to reinforce how to win / making connections between pieces being good
-
-                # nxn board must become (n+2)x(n+2) board
-                new_boardsize = boardsize + 2
-                new_literals = UtilsTM.make_new_literals(new_boardsize)
-                literals_per_player = boardsize ** 2
-                new_literals_per_player = new_boardsize ** 2
-
-                # Move the literals on the nxn board to the centre of the new (n+2)x(n+2) board
-                for i in range(literals_per_player):
-                    # First, convert from nxn 1d coordinates to nxn 2d coordinates
-                    x1, y1 = UtilsHex.coordinates_1d_to_2d(i, boardsize)
-
-                    # Second, add 1 to the coordinate to get the new coordinates in the (n+2)x(n_2) grid
-                    x2, y2 = x1 + 1, y1 + 1
-
-                    # Next, convert from (n+2)x(n+2) 2d coordinates to (n+2)x(n_2) 1d coordinates
-                    j = UtilsHex.coordinates_2d_to_1d(x2, y2, boardsize+2)
-
-                    # Finally, move the literal to its new position
-                    new_literals[j] = literals[i]                                                   # black
-                    new_literals[new_literals_per_player + j] = literals[literals_per_player + i]   # white
-
-                # Add the border cells to the new larger board
-                # NOTE: we leave the corner positions empty
-                # Black wins top to bottom, so the first and last row should be all black
-                for y in [0, new_boardsize-1]:
-                    for x in range(1, new_boardsize-1):
-                        i = UtilsHex.coordinates_2d_to_1d(x, y, new_boardsize)
-                        new_literals[i] = 1
-                # White wins left to right, so each row should begin and end with white
-                for y in range(1, new_boardsize-1):
-                    for x in [0, new_boardsize-1]:
-                        i = UtilsHex.coordinates_2d_to_1d(x, y, new_boardsize)
-                        new_literals[new_literals_per_player + i] = 1
-
-            if augmentation & UtilsTM.LiteralAugmentation.AUG_PAIR_POSITIONS:
-                # Instead of listing all black and then all white literals,
-                # We list positions in order, alternating black then white
-                # for 6x6, x1, x2,..., x37, x38,... becomes x1, x37, x2, x38,...
-                # Idea: May help positional reasoning, especially for CTM
-
-                literals_per_player = new_boardsize**2
-                copy_new_literals = new_literals.copy()
-                for new_index in range(len(new_literals)):
-                    colour_index = new_index // 2
-                    is_white = new_index % 2
-                    old_index = colour_index + is_white * literals_per_player
-                    new_literals[new_index] = copy_new_literals[old_index]
-
-            if augmentation & UtilsTM.LiteralAugmentation.AUG_MOVE_COUNTER:
-                # Add a binary counter for how many moves into the game we are
-                # Idea: although this is implicit already, does making it explicit help?
-
-                max_move_count = boardsize ** 2
-                max_count_length = max_move_count.bit_length()
-                move_count = sum(literals) + 1
-                move_count_binary = f'{move_count:b}'.zfill(max_count_length)
-                move_count_literals = list(map(int, move_count_binary))
-                new_literals.extend(move_count_literals)
-
-            if augmentation & UtilsTM.LiteralAugmentation.AUG_TURN_INDICATOR:
-                # Add a binary bit to represent if it is black (1) or white (0) to play
-                # Idea: although this is implicit already, does making it explicit help?
-
-                move_count = sum(literals) + 1
-                is_blacks_turn = move_count % 2 != 0
-                new_literals.append(int(is_blacks_turn))
-
-            return new_literals
+        def make_empty_board(boardsize: int) -> list[int]:
+            literals_per_player = boardsize ** 2
+            return [0 for _ in range(2 * literals_per_player)]
 
     @staticmethod
-    def make_new_literals(boardsize: int) -> list[int]:
-        literals_per_player = boardsize ** 2
-        return [0 for _ in range(2 * literals_per_player)]
-
-    @staticmethod
-    def train_tm_from_dataset(dataset_path: Path, batch_size=10, augmentation: LiteralAugmentation=LiteralAugmentation.NONE):
+    def train_tm_from_dataset(dataset_path: Path, batch_size=10,
+                              augmentation: Literals.Augmentation = Literals.Augmentation.NONE,
+                              history_type: Literals.History = Literals.History.NONE,
+                              history_size: int = 0):
         try:
 
             tm = None
 
             with open(dataset_path, mode='r', newline='') as dataset:
                 reader = csv.reader(dataset)
+
                 boardsize = int(next(reader)[1])
-                num_literals = len(UtilsTM.make_new_literals(boardsize))
+                num_literals = len(UtilsTM.Literals.make_empty_board(boardsize))
+
                 headers = next(reader)
+
+                game_history = dict()
+                if history_type == UtilsTM.Literals.History.NONE:
+                    history_size = 0
+
                 batch = []
                 for row in reader:
                     game_number = int(row[headers.index('Game#')])
+                    if game_number not in game_history:
+                        game_history = {game_number: []}
+
                     winner = int(row[headers.index('Winner')])
                     literals = [int(l) for l in row[headers.index('x0'):]]
                     assert len(literals) == num_literals
 
-                    # We may want to modify the board representation to see if it helps/hinders training
-                    literals = UtilsTM.LiteralAugmentation.augment_literals(literals, augmentation, boardsize)
+                    # TODO: need to fix issue where augmented literals with a history will be added to the history
+                    # meaning they just grow forever. Need to add the augmented version without the history attached
 
+                    # We may want to modify the board representation to see if it helps/hinders training
+                    literals = augmentation.apply(literals, boardsize)
+
+                    # Add this games literals to the game history
+                    history = game_history[game_number]
+                    history.append(literals)
+                    while len(history) > history_size:
+                        history.pop(0)
+
+                    # Process a batch of literals once the batch is large enough
                     batch.append((winner, literals))
                     if len(batch) >= batch_size:
                         UtilsTM._train_tm_from_batch(tm, batch, boardsize)
                         batch.clear()
+
+                # Process any remaining training data that doesn't fill a batch
                 if batch:
                     UtilsTM._train_tm_from_batch(tm, batch, boardsize)
                     batch.clear()
 
         except (FileNotFoundError, NotADirectoryError) as e:
             print(e, file=sys.stderr)
-        except Exception as e:
-            print(e, file=sys.stderr)
-
 
     @staticmethod
     def _train_tm_from_batch(tm, batch, boardsize: int):
         # Placeholder function, replace with real TM
         # print(boardsize, len(batch))
         pass
+
 
 if __name__ == "__main__":
     test_path = Path("test_tournament")
@@ -327,4 +353,8 @@ if __name__ == "__main__":
     UtilsTournament.games_to_winner_prediction_dataset(games, boardsize, dataset_path)
 
     # Train a TM for hex winner prediction from the dataset
-    UtilsTM.train_tm_from_dataset(dataset_path, batch_size=5, augmentation=UtilsTM.LiteralAugmentation.AUG_PADDING)
+    UtilsTM.train_tm_from_dataset(dataset_path,
+                                  batch_size=5,
+                                  augmentation=UtilsTM.Literals.Augmentation.AUG_PADDING,
+                                  history_type=UtilsTM.Literals.History.HISTORY_STATE,
+                                  history_size=5)

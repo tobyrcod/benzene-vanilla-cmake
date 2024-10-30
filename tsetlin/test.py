@@ -1,10 +1,12 @@
 import random
 
-from utils import UtilsTournament, UtilsTM, UtilsHex
+from utils import UtilsHex, UtilsTM
 
 class Tests:
 
     # TODO: add failed case test for all
+    # TODO: write tests for history
+    # TODO: look for all random usages and add UtilsTM.Literals.make_random_board
 
     class UtilsHex:
 
@@ -107,7 +109,7 @@ class Tests:
 
                         literals = before
                         assert literals == before
-                        literals = UtilsTM.LiteralAugmentation.augment_literals(literals, UtilsTM.LiteralAugmentation.AUG_PADDING, boardsize)
+                        literals = UtilsTM.Literals.Augmentation.AUG_PADDING.apply(literals, boardsize)
                         assert literals == after
 
                 def test_pair_position():
@@ -121,7 +123,7 @@ class Tests:
 
                         literals = before
                         assert literals == before
-                        literals = UtilsTM.LiteralAugmentation.augment_literals(literals, UtilsTM.LiteralAugmentation.AUG_PAIR_POSITIONS, boardsize)
+                        literals = UtilsTM.Literals.Augmentation.AUG_PAIR_POSITIONS.apply(literals, boardsize)
                         assert literals == after
 
                 def test_move_counter():
@@ -130,7 +132,7 @@ class Tests:
                             max_move_count = boardsize ** 2
                             move_count = random.randint(1, max_move_count)
 
-                            before = UtilsTM.make_new_literals(boardsize)
+                            before = UtilsTM.Literals.make_empty_board(boardsize)
                             for i in random.sample(range(len(before)), move_count - 1):
                                 before[i] = 1
 
@@ -141,7 +143,7 @@ class Tests:
 
                             literals = before
                             assert literals == before
-                            literals = UtilsTM.LiteralAugmentation.augment_literals(literals, UtilsTM.LiteralAugmentation.AUG_MOVE_COUNTER, boardsize)
+                            literals = UtilsTM.Literals.Augmentation.AUG_MOVE_COUNTER.apply(literals, boardsize)
                             assert literals == after
 
                 def test_turn_indicator():
@@ -150,14 +152,14 @@ class Tests:
                             max_turn = boardsize ** 2
                             turn = random.randint(1, max_turn)
 
-                            before = UtilsTM.make_new_literals(boardsize)
+                            before = UtilsTM.Literals.make_empty_board(boardsize)
                             for i in random.sample(range(len(before)), turn - 1):
                                 before[i] = 1
                             after = before + [turn % 2]
 
                             literals = before
                             assert literals == before
-                            literals = UtilsTM.LiteralAugmentation.augment_literals(literals, UtilsTM.LiteralAugmentation.AUG_TURN_INDICATOR, boardsize)
+                            literals = UtilsTM.Literals.Augmentation.AUG_TURN_INDICATOR.apply(literals, boardsize)
                             assert literals == after
 
                 def test_padding_position_pair():
@@ -166,15 +168,15 @@ class Tests:
                             max_move_count = boardsize ** 2
                             move_count = random.randint(1, max_move_count)
 
-                            before = UtilsTM.make_new_literals(boardsize)
+                            before = UtilsTM.Literals.make_empty_board(boardsize)
                             for i in random.sample(range(len(before)), move_count):
                                 before[i] = 1
 
-                            mid_step_1 = UtilsTM.LiteralAugmentation.augment_literals(before, UtilsTM.LiteralAugmentation.AUG_PADDING, boardsize)
-                            final_step = UtilsTM.LiteralAugmentation.augment_literals(mid_step_1, UtilsTM.LiteralAugmentation.AUG_PAIR_POSITIONS, boardsize+2)
+                            mid_step_1 = UtilsTM.Literals.Augmentation.AUG_PADDING.apply(before, boardsize)
+                            final_step = UtilsTM.Literals.Augmentation.AUG_PAIR_POSITIONS.apply(mid_step_1, boardsize+2)
 
-                            aug = UtilsTM.LiteralAugmentation.AUG_PADDING | UtilsTM.LiteralAugmentation.AUG_PAIR_POSITIONS
-                            all_in_one = UtilsTM.LiteralAugmentation.augment_literals(before, aug, boardsize)
+                            aug = UtilsTM.Literals.Augmentation.AUG_PADDING | UtilsTM.Literals.Augmentation.AUG_PAIR_POSITIONS
+                            all_in_one = aug.apply(before, boardsize)
 
                             assert final_step == all_in_one
 
