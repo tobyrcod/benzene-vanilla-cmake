@@ -1,3 +1,4 @@
+import itertools
 import random
 import sys
 import csv
@@ -6,12 +7,18 @@ from pathlib import Path
 from pysgf import SGF
 
 # TODO: document every method with """ """
+# TODO: add empty board with the winner when making the dataset
 
 class Helpers:
 
     @staticmethod
     def clamp(value, min_value, max_value):
         return max(min(value, max_value), min_value)
+
+    @staticmethod
+    def chunk_list(l, chunk_size):
+        return [l[i:i + chunk_size] for i in range(0, len(l), chunk_size)]
+
 
 class UtilsHex:
 
@@ -179,8 +186,29 @@ class UtilsTM:
             HISTORY_STATE       = 1
             HISTORY_MOVE        = 2
 
+            def _is_valid(self):
+                return self in list(UtilsTM.Literals.History)
+
+            def apply(self, literals: list[int], history: list[list[int]], boardsize: int) -> list[int]:
+                if not self._is_valid():
+                    return literals.copy()
+
+                if self == UtilsTM.Literals.History.HISTORY_STATE:
+                    # Convert the list of game states into a big long list of all the literals
+                    # e.g [[1, 2], [3, 4], [5, 6]] -> [1, 2, 3, 4, 5, 6]
+                    history = list(itertools.chain.from_iterable(history))
+                    return literals + history
+
+                if self == UtilsTM.Literals.History.HISTORY_MOVE:
+                    # TODO implement, and add tests
+                    pass
+
+                return literals.copy()
+
+
+
         class Augmentation(IntFlag):
-            NONE = 0
+            AUG_NONE = 0
             # Append Information
             AUG_MOVE_COUNTER    = 1 << 0
             AUG_TURN_INDICATOR  = 1 << 1
@@ -284,8 +312,10 @@ class UtilsTM:
             return [0 for _ in range(2 * literals_per_player)]
 
         @staticmethod
-        def make_random_board(boardsize: int, num_pieces: int) -> list[int]:
+        def make_random_board(boardsize: int, num_pieces: int = None) -> list[int]:
             max_num_pieces = boardsize ** 2
+            if num_pieces is None:
+                num_pieces = random.randint(0, max_num_pieces)
             num_pieces = Helpers.clamp(num_pieces, 0, max_num_pieces)
 
             # For even #pieces, half should be black and half should be white
@@ -297,10 +327,32 @@ class UtilsTM:
             white_literals = [1 if i in piece_indices[num_black_pieces:] else 0 for i in range(max_num_pieces)]
             return black_literals + white_literals
 
+        @staticmethod
+        def make_random_move(literals: list[int], boardsize: int) -> list[int] | None:
+            # Takes a literal board representation and adds a random new valid move
+            move_count = sum(literals) + 1
+            if move_count > boardsize ** 2:
+                # print('this game is already over')
+                return None
+
+            is_black_turn = move_count % 2 != 0
+
+            literals_per_player = boardsize ** 2
+            player_range = range(literals_per_player) if is_black_turn else range(literals_per_player, literals_per_player*2)
+            # print(f"move: {move_count}", f"black?: {is_black_turn}", f"player range: {player_range}")
+
+            possible_move_indices = [i for i, literal in enumerate(literals) if literal == 0 and i in player_range]
+            move = random.choice(possible_move_indices)
+            # print(move, possible_move_indices)
+
+            new_literals = literals.copy()
+            new_literals[move] = 1
+            return new_literals
+
 
     @staticmethod
     def train_tm_from_dataset(dataset_path: Path, batch_size=10,
-                              augmentation: Literals.Augmentation = Literals.Augmentation.NONE,
+                              augmentation: Literals.Augmentation = Literals.Augmentation.AUG_NONE,
                               history_type: Literals.History = Literals.History.NONE,
                               history_size: int = 0):
         try:
@@ -323,26 +375,27 @@ class UtilsTM:
                 for row in reader:
                     game_number = int(row[headers.index('Game#')])
                     if game_number not in game_history:
-                        game_history = {game_number: []}
+                        # If we are early in the game, pad the history with empty boards
+                        game_history = {game_number: [UtilsTM.Literals.make_empty_board(boardsize) for _ in range(history_size)]}
 
                     winner = int(row[headers.index('Winner')])
                     literals = [int(l) for l in row[headers.index('x0'):]]
                     assert len(literals) == num_literals
 
-                    # TODO: need to fix issue where augmented literals with a history will be added to the history
-                    # meaning they just grow forever. Need to add the augmented version without the history attached
-
                     # We may want to modify the board representation to see if it helps/hinders training
-                    literals = augmentation.apply(literals, boardsize)
+                    aug_literals = augmentation.apply(literals, boardsize)
+
+                    # We may also want to modify the board representation by adding the game history
+                    history = game_history[game_number]
+                    final_literals = history_type.apply(aug_literals, history, boardsize)
 
                     # Add this games literals to the game history
-                    history = game_history[game_number]
-                    history.append(literals)
+                    history.insert(0, aug_literals)
                     while len(history) > history_size:
-                        history.pop(0)
+                        history.pop()
 
                     # Process a batch of literals once the batch is large enough
-                    batch.append((winner, literals))
+                    batch.append((winner, final_literals))
                     if len(batch) >= batch_size:
                         UtilsTM._train_tm_from_batch(tm, batch, boardsize)
                         batch.clear()
@@ -376,6 +429,6 @@ if __name__ == "__main__":
     # Train a TM for hex winner prediction from the dataset
     UtilsTM.train_tm_from_dataset(dataset_path,
                                   batch_size=5,
-                                  augmentation=UtilsTM.Literals.Augmentation.AUG_PADDING,
+                                  augmentation=UtilsTM.Literals.Augmentation.AUG_NONE,
                                   history_type=UtilsTM.Literals.History.HISTORY_STATE,
-                                  history_size=5)
+                                  history_size=2)

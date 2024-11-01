@@ -1,11 +1,11 @@
 import random
+import time
 
-from utils import UtilsHex, UtilsTM
+from utils import Helpers, UtilsHex, UtilsTM
 
 class Tests:
 
     # TODO: add failed case test for all
-    # TODO: write tests for history
 
     class UtilsHex:
 
@@ -50,6 +50,75 @@ class Tests:
 
         class Literals:
 
+            class History:
+
+                @staticmethod
+                def test():
+
+                    def test_state_history():
+                        history_type = UtilsTM.Literals.History.HISTORY_STATE
+                        augmentation = UtilsTM.Literals.Augmentation.AUG_NONE
+
+                        # To check history property in simple setting
+                        # Do we order the history correctly, do we use queue correctly
+                        def test_dummy(history_size: int, boardsize: int):
+                            history = [[0] for _ in range(history_size)]
+
+                            for i in range(1, history_size*3):
+                                literals = [i]
+                                wanted_literals = [max(0, i-j) for j in range(history_size+1)]
+
+                                final_literals = history_type.apply(literals, history, boardsize)
+                                assert final_literals == wanted_literals
+
+                                history.insert(0, literals)
+                                while len(history) > history_size:
+                                    history.pop()
+
+                        # To check size is right with real literals
+                        def test_real(history_size: int, boardsize: int):
+                            literals_per_player = boardsize ** 2
+                            literals_per_game = literals_per_player * 2
+                            history = [UtilsTM.Literals.make_empty_board(boardsize) for _ in range(history_size)]
+
+                            literals = UtilsTM.Literals.make_empty_board(boardsize)
+                            for move in range(1, boardsize**2):
+
+                                aug_literals = augmentation.apply(literals, boardsize)
+
+                                #
+                                # BEGIN TESTS
+
+                                final_literals = history_type.apply(aug_literals, history, boardsize)
+                                final_games_literals = Helpers.chunk_list(final_literals, literals_per_game)
+
+                                assert len(final_games_literals) == history_size + 1
+                                assert all(len(game_literals) == literals_per_game for game_literals in final_games_literals)
+                                assert final_games_literals[0] == aug_literals
+                                for i, h in enumerate(history):
+                                    assert final_games_literals[i+1] == h
+
+                                #
+                                # END TESTS
+
+                                # Add these literals to the history for next iteration
+                                history.insert(0, aug_literals.copy())
+                                while len(history) > history_size:
+                                    history.pop()
+
+                                # Make a random move to simulate play
+                                literals = UtilsTM.Literals.make_random_move(literals, boardsize)
+
+
+                        for history_size in range(2, 6):
+                            for boardsize in range(6, 14):
+                                for _ in range(10*boardsize):
+                                    test_dummy(history_size, boardsize)
+                                    test_real(history_size, boardsize)
+
+                    test_state_history()
+
+
             class Augmentation:
 
                 @staticmethod
@@ -57,16 +126,13 @@ class Tests:
 
                     # HELPERS
 
-                    def split_list(list, split_size):
-                        return [list[i:i + split_size] for i in range(0, len(list), split_size)]
-
                     def print_literal_grid(literals, boardsize):
-                        for row in split_list(literals, boardsize):
+                        for row in Helpers.chunk_list(literals, boardsize):
                             print([str(n).zfill(2) for n in row])
                         print('------')
 
                     def pad_player_literals(player_literals, is_black, boardsize):
-                        split_literals = split_list(player_literals, boardsize)
+                        player_rows = Helpers.chunk_list(player_literals, boardsize)
                         after = []
                         after_boardsize = boardsize + 2
                         for row in range(after_boardsize):
@@ -75,7 +141,7 @@ class Tests:
                                 after.extend([top_bottom for _ in range(after_boardsize)])
                             else:
                                 side = int(not is_black)
-                                after.extend([side] + split_literals[row-1] + [side])
+                                after.extend([side] + player_rows[row-1] + [side])
                         after[UtilsHex.coordinates_2d_to_1d(0, 0, after_boardsize)] = 0
                         after[UtilsHex.coordinates_2d_to_1d(0, after_boardsize-1, after_boardsize)] = 0
                         after[UtilsHex.coordinates_2d_to_1d(after_boardsize-1, 0, after_boardsize)] = 0
@@ -186,10 +252,9 @@ class Tests:
 
                 def test_make_random_board():
                     for boardsize in range(6, 14):
+                        literals_per_player = boardsize ** 2
+                        max_num_pieces = boardsize ** 2
                         for _ in range(10 * boardsize ** 2):
-                            boardsize = 6
-                            literals_per_player = boardsize ** 2
-                            max_num_pieces = boardsize ** 2
                             num_pieces = random.randint(1, max_num_pieces)
 
                             literals = UtilsTM.Literals.make_random_board(boardsize, num_pieces)
@@ -200,7 +265,7 @@ class Tests:
                             assert len(black_literals) == len(white_literals) == literals_per_player
 
                             assert sum(black_literals) + sum(white_literals) == num_pieces
-                            assert abs(sum(black_literals) - sum(white_literals)) <= 1
+                            assert 0 <= sum(black_literals) - sum(white_literals) <= 1
 
                             for i in range(literals_per_player):
                                 black = black_literals[i]
@@ -208,15 +273,77 @@ class Tests:
                                 assert not (black and white)
                                 assert black + white <= 1
 
+                def test_make_random_move():
+                    for boardsize in range(6, 14):
+                        literals_per_player = boardsize ** 2
+                        max_num_pieces = boardsize ** 2
+                        for _ in range(10 * boardsize ** 2):
+                            before = UtilsTM.Literals.make_random_board(boardsize)
+                            after = UtilsTM.Literals.make_random_move(before, boardsize)
+                            # print(before)
+                            # print(after)
+                            # print('----')
+                            assert (after is None) == (sum(before) == max_num_pieces)
+                            if after is None:
+                                continue
+
+                            assert len(after) == len(before)
+
+                            assert sum(after) == sum(before) + 1
+
+                            new_count = 0
+                            for i in range(len(before)):
+                                b = before[i]
+                                a = after[i]
+                                if b == 1: assert a == 1
+                                if a == 0: assert b == 0
+                                if a == 1 and b == 0: new_count += 1
+                            assert new_count == 1
+
+                            before_black = before[:literals_per_player]
+                            before_white = before[literals_per_player:]
+                            after_black = after[:literals_per_player]
+                            after_white = after[literals_per_player:]
+                            assert len(before_black) == len(before_white) == len(after_black) == len(after_white)
+
+                            before_piece_count = sum(before)
+                            was_blacks_turn = before_piece_count % 2 == 0
+                            if was_blacks_turn:
+                                assert after_white == before_white
+                                assert sum(after_black) == sum(before_black) + 1
+                            else:
+                                # was_whites_turn
+                                assert after_black == before_black
+                                assert sum(after_white) == sum(before_white) + 1
+
+
+                test_make_random_move()
                 test_make_random_board()
+                Tests.UtilsTM.Literals.History.test()
                 Tests.UtilsTM.Literals.Augmentation.test()
 
 
 
 if __name__ == "__main__":
+
+    start_time = time.time()
+    pretty_start_time = time.strftime("%H:%M:%S", time.localtime(start_time))
+    print(f"STARTING TESTS: {pretty_start_time}")
+
+    # START TESTS
+
     Tests.UtilsHex.test_hex_coordinates_1d_to_2d()
     Tests.UtilsHex.test_hex_coordinates_2d_to_1d()
     Tests.UtilsHex.test_hex_string_to_number()
     Tests.UtilsHex.test_hex_coord_to_index()
 
     Tests.UtilsTM.Literals.test()
+
+    # END TESTS
+
+    end_time = time.time()
+    pretty_end_time = time.strftime("%H:%M:%S", time.localtime(end_time))
+    print(f"TESTS COMPLETE: {pretty_end_time}")
+
+    duration = end_time - start_time
+    print(f"TESTS DURATION: {duration}")
