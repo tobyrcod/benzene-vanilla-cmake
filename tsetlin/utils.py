@@ -167,7 +167,7 @@ class UtilsTournament:
         states = [literals.copy()]  # Start with an empty board state
 
         for i, move in enumerate(moves):
-            is_white_move = i % 2
+            is_white_move = i % 2 == 1
             index = UtilsHex.position_to_index(move, boardsize)
             index += is_white_move * literals_per_player
             literals[index] = 1
@@ -186,26 +186,25 @@ class UtilsTM:
             HISTORY_STATE       = 1
             HISTORY_MOVE        = 2
 
-            def _is_valid(self):
-                return self in list(UtilsTM.Literals.History)
-
             def apply(self, literals: list[int], history: list[list[int]], boardsize: int) -> list[int]:
-                if not self._is_valid():
-                    return literals.copy()
-
                 if self == UtilsTM.Literals.History.HISTORY_STATE:
                     # Convert the list of game states into a big long list of all the literals
                     # e.g [[1, 2], [3, 4], [5, 6]] -> [1, 2, 3, 4, 5, 6]
-                    history = list(itertools.chain.from_iterable(history))
-                    return literals + history
+                    flattened_history = list(itertools.chain.from_iterable(history))
+                    return literals + flattened_history
 
                 if self == UtilsTM.Literals.History.HISTORY_MOVE:
-                    # TODO implement, and add tests
-                    pass
+                    # Convert the list of game states into just the moves made at each step
+                    moves = []
+                    for i in range(len(history)-1):
+                        state = history[i]
+                        previous_state = history[i+1]
+                        move = UtilsTM.Literals.get_literal_difference(state, previous_state)
+                        moves.append(move)
+                    flattened_moves = list(itertools.chain.from_iterable(moves))
+                    return literals + flattened_moves
 
                 return literals.copy()
-
-
 
         class Augmentation(IntFlag):
             AUG_NONE = 0
@@ -305,6 +304,28 @@ class UtilsTM:
 
                 return new_literals
 
+        @staticmethod
+        def get_literal_difference(literalsA: list[int], literalsB: list[int]) -> list[int]:
+            return [a ^ b for (a, b) in zip(literalsA, literalsB)]
+
+        @staticmethod
+        def get_random_move(literals: list[int], boardsize: int) -> int:
+            # Takes a literal board representation and adds a random new valid move
+            move_count = sum(literals) + 1
+            if move_count > boardsize ** 2:
+                # print('this game is already over')
+                return -1
+
+            is_black_turn = move_count % 2 != 0
+
+            literals_per_player = boardsize ** 2
+            player_range = range(literals_per_player) if is_black_turn else range(literals_per_player,
+                                                                                  literals_per_player * 2)
+            # print(f"move: {move_count}", f"black?: {is_black_turn}", f"player range: {player_range}")
+
+            possible_move_indices = [i for i, literal in enumerate(literals) if literal == 0 and i in player_range]
+            move = random.choice(possible_move_indices)
+            return move
 
         @staticmethod
         def make_empty_board(boardsize: int) -> list[int]:
@@ -328,26 +349,18 @@ class UtilsTM:
             return black_literals + white_literals
 
         @staticmethod
-        def make_random_move(literals: list[int], boardsize: int) -> list[int] | None:
-            # Takes a literal board representation and adds a random new valid move
-            move_count = sum(literals) + 1
-            if move_count > boardsize ** 2:
-                # print('this game is already over')
+        def make_move(literals: list[int], move: int) -> list[int] | None:
+            if move < 0 or move >= len(literals):
                 return None
-
-            is_black_turn = move_count % 2 != 0
-
-            literals_per_player = boardsize ** 2
-            player_range = range(literals_per_player) if is_black_turn else range(literals_per_player, literals_per_player*2)
-            # print(f"move: {move_count}", f"black?: {is_black_turn}", f"player range: {player_range}")
-
-            possible_move_indices = [i for i, literal in enumerate(literals) if literal == 0 and i in player_range]
-            move = random.choice(possible_move_indices)
-            # print(move, possible_move_indices)
 
             new_literals = literals.copy()
             new_literals[move] = 1
             return new_literals
+
+        @staticmethod
+        def make_random_move(literals: list[int], boardsize: int) -> list[int] | None:
+            move = UtilsTM.Literals.get_random_move(literals, boardsize)
+            return UtilsTM.Literals.make_move(literals, move)
 
 
     @staticmethod
@@ -369,7 +382,9 @@ class UtilsTM:
 
                 game_history = dict()
                 if history_type == UtilsTM.Literals.History.NONE:
-                    history_size = 0
+                    history_size = 0  # We don't want any history
+                if history_type == UtilsTM.Literals.History.HISTORY_MOVE:
+                    history_size += 1  # In order to calculate n moves, we need (n+1) games of history
 
                 batch = []
                 for row in reader:
@@ -430,5 +445,5 @@ if __name__ == "__main__":
     UtilsTM.train_tm_from_dataset(dataset_path,
                                   batch_size=5,
                                   augmentation=UtilsTM.Literals.Augmentation.AUG_NONE,
-                                  history_type=UtilsTM.Literals.History.HISTORY_STATE,
+                                  history_type=UtilsTM.Literals.History.HISTORY_MOVE,
                                   history_size=2)

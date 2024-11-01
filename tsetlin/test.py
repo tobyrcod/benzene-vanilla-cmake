@@ -54,10 +54,10 @@ class Tests:
 
                 @staticmethod
                 def test():
+                    augmentation = UtilsTM.Literals.Augmentation.AUG_NONE
 
                     def test_state_history():
                         history_type = UtilsTM.Literals.History.HISTORY_STATE
-                        augmentation = UtilsTM.Literals.Augmentation.AUG_NONE
 
                         # To check history property in simple setting
                         # Do we order the history correctly, do we use queue correctly
@@ -108,15 +108,62 @@ class Tests:
                                 # Make a random move to simulate play
                                 literals = UtilsTM.Literals.make_random_move(literals, boardsize)
 
-
                         for history_size in range(2, 6):
                             for boardsize in range(6, 14):
                                 for _ in range(10*boardsize):
                                     test_dummy(history_size, boardsize)
                                     test_real(history_size, boardsize)
 
-                    test_state_history()
+                    def test_move_history():
+                        history_type = UtilsTM.Literals.History.HISTORY_MOVE
 
+                        # To check size is right with real literals
+                        def test_real(history_size: int, boardsize: int):
+                            literals_per_player = boardsize ** 2
+                            literals_per_game = literals_per_player * 2
+                            history = [UtilsTM.Literals.make_empty_board(boardsize) for _ in range(history_size)]
+
+                            literals = UtilsTM.Literals.make_empty_board(boardsize)
+                            for move in range(1, boardsize ** 2):
+                                aug_literals = augmentation.apply(literals, boardsize)
+
+                                #
+                                # BEGIN TESTS
+
+                                final_literals = history_type.apply(aug_literals, history, boardsize)
+                                final_move_literals = Helpers.chunk_list(final_literals, literals_per_game)
+
+                                assert len(final_move_literals) == history_size
+                                assert all(len(move_literals) == literals_per_game for move_literals in final_move_literals)
+                                assert final_move_literals[0] == aug_literals
+                                for move_literals in final_move_literals[1:]:
+                                    if move > history_size:
+                                        assert sum(move_literals) == 1
+                                        assert sum(l != 0 for l in move_literals) == 1
+
+                                    for i in range(len(move_literals)):
+                                        if move_literals[i] == 1:
+                                            assert final_move_literals[0][i] == 1
+                                            assert aug_literals[i] == 1
+
+                                #
+                                # END TESTS
+
+                                # Add these literals to the history for next iteration
+                                history.insert(0, aug_literals.copy())
+                                while len(history) > history_size:
+                                    history.pop()
+
+                                # Make a random move to simulate play
+                                literals = UtilsTM.Literals.make_random_move(literals, boardsize)
+
+                        for history_size in range(2, 6):
+                            for boardsize in range(2, 14):
+                                for _ in range(10 * boardsize):
+                                    test_real(history_size, boardsize)
+
+                    test_move_history()
+                    test_state_history()
 
             class Augmentation:
 
@@ -249,6 +296,25 @@ class Tests:
             @staticmethod
             def test():
 
+                def test_get_literal_difference():
+                    for boardsize in range(6, 14):
+                        max_num_pieces = boardsize ** 2
+
+                        before = UtilsTM.Literals.make_random_board(boardsize)
+                        move = UtilsTM.Literals.get_random_move(before, boardsize)
+                        after = UtilsTM.Literals.make_move(before, move)
+
+                        assert (after is None) == (sum(before) == max_num_pieces)
+                        if after is None:
+                            continue
+
+                        assert len(after) == len(before)
+                        assert sum(after) == sum(before) + 1
+
+                        difference = UtilsTM.Literals.get_literal_difference(before, after)
+                        assert difference[move] == 1
+                        assert sum([l != 0 for l in difference]) == 1
+
                 def test_make_random_board():
                     for boardsize in range(6, 14):
                         literals_per_player = boardsize ** 2
@@ -287,8 +353,8 @@ class Tests:
                                 continue
 
                             assert len(after) == len(before)
-
                             assert sum(after) == sum(before) + 1
+                            assert sum([l != 0 for l in UtilsTM.Literals.get_literal_difference(before, after)]) == 1
 
                             new_count = 0
                             for i in range(len(before)):
@@ -316,6 +382,7 @@ class Tests:
                                 assert sum(after_white) == sum(before_white) + 1
 
 
+                test_get_literal_difference()
                 test_make_random_move()
                 test_make_random_board()
                 Tests.UtilsTM.Literals.History.test()
