@@ -162,16 +162,16 @@ class UtilsTournament:
         # Logic-based AI for Interpretable Board Game Winner Prediction with Tsetlin Machine
         # https://ieeexplore.ieee.org/document/9892796
 
-        states = []
         literals_per_player = boardsize**2
         literals = UtilsTM.Literals.make_empty_board(boardsize)
+        states = [literals.copy()]  # Start with an empty board state
 
         for i, move in enumerate(moves):
             is_white_move = i % 2
             index = UtilsHex.position_to_index(move, boardsize)
             index += is_white_move * literals_per_player
             literals[index] = 1
-            states.append(literals.copy())
+            states.append(literals.copy())  # And gradually add every played state one move at a time
 
         return states
 
