@@ -95,8 +95,7 @@ class Tests:
                                 assert len(final_games_literals) == history_size + 1
                                 assert all(len(game_literals) == literals_per_game for game_literals in final_games_literals)
                                 assert final_games_literals[0] == aug_literals
-                                for i, h in enumerate(history):
-                                    assert final_games_literals[i+1] == h
+                                assert all(final_games_literals[i+1] == history[i] for i in range(len(history)))
 
                                 #
                                 # END TESTS
