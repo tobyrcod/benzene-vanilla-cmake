@@ -82,7 +82,7 @@ class Tests:
                             history = [UtilsTM.Literals.make_empty_board(boardsize) for _ in range(history_size)]
 
                             literals = UtilsTM.Literals.make_empty_board(boardsize)
-                            for move in range(1, boardsize**2):
+                            for turn in range(1, boardsize**2):
 
                                 aug_literals = augmentation.apply(literals, boardsize)
 
@@ -106,7 +106,7 @@ class Tests:
                                     history.pop()
 
                                 # Make a random move to simulate play
-                                literals = UtilsTM.Literals.make_random_move(literals, boardsize)
+                                literals, _ = UtilsTM.Literals.make_random_move(literals, boardsize)
 
                         for history_size in range(2, 6):
                             for boardsize in range(6, 14):
@@ -122,9 +122,10 @@ class Tests:
                             literals_per_player = boardsize ** 2
                             literals_per_game = literals_per_player * 2
                             history = [UtilsTM.Literals.make_empty_board(boardsize) for _ in range(history_size)]
+                            move_history = [-1 for _ in range(history_size)]
 
                             literals = UtilsTM.Literals.make_empty_board(boardsize)
-                            for move in range(1, boardsize ** 2):
+                            for turn in range(1, boardsize ** 2):
                                 aug_literals = augmentation.apply(literals, boardsize)
 
                                 #
@@ -136,14 +137,14 @@ class Tests:
                                 assert len(final_move_literals) == history_size
                                 assert all(len(move_literals) == literals_per_game for move_literals in final_move_literals)
                                 assert final_move_literals[0] == aug_literals
-                                for move_literals in final_move_literals[1:]:
-                                    if move > history_size:
+                                for history_id, move_literals in enumerate(final_move_literals[1:]):
+                                    if turn > history_size:
                                         assert sum(move_literals) == 1
                                         assert sum(l != 0 for l in move_literals) == 1
+                                        assert move_literals[move_history[history_id + 1]] == 1
 
                                     for i in range(len(move_literals)):
                                         if move_literals[i] == 1:
-                                            assert final_move_literals[0][i] == 1
                                             assert aug_literals[i] == 1
 
                                 #
@@ -155,7 +156,10 @@ class Tests:
                                     history.pop()
 
                                 # Make a random move to simulate play
-                                literals = UtilsTM.Literals.make_random_move(literals, boardsize)
+                                literals, move = UtilsTM.Literals.make_random_move(literals, boardsize)
+                                move_history.insert(0, move)
+                                while len(move_history) > history_size:
+                                    move_history.pop()
 
                         for history_size in range(2, 6):
                             for boardsize in range(2, 14):
@@ -301,8 +305,7 @@ class Tests:
                         max_num_pieces = boardsize ** 2
 
                         before = UtilsTM.Literals.make_random_board(boardsize)
-                        move = UtilsTM.Literals.get_random_move(before, boardsize)
-                        after = UtilsTM.Literals.make_move(before, move)
+                        after, move = UtilsTM.Literals.make_random_move(before, boardsize)
 
                         assert (after is None) == (sum(before) == max_num_pieces)
                         if after is None:
@@ -344,7 +347,7 @@ class Tests:
                         max_num_pieces = boardsize ** 2
                         for _ in range(10 * boardsize ** 2):
                             before = UtilsTM.Literals.make_random_board(boardsize)
-                            after = UtilsTM.Literals.make_random_move(before, boardsize)
+                            after, move = UtilsTM.Literals.make_random_move(before, boardsize)
                             # print(before)
                             # print(after)
                             # print('----')
@@ -354,6 +357,8 @@ class Tests:
 
                             assert len(after) == len(before)
                             assert sum(after) == sum(before) + 1
+                            assert before[move] == 0
+                            assert after[move] == 1
                             assert sum([l != 0 for l in UtilsTM.Literals.get_literal_difference(before, after)]) == 1
 
                             new_count = 0

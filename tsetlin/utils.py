@@ -309,7 +309,7 @@ class UtilsTM:
             return [a ^ b for (a, b) in zip(literalsA, literalsB)]
 
         @staticmethod
-        def get_random_move(literals: list[int], boardsize: int) -> int:
+        def _get_random_move(literals: list[int], boardsize: int) -> int:
             # Takes a literal board representation and adds a random new valid move
             move_count = sum(literals) + 1
             if move_count > boardsize ** 2:
@@ -358,9 +358,9 @@ class UtilsTM:
             return new_literals
 
         @staticmethod
-        def make_random_move(literals: list[int], boardsize: int) -> list[int] | None:
-            move = UtilsTM.Literals.get_random_move(literals, boardsize)
-            return UtilsTM.Literals.make_move(literals, move)
+        def make_random_move(literals: list[int], boardsize: int) -> tuple[list[int] | None, int]:
+            move = UtilsTM.Literals._get_random_move(literals, boardsize)
+            return UtilsTM.Literals.make_move(literals, move), move
 
 
     @staticmethod
