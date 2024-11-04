@@ -308,6 +308,36 @@ class UtilsTM:
         def get_literal_difference(literalsA: list[int], literalsB: list[int]) -> list[int]:
             return [a ^ b for (a, b) in zip(literalsA, literalsB)]
 
+
+        @staticmethod
+        def make_empty_board(boardsize: int) -> list[int]:
+            literals_per_player = boardsize ** 2
+            return [0 for _ in range(2 * literals_per_player)]
+
+
+        @staticmethod
+        def make_random_board(boardsize: int, num_pieces: int = None) -> list[int]:
+            max_num_pieces = boardsize ** 2
+            if num_pieces is None:
+                num_pieces = random.randint(0, max_num_pieces)
+            num_pieces = Helpers.clamp(num_pieces, 0, max_num_pieces)
+
+            # For even #pieces, half should be black and half should be white
+            # For odd #pieces, black should have one more than white
+            # For all #pieces, black and white can never have a piece in the same place
+            num_black_pieces = (num_pieces + 1) // 2
+            piece_indices = random.sample(range(max_num_pieces), num_pieces)
+            black_literals = [1 if i in piece_indices[:num_black_pieces] else 0 for i in range(max_num_pieces)]
+            white_literals = [1 if i in piece_indices[num_black_pieces:] else 0 for i in range(max_num_pieces)]
+            return black_literals + white_literals
+
+
+        @staticmethod
+        def make_random_move(literals: list[int], boardsize: int) -> tuple[list[int] | None, int]:
+            move = UtilsTM.Literals._get_random_move(literals, boardsize)
+            return UtilsTM.Literals._make_move(literals, move), move
+
+
         @staticmethod
         def _get_random_move(literals: list[int], boardsize: int) -> int:
             # Takes a literal board representation and adds a random new valid move
@@ -327,40 +357,17 @@ class UtilsTM:
             move = random.choice(possible_move_indices)
             return move
 
-        @staticmethod
-        def make_empty_board(boardsize: int) -> list[int]:
-            literals_per_player = boardsize ** 2
-            return [0 for _ in range(2 * literals_per_player)]
 
         @staticmethod
-        def make_random_board(boardsize: int, num_pieces: int = None) -> list[int]:
-            max_num_pieces = boardsize ** 2
-            if num_pieces is None:
-                num_pieces = random.randint(0, max_num_pieces)
-            num_pieces = Helpers.clamp(num_pieces, 0, max_num_pieces)
-
-            # For even #pieces, half should be black and half should be white
-            # For odd #pieces, black should have one more than white
-            # For all #pieces, black and white can never have a piece in the same place
-            num_black_pieces = (num_pieces + 1) // 2
-            piece_indices = random.sample(range(max_num_pieces), num_pieces)
-            black_literals = [1 if i in piece_indices[:num_black_pieces] else 0 for i in range(max_num_pieces)]
-            white_literals = [1 if i in piece_indices[num_black_pieces:] else 0 for i in range(max_num_pieces)]
-            return black_literals + white_literals
-
-        @staticmethod
-        def make_move(literals: list[int], move: int) -> list[int] | None:
+        def _make_move(literals: list[int], move: int) -> list[int] | None:
             if move < 0 or move >= len(literals):
-                return None
+                return None  # Move isn't on board
+            if literals[move] == 1:
+                return None  # Move has already been made, so something is wrong
 
             new_literals = literals.copy()
             new_literals[move] = 1
             return new_literals
-
-        @staticmethod
-        def make_random_move(literals: list[int], boardsize: int) -> tuple[list[int] | None, int]:
-            move = UtilsTM.Literals._get_random_move(literals, boardsize)
-            return UtilsTM.Literals.make_move(literals, move), move
 
 
     @staticmethod
