@@ -438,7 +438,7 @@ class UtilsTM:
 
 
 if __name__ == "__main__":
-    test_path = Path("test_tournament")
+    test_path = Path("tournaments")
     tournament_path = test_path / "6x6-mohex-mohex-simple-a-vs-mohex-mohex-simple-b"
     dataset_path = test_path / "dataset.csv"
 
