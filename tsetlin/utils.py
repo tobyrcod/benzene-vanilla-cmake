@@ -181,7 +181,7 @@ class UtilsTM:
     class Literals:
 
         class History(Enum):
-            NONE = 0
+            HISTORY_NONE        = 0
             # Give Literals 'Memory'
             HISTORY_STATE       = 1
             HISTORY_MOVE        = 2
@@ -371,16 +371,16 @@ class UtilsTM:
 
 
     @staticmethod
-    def train_tm_from_dataset(dataset_path: Path, batch_size=10,
-                              augmentation: Literals.Augmentation = Literals.Augmentation.AUG_NONE,
-                              history_type: Literals.History = Literals.History.NONE,
-                              history_size: int = 0):
+    def load_dataset(dataset_path: Path,
+                     augmentation: Literals.Augmentation = Literals.Augmentation.AUG_NONE,
+                     history_type: Literals.History = Literals.History.HISTORY_NONE,
+                     history_size: int = 0):
         try:
 
-            tm = None
+            dataset = []
 
-            with open(dataset_path, mode='r', newline='') as dataset:
-                reader = csv.reader(dataset)
+            with open(dataset_path, mode='r', newline='') as dataset_file:
+                reader = csv.reader(dataset_file)
 
                 boardsize = int(next(reader)[1])
                 num_literals = len(UtilsTM.Literals.make_empty_board(boardsize))
@@ -388,12 +388,11 @@ class UtilsTM:
                 headers = next(reader)
 
                 game_history = dict()
-                if history_type == UtilsTM.Literals.History.NONE:
+                if history_type == UtilsTM.Literals.History.HISTORY_NONE:
                     history_size = 0  # We don't want any history
                 if history_type == UtilsTM.Literals.History.HISTORY_MOVE:
                     history_size += 1  # In order to calculate n moves, we need (n+1) games of history
 
-                batch = []
                 for row in reader:
                     game_number = int(row[headers.index('Game#')])
                     if game_number not in game_history:
@@ -417,40 +416,9 @@ class UtilsTM:
                         history.pop()
 
                     # Process a batch of literals once the batch is large enough
-                    batch.append((winner, final_literals))
-                    if len(batch) >= batch_size:
-                        UtilsTM._train_tm_from_batch(tm, batch, boardsize)
-                        batch.clear()
+                    dataset.append((winner, final_literals))
 
-                # Process any remaining training data that doesn't fill a batch
-                if batch:
-                    UtilsTM._train_tm_from_batch(tm, batch, boardsize)
-                    batch.clear()
+            return dataset
 
         except (FileNotFoundError, NotADirectoryError) as e:
             print(e, file=sys.stderr)
-
-    @staticmethod
-    def _train_tm_from_batch(tm, batch, boardsize: int):
-        # Placeholder function, replace with real TM
-        # print(boardsize, len(batch))
-        pass
-
-
-if __name__ == "__main__":
-    test_path = Path("tournaments")
-    tournament_path = test_path / "6x6-1ply-simple"
-    dataset_path = tournament_path / "dataset.csv"
-
-    # Loader the tournament results file
-    games, boardsize = UtilsTournament.load_tournament_games(tournament_path)
-
-    # Convert it to a winner prediction dataset
-    UtilsTournament.games_to_winner_prediction_dataset(games, boardsize, dataset_path)
-
-    # Train a TM for hex winner prediction from the dataset
-    UtilsTM.train_tm_from_dataset(dataset_path,
-                                  batch_size=5,
-                                  augmentation=UtilsTM.Literals.Augmentation.AUG_NONE,
-                                  history_type=UtilsTM.Literals.History.HISTORY_MOVE,
-                                  history_size=2)
