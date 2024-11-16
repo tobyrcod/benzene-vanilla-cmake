@@ -199,7 +199,7 @@
 0183	0	a1 b1 f1	mohex-mohex-simple-b	mohex-mohex-simple-a	B+	B+	25	0.7	0.4	0	
 0184	0	a1 b1 f2	mohex-mohex-simple-a	mohex-mohex-simple-b	B+	B+	21	0.3	0.3	0	
 0185	0	a1 b1 f3	mohex-mohex-simple-b	mohex-mohex-simple-a	B+	B+	27	0.4	0.4	0	
-0186	0	a1 b1 f4	mohex-mohex-simple-a	mohex-mohex-simple-b	?	?	-1	0.0	0.0	1	W: program died
+0186	0	a1 b1 f4	mohex-mohex-simple-a	mohex-mohex-simple-b	B+	B+	23	0.5	1.8	0	
 0187	0	a1 b1 f5	mohex-mohex-simple-b	mohex-mohex-simple-a	W+	W+	26	0.3	0.7	0	
 0188	0	a1 b1 f6	mohex-mohex-simple-a	mohex-mohex-simple-b	W+	W+	18	0.0	0.2	0	
 0189	0	a1 b2 b3	mohex-mohex-simple-b	mohex-mohex-simple-a	W+	W+	16	0.0	0.0	0	
@@ -1403,7 +1403,7 @@
 1385	0	a3 b6 c2	mohex-mohex-simple-b	mohex-mohex-simple-a	W+	W+	16	0.0	0.0	0	
 1386	0	a3 b6 c3	mohex-mohex-simple-a	mohex-mohex-simple-b	W+	W+	18	0.0	0.0	0	
 1387	0	a3 b6 c4	mohex-mohex-simple-b	mohex-mohex-simple-a	W+	W+	22	0.2	0.3	0	
-1388	0	a3 b6 c5	mohex-mohex-simple-a	mohex-mohex-simple-b	?	?	-1	0.0	0.0	1	W: program died
+1388	0	a3 b6 c5	mohex-mohex-simple-a	mohex-mohex-simple-b	B+	B+	19	0.7	1.1	0	
 1389	0	a3 b6 c6	mohex-mohex-simple-b	mohex-mohex-simple-a	W+	W+	24	0.3	0.4	0	
 1390	0	a3 b6 d1	mohex-mohex-simple-a	mohex-mohex-simple-b	W+	W+	16	0.0	0.0	0	
 1391	0	a3 b6 d2	mohex-mohex-simple-b	mohex-mohex-simple-a	W+	W+	16	0.0	0.0	0	
@@ -1914,7 +1914,7 @@
 1896	0	a4 b6 e5	mohex-mohex-simple-a	mohex-mohex-simple-b	B+	B+	17	0.3	0.3	0	
 1897	0	a4 b6 e6	mohex-mohex-simple-b	mohex-mohex-simple-a	W+	W+	16	0.0	0.0	0	
 1898	0	a4 b6 f1	mohex-mohex-simple-a	mohex-mohex-simple-b	W+	W+	20	0.2	0.2	0	
-1899	0	a4 b6 f2	mohex-mohex-simple-b	mohex-mohex-simple-a	?	?	-1	0.0	0.0	1	W: program died
+1899	0	a4 b6 f2	mohex-mohex-simple-b	mohex-mohex-simple-a	B+	B+	25	0.3	0.8	0	
 1900	0	a4 b6 f3	mohex-mohex-simple-a	mohex-mohex-simple-b	W+	W+	24	0.7	0.4	0	
 1901	0	a4 b6 f4	mohex-mohex-simple-b	mohex-mohex-simple-a	W+	W+	18	0.2	0.2	0	
 1902	0	a4 b6 f5	mohex-mohex-simple-a	mohex-mohex-simple-b	B+	B+	15	0.2	0.3	0	
@@ -2381,7 +2381,7 @@
 2363	0	a5 b6 f1	mohex-mohex-simple-b	mohex-mohex-simple-a	B+	B+	21	0.5	0.5	0	
 2364	0	a5 b6 f2	mohex-mohex-simple-a	mohex-mohex-simple-b	B+	B+	19	0.2	0.6	0	
 2365	0	a5 b6 f3	mohex-mohex-simple-b	mohex-mohex-simple-a	B+	B+	21	0.5	0.5	0	
-2366	0	a5 b6 f4	mohex-mohex-simple-a	mohex-mohex-simple-b	?	?	-1	0.0	0.0	1	W: program died
+2366	0	a5 b6 f4	mohex-mohex-simple-a	mohex-mohex-simple-b	B+	B+	25	0.7	1.0	0	
 2367	0	a5 b6 f5	mohex-mohex-simple-b	mohex-mohex-simple-a	B+	B+	21	0.3	0.3	0	
 2368	0	a5 b6 f6	mohex-mohex-simple-a	mohex-mohex-simple-b	W+	W+	28	0.2	0.5	0	
 2369	0	a5 c1 c2	mohex-mohex-simple-b	mohex-mohex-simple-a	B+	B+	27	0.0	0.2	0	
@@ -7156,3 +7156,9 @@
 7138	0	f3 f5 f6	mohex-mohex-simple-a	mohex-mohex-simple-b	W+	W+	16	0.0	0.0	0	
 7139	0	f4 f5 f6	mohex-mohex-simple-b	mohex-mohex-simple-a	W+	W+	16	0.0	0.0	0	
 # Date: 2024-11-10 13:24:11 GMT
+# Date: 2024-11-16 20:21:45 GMT
+# Found Failed Games: attempting to replay failed games [186, 1388, 1899, 2366]
+# Date: 2024-11-16 20:22:43 GMT
+# Message: tournament is complete
+# Date: 2024-11-16 20:25:27 GMT
+# Message: tournament is complete
