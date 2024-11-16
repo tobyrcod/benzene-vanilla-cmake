@@ -118,5 +118,4 @@ def mnist_demo():
 		print("#%d Accuracy: %.2f%% Training: %.2fs Testing: %.2fs" % (
 		i + 1, result, stop_training - start_training, stop_testing - start_testing))
 
-print(tf.__version__)
-mnist_demo()
+interpretability_xor_demo()

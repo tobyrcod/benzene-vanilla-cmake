@@ -2,6 +2,7 @@ import itertools
 import random
 import sys
 import csv
+import numpy as np
 from enum import IntFlag, Enum
 from pathlib import Path
 from pysgf import SGF
@@ -377,7 +378,8 @@ class UtilsTM:
                      history_size: int = 0):
         try:
 
-            dataset = []
+            datasetX = []
+            datasetY = []
 
             with open(dataset_path, mode='r', newline='') as dataset_file:
                 reader = csv.reader(dataset_file)
@@ -415,10 +417,11 @@ class UtilsTM:
                     while len(history) > history_size:
                         history.pop()
 
-                    # Process a batch of literals once the batch is large enough
-                    dataset.append((winner, final_literals))
+                    # Add the final game literals and the winner to the dataset
+                    datasetX.append(final_literals)
+                    datasetY.append(winner)
 
-            return dataset
+            return np.array(datasetX), np.array(datasetY)
 
         except (FileNotFoundError, NotADirectoryError) as e:
             print(e, file=sys.stderr)
