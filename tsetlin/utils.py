@@ -439,7 +439,7 @@ class UtilsTM:
 
 if __name__ == "__main__":
     test_path = Path("tournaments")
-    tournament_path = test_path / "6x6-3ply-simple"
+    tournament_path = test_path / "6x6-1ply-simple"
     dataset_path = tournament_path / "dataset.csv"
 
     # Loader the tournament results file
