@@ -12,7 +12,7 @@ dataset_path = tournament_path / "dataset.csv"
 
 
 # Load the dataset into game states (X) and results (Y)
-X, Y, game_numbers = UtilsTM.load_winner_pred_dataset(
+X, Y = UtilsTM.load_winner_pred_dataset(
     dataset_path=dataset_path,
     augmentation=UtilsTM.Literals.Augmentation.AUG_NONE,
     history_type=UtilsTM.Literals.History.HISTORY_NONE,
