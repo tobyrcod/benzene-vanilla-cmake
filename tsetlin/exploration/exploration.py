@@ -90,4 +90,40 @@ def player_win_rates():
     plt.savefig(f"{tournament_name}_winrate.png", dpi=300)  # Change filename and dpi as needed
     plt.close()  # Close the plot to free resources
 
-player_win_rates()
+def game_lengths():
+    game_length = [len(game) for game in X_games]
+    length_counts = Counter(game_length)
+
+    bar_lengths = list(range(min(game_length), max(game_length)+1))
+    bar_counts = [length_counts[length] for length in bar_lengths]
+    bar_colors = ["white", "black"] if bar_lengths[0] % 2 == 0 else ["black", "white"]
+    bar_width = 0.5
+
+    # Add value labels on top of the bars
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    # Create the bar chart
+    bars = ax.bar(bar_lengths, bar_counts, color=bar_colors, width=bar_width)
+    ax.set_facecolor("lightblue")
+
+    # Add labels and title
+    ax.set_xlabel("Game Length", fontsize=12, fontweight="bold")
+    ax.set_ylabel("# of Games", fontsize=12, fontweight="bold")
+    ax.set_title(f"Game Lengths in {tournament_name} Mohex Selfplay", fontsize=14, fontweight="bold")
+    ax.grid(True, linestyle='--', alpha=0.5)
+
+    # Add value labels on top of the bars
+    for bar in bars:
+        yval = bar.get_height()
+        ax.text(bar.get_x() + bar.get_width() / 2, yval + 0.5, str(yval), ha='center', fontsize=10, color='black')
+
+    # Add value labels on top of the bars
+    ax.tick_params(axis='x', labelsize=12)
+    ax.tick_params(axis='y', labelsize=12)
+
+    # Save the plot to a file
+    plt.tight_layout()
+    plt.savefig(f"{tournament_name}_games_length.png", dpi=300)  # Change filename and dpi as needed
+    plt.close()  # Close the plot to free resources
+
+game_lengths()
