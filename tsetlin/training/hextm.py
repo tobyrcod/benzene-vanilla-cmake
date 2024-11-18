@@ -7,7 +7,7 @@ from pyTsetlinMachine.tm import MultiClassTsetlinMachine
 
 # Define which dataset we want to use
 tournaments_path = Path("../tournaments")
-tournament_path = tournaments_path / "6x6-2ply-simple"
+tournament_path = tournaments_path / "6x6-3ply-simple"
 dataset_path = tournament_path / "dataset.csv"
 
 
@@ -57,18 +57,13 @@ tm = MultiClassTsetlinMachine(
 
 
 # Train the TM
-tm.fit(
-    X=X_train,
-    Y=Y_train,
-    epochs=1,
-    incremental=False
-)
+for i in range(5):
+    tm.fit(
+        X=X_train,
+        Y=Y_train,
+        epochs=1,
+        incremental=True
+    )
 
-
-# See how well the TM performed
-print("Accuracy:", 100*(tm.predict(X_test) == Y_test).mean())
-
-state_1 = [0,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1,1,0,0,1,0,0,1,0,0,1,0,0,1,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,1,0,0,1,0,0,1,0,0,0,0,0,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,1]
-state_0 = [1,0,0,0,0,0,0,0,1,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-print(len(state_1), len(state_0))
-print(tm.predict(np.array([state_1, state_0])))
+    # See how well the TM performed
+    print("Accuracy:", 100 * (tm.predict(X_test) == Y_test).mean())
