@@ -1,7 +1,10 @@
 # TODO: turn into a notebook
 
+import numpy as np
 import matplotlib.pyplot as plt
-from tsetlin.utils import UtilsTM, UtilsTournament
+from matplotlib.patches import RegularPolygon
+
+from tsetlin.utils import UtilsTM, UtilsTournament, UtilsHex
 from pathlib import Path
 from collections import Counter
 
@@ -133,4 +136,59 @@ def game_lengths():
     plt.savefig(filepath, dpi=300)  # Change filename and dpi as needed
     plt.close()  # Close the plot to free resources
 
-game_lengths()
+def hex_plot():
+    # Plot a hexagonal grid
+    # Later to be used to visualise all good things Hex
+    # Hexagonal Grid logic from: https://www.redblobgames.com/grids/hexagons/
+    # IDEAS: plot all pieces/literals, step through games interactively, see other stats on board/around plot too?
+    # IDEAS: interactive to let me define templates visually?
+
+    # Set up the figure
+    boardsize = 6
+    hex_radius = 1
+    fig, ax = plt.subplots(figsize=(10, 10))
+
+    # Define the grid properties
+    dy = (3 / 2) * hex_radius
+    dx = np.sqrt(3) * hex_radius
+
+    # Calculate the center position for each hex cell
+    cell_positions = np.zeros(shape=(boardsize*boardsize, 2), dtype=float)
+    for y in range(boardsize):
+        for x in range(boardsize):
+            i = UtilsHex.coordinates_2d_to_1d(x, y, boardsize)
+            cell_positions[i][0] = x * dx - (y * dx/2)  # Add additional row offset as we go down
+            cell_positions[i][1] = y * dy
+    # Recenter the hex cells
+    grid_center = cell_positions.mean(axis=0)
+    cell_positions -= grid_center
+
+    # Plot each hex cell at the desired position
+    for y in range(boardsize):
+        for x in range(boardsize):
+            i = UtilsHex.coordinates_2d_to_1d(x, y, boardsize)
+            position = cell_positions[i]
+            hexagon = RegularPolygon(position, numVertices=6, radius=hex_radius,
+                                     orientation=0, edgecolor='black', facecolor='lightblue')
+            ax.add_patch(hexagon)
+
+
+    # Calculate the width and height of the grid
+    grid_width = (boardsize + 1) * dx + boardsize * (dx / 2)
+    grid_height = (boardsize + 1) * dy
+
+
+    # Crop the plot to only the area used for the hex board
+    ax.set_xlim(-grid_width / 2, grid_width / 2)
+    ax.set_ylim(-grid_height / 2, grid_height / 2)
+    ax.set_aspect('equal')
+    plt.axis('off')
+
+
+    # Save the plot to a file
+    hex_path = plots_path / "hex"
+    filepath = hex_path / f"hex.png"
+    plt.savefig(filepath, dpi=300, bbox_inches='tight')  # Change filename and dpi as needed
+    plt.close()  # Close the plot to free resources
+
+hex_plot()
