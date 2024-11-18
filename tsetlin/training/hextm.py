@@ -1,12 +1,12 @@
 import numpy as np
 
-from utils import UtilsTM
+from tsetlin.utils import UtilsTM
 from pathlib import Path
 from pyTsetlinMachine.tm import MultiClassTsetlinMachine
 
 
 # Define which dataset we want to use
-tournaments_path = Path("tournaments")
+tournaments_path = Path("../tournaments")
 tournament_path = tournaments_path / "6x6-2ply-simple"
 dataset_path = tournament_path / "dataset.csv"
 

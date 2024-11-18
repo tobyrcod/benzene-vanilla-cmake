@@ -8,7 +8,6 @@ from pathlib import Path
 from pysgf import SGF
 
 # TODO: document every method with """ """
-# TODO: add empty board with the winner when making the dataset
 
 class Helpers:
 
