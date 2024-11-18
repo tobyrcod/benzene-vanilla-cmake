@@ -371,10 +371,10 @@ class UtilsTM:
 
 
     @staticmethod
-    def load_dataset(dataset_path: Path,
-                     augmentation: Literals.Augmentation = Literals.Augmentation.AUG_NONE,
-                     history_type: Literals.History = Literals.History.HISTORY_NONE,
-                     history_size: int = 0):
+    def load_winner_pred_dataset(dataset_path: Path,
+                                 augmentation: Literals.Augmentation = Literals.Augmentation.AUG_NONE,
+                                 history_type: Literals.History = Literals.History.HISTORY_NONE,
+                                 history_size: int = 0):
         try:
 
             datasetX = []
@@ -420,6 +420,7 @@ class UtilsTM:
                     datasetX.append(final_literals)
                     datasetY.append(winner)
 
+            assert (len(datasetX) == len(datasetY))
             return np.array(datasetX), np.array(datasetY)
 
         except (FileNotFoundError, NotADirectoryError) as e:
