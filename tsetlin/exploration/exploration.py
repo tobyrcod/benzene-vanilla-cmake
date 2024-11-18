@@ -8,6 +8,7 @@ from collections import Counter
 tournaments_path = Path("../tournaments")
 tournament_name = "6x6-3ply-simple"
 tournament_path = tournaments_path / tournament_name
+plots_path = Path("plots")
 
 def get_games_to_explore():
     dataset_path = tournament_path / "dataset.csv"
@@ -87,7 +88,9 @@ def player_win_rates():
     # ax.legend(wedges, wedge_labels, title="Legend"s, loc="upper right", fontsize=12, bbox_to_anchor=(1, 1))
 
     # Save the plot to a file
-    plt.savefig(f"{tournament_name}_winrate.png", dpi=300)  # Change filename and dpi as needed
+    win_rates_path = plots_path / "win_rates"
+    filepath = win_rates_path / f"{tournament_name}_winrate.png"
+    plt.savefig(filepath, dpi=300)  # Change filename and dpi as needed
     plt.close()  # Close the plot to free resources
 
 def game_lengths():
@@ -121,9 +124,13 @@ def game_lengths():
     ax.tick_params(axis='x', labelsize=12)
     ax.tick_params(axis='y', labelsize=12)
 
-    # Save the plot to a file
+    # Make the plot look nicer
     plt.tight_layout()
-    plt.savefig(f"{tournament_name}_games_length.png", dpi=300)  # Change filename and dpi as needed
+
+    # Save the plot to a file
+    game_lengths_path = plots_path / "game_lengths"
+    filepath = game_lengths_path / f"{tournament_name}_games_length.png"
+    plt.savefig(filepath, dpi=300)  # Change filename and dpi as needed
     plt.close()  # Close the plot to free resources
 
 game_lengths()
