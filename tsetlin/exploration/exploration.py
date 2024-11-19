@@ -135,7 +135,7 @@ def game_lengths():
     plt.savefig(filepath, dpi=300)  # Change filename and dpi as needed
     plt.close()  # Close the plot to free resources
 
-
-boardsize = 6
-literals = UtilsTM.Literals.make_random_board(boardsize, 15)
-UtilsPlot.plot_literals(literals, boardsize, plots_path / "hex/hex.png")
+if __name__ == "__main__":
+    boardsize = 6
+    literals = UtilsTM.Literals.make_random_board(boardsize, 15)
+    UtilsPlot.plot_literals(literals, boardsize, plots_path / "hex/hex.png")
