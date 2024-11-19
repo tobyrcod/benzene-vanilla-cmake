@@ -175,7 +175,7 @@ def hex_plot(literals: list[int], boardsize: int):
             ax.add_patch(hexagon)
 
             # Plot any piece
-            i = UtilsHex.coordinates_2d_to_1d(x, y, boardsize)
+            i = UtilsHex.Coordinates.coordinates_2d_to_1d(x, y, boardsize)
             player = 0 if black_literals[i] else 1 if white_literals[i] else -1
             if player != -1:
                 piece = Circle(position, radius=hex_radius * 0.6,
@@ -183,7 +183,7 @@ def hex_plot(literals: list[int], boardsize: int):
                 ax.add_patch(piece)
 
             # Write the hex position
-            hex_pos_text = UtilsHex.index_to_position(i, boardsize)
+            hex_pos_text = UtilsHex.Coordinates.index_to_position(i, boardsize)
             hex_pos_text_color = grid_color if player == -1 else piece_colors[1-player]
             ax.text(*position, hex_pos_text, ha='center', va='center', size=7, color=hex_pos_text_color)
 
@@ -194,12 +194,12 @@ def hex_plot(literals: list[int], boardsize: int):
     for i in range(boardsize):
         # Along the bottom
         position = get_cell_position(i, boardsize-1)
-        string = UtilsHex._number_to_string(i+1)
+        string = UtilsHex.Coordinates._number_to_string(i+1)
         ax.text(position[0], position[1] - text_offset, string.upper(), ha='center', va='center', size=10)
 
         # Along the top
         position = get_cell_position(i, 0)
-        string = UtilsHex._number_to_string(i+1)
+        string = UtilsHex.Coordinates._number_to_string(i+1)
         ax.text(position[0], position[1] + text_offset, string.upper(), ha='center', va='center', size=10)
 
         # Along the left

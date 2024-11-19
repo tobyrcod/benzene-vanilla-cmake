@@ -1,5 +1,3 @@
-import numpy as np
-
 from tsetlin.utils import UtilsTM
 from pathlib import Path
 from pyTsetlinMachine.tm import MultiClassTsetlinMachine

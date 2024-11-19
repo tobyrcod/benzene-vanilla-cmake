@@ -10,123 +10,131 @@ class Tests:
 
     class UtilsHex:
 
-        class BackEnd:
+        class Coordinates:
 
             @staticmethod
             def test():
 
-                class CoordinateSystem:
+                class BackEnd:
 
                     @staticmethod
                     def test():
 
-                        def test_1d_to_2d():
-                            assert UtilsHex.coordinates_1d_to_2d(0, 6) == (0, 0)
-                            assert UtilsHex.coordinates_1d_to_2d(1, 6) == (1, 0)
-                            assert UtilsHex.coordinates_1d_to_2d(6, 6) == (0, 1)
-                            assert UtilsHex.coordinates_1d_to_2d(7, 6) == (1, 1)
-                            assert UtilsHex.coordinates_1d_to_2d(35, 6) == (5, 5)
+                        class CoordinateSystem:
 
-                        def test_2d_to_1d():
-                            assert UtilsHex.coordinates_2d_to_1d(0, 0, 6) == 0
-                            assert UtilsHex.coordinates_2d_to_1d(1, 0, 6) == 1
-                            assert UtilsHex.coordinates_2d_to_1d(0, 1, 6) == 6
-                            assert UtilsHex.coordinates_2d_to_1d(1, 1, 6) == 7
-                            assert UtilsHex.coordinates_2d_to_1d(5, 5, 6) == 35
+                            @staticmethod
+                            def test():
 
-                        def test_inverse():
-                            for boardsize in range(6, 14):
-                                i = 0
-                                for y in range(boardsize):
-                                    for x in range(boardsize):
-                                        assert UtilsHex.coordinates_2d_to_1d(*UtilsHex.coordinates_1d_to_2d(i, boardsize), boardsize) == i
-                                        assert UtilsHex.coordinates_1d_to_2d(UtilsHex.coordinates_2d_to_1d(x, y, boardsize), boardsize) == (x, y)
-                                        i += 1
+                                def test_1d_to_2d():
+                                    assert UtilsHex.Coordinates.coordinates_1d_to_2d(0, 6) == (0, 0)
+                                    assert UtilsHex.Coordinates.coordinates_1d_to_2d(1, 6) == (1, 0)
+                                    assert UtilsHex.Coordinates.coordinates_1d_to_2d(6, 6) == (0, 1)
+                                    assert UtilsHex.Coordinates.coordinates_1d_to_2d(7, 6) == (1, 1)
+                                    assert UtilsHex.Coordinates.coordinates_1d_to_2d(35, 6) == (5, 5)
 
-                        test_1d_to_2d()
-                        test_2d_to_1d()
-                        test_inverse()
+                                def test_2d_to_1d():
+                                    assert UtilsHex.Coordinates.coordinates_2d_to_1d(0, 0, 6) == 0
+                                    assert UtilsHex.Coordinates.coordinates_2d_to_1d(1, 0, 6) == 1
+                                    assert UtilsHex.Coordinates.coordinates_2d_to_1d(0, 1, 6) == 6
+                                    assert UtilsHex.Coordinates.coordinates_2d_to_1d(1, 1, 6) == 7
+                                    assert UtilsHex.Coordinates.coordinates_2d_to_1d(5, 5, 6) == 35
 
-                class StringNumberSystem:
+                                def test_inverse():
+                                    for boardsize in range(6, 14):
+                                        i = 0
+                                        for y in range(boardsize):
+                                            for x in range(boardsize):
+                                                assert UtilsHex.Coordinates.coordinates_2d_to_1d(*UtilsHex.Coordinates.coordinates_1d_to_2d(i, boardsize), boardsize) == i
+                                                assert UtilsHex.Coordinates.coordinates_1d_to_2d(UtilsHex.Coordinates.coordinates_2d_to_1d(x, y, boardsize), boardsize) == (x, y)
+                                                i += 1
+
+                                test_1d_to_2d()
+                                test_2d_to_1d()
+                                test_inverse()
+
+                        class StringNumberSystem:
+
+                            @staticmethod
+                            def test():
+
+                                def test_hex_string_to_number():
+                                    assert UtilsHex.Coordinates._string_to_number('a') == 1
+                                    assert UtilsHex.Coordinates._string_to_number('b') == 2
+                                    assert UtilsHex.Coordinates._string_to_number('z') == 26
+                                    assert UtilsHex.Coordinates._string_to_number('aa') == 27
+                                    assert UtilsHex.Coordinates._string_to_number('ab') == 28
+                                    assert UtilsHex.Coordinates._string_to_number('az') == 52
+                                    assert UtilsHex.Coordinates._string_to_number('aaa') == 703
+
+                                def test_number_to_hex_string():
+                                    assert UtilsHex.Coordinates._number_to_string(1) == 'a'
+                                    assert UtilsHex.Coordinates._number_to_string(2) == 'b'
+                                    assert UtilsHex.Coordinates._number_to_string(26) == 'z'
+                                    assert UtilsHex.Coordinates._number_to_string(27) == 'aa'
+                                    assert UtilsHex.Coordinates._number_to_string(28) == 'ab'
+                                    assert UtilsHex.Coordinates._number_to_string(52) == 'az'
+                                    assert UtilsHex.Coordinates._number_to_string(703) == 'aaa'
+
+                                def test_hex_string_to_number_inverse():
+                                    alphabet = [chr(ord('a') + i) for i in range(26)]
+                                    for length in range(1, 2):
+                                        for product in itertools.product(*[alphabet]*length):
+                                            string = "".join(product)
+                                            assert UtilsHex.Coordinates._number_to_string(UtilsHex.Coordinates._string_to_number(string)) == string
+
+                                def test_hex_number_to_string_inverse():
+                                    for i in range(1, 1000):
+                                        assert UtilsHex.Coordinates._string_to_number(UtilsHex.Coordinates._number_to_string(i)) == i
+
+                                test_hex_string_to_number()
+                                test_hex_string_to_number_inverse()
+
+                                test_number_to_hex_string()
+                                test_hex_number_to_string_inverse()
+
+                        CoordinateSystem.test()
+                        StringNumberSystem.test()
+
+                class FrontEnd:
 
                     @staticmethod
                     def test():
 
-                        def test_hex_string_to_number():
-                            assert UtilsHex._string_to_number('a') == 1
-                            assert UtilsHex._string_to_number('b') == 2
-                            assert UtilsHex._string_to_number('z') == 26
-                            assert UtilsHex._string_to_number('aa') == 27
-                            assert UtilsHex._string_to_number('ab') == 28
-                            assert UtilsHex._string_to_number('az') == 52
-                            assert UtilsHex._string_to_number('aaa') == 703
+                        def test_hex_coord_to_index():
+                            assert UtilsHex.Coordinates.position_to_index('a1', 6) == 0
+                            assert UtilsHex.Coordinates.position_to_index('f1', 6) == 5
+                            assert UtilsHex.Coordinates.position_to_index('d2', 6) == 9
+                            assert UtilsHex.Coordinates.position_to_index('f6', 6) == 35
+                            assert UtilsHex.Coordinates.position_to_index('g1', 6) == -1
 
-                        def test_number_to_hex_string():
-                            assert UtilsHex._number_to_string(1) == 'a'
-                            assert UtilsHex._number_to_string(2) == 'b'
-                            assert UtilsHex._number_to_string(26) == 'z'
-                            assert UtilsHex._number_to_string(27) == 'aa'
-                            assert UtilsHex._number_to_string(28) == 'ab'
-                            assert UtilsHex._number_to_string(52) == 'az'
-                            assert UtilsHex._number_to_string(703) == 'aaa'
+                        def test_index_to_hex_coord():
+                            assert UtilsHex.Coordinates.index_to_position(0, 6) == 'a1'
+                            assert UtilsHex.Coordinates.index_to_position(5, 6) == 'f1'
+                            assert UtilsHex.Coordinates.index_to_position(9, 6) == 'd2'
+                            assert UtilsHex.Coordinates.index_to_position(35, 6) == 'f6'
 
-                        def test_hex_string_to_number_inverse():
+                        def test_hex_coord_to_index_inverse():
                             alphabet = [chr(ord('a') + i) for i in range(26)]
-                            for length in range(1, 2):
-                                for product in itertools.product(*[alphabet]*length):
+                            for boardsize in range(6, 14):
+                                Xs = alphabet[:boardsize]
+                                Ys = [str(i+1) for i in range(boardsize)]
+                                for product in itertools.product(Xs, Ys):
                                     string = "".join(product)
-                                    assert UtilsHex._number_to_string(UtilsHex._string_to_number(string)) == string
+                                    assert UtilsHex.Coordinates.index_to_position(UtilsHex.Coordinates.position_to_index(string, boardsize), boardsize) == string
 
-                        def test_hex_number_to_string_inverse():
-                            for i in range(1, 1000):
-                                assert UtilsHex._string_to_number(UtilsHex._number_to_string(i)) == i
+                        def test_index_to_hex_coord_inverse():
+                            for boardsize in range(6, 14):
+                                for i in range(boardsize**2):
+                                    assert UtilsHex.Coordinates.position_to_index(UtilsHex.Coordinates.index_to_position(i, boardsize), boardsize) == i
 
-                        test_hex_string_to_number()
-                        test_hex_string_to_number_inverse()
+                        test_hex_coord_to_index()
+                        test_hex_coord_to_index_inverse()
 
-                        test_number_to_hex_string()
-                        test_hex_number_to_string_inverse()
+                        test_index_to_hex_coord()
+                        test_index_to_hex_coord_inverse()
 
-                CoordinateSystem.test()
-                StringNumberSystem.test()
-
-        class FrontEnd:
-
-            @staticmethod
-            def test():
-
-                def test_hex_coord_to_index():
-                    assert UtilsHex.position_to_index('a1', 6) == 0
-                    assert UtilsHex.position_to_index('f1', 6) == 5
-                    assert UtilsHex.position_to_index('d2', 6) == 9
-                    assert UtilsHex.position_to_index('f6', 6) == 35
-                    assert UtilsHex.position_to_index('g1', 6) == -1
-
-                def test_index_to_hex_coord():
-                    assert UtilsHex.index_to_position(0, 6) == 'a1'
-                    assert UtilsHex.index_to_position(5, 6) == 'f1'
-                    assert UtilsHex.index_to_position(9, 6) == 'd2'
-                    assert UtilsHex.index_to_position(35, 6) == 'f6'
-
-                def test_hex_coord_to_index_inverse():
-                    alphabet = [chr(ord('a') + i) for i in range(26)]
-                    for boardsize in range(6, 14):
-                        Xs = alphabet[:boardsize]
-                        Ys = [str(i+1) for i in range(boardsize)]
-                        for product in itertools.product(Xs, Ys):
-                            string = "".join(product)
-                            assert UtilsHex.index_to_position(UtilsHex.position_to_index(string, boardsize), boardsize) == string
-
-                def test_index_to_hex_coord_inverse():
-                    for boardsize in range(6, 14):
-                        for i in range(boardsize**2):
-                            assert UtilsHex.position_to_index(UtilsHex.index_to_position(i, boardsize), boardsize) == i
-
-                test_hex_coord_to_index()
-                test_hex_coord_to_index_inverse()
-
-                test_index_to_hex_coord()
-                test_index_to_hex_coord_inverse()
+                BackEnd.test()
+                FrontEnd.test()
 
     class UtilsTM:
 
@@ -274,10 +282,10 @@ class Tests:
                             else:
                                 side = int(not is_black)
                                 after.extend([side] + player_rows[row-1] + [side])
-                        after[UtilsHex.coordinates_2d_to_1d(0, 0, after_boardsize)] = 0
-                        after[UtilsHex.coordinates_2d_to_1d(0, after_boardsize-1, after_boardsize)] = 0
-                        after[UtilsHex.coordinates_2d_to_1d(after_boardsize-1, 0, after_boardsize)] = 0
-                        after[UtilsHex.coordinates_2d_to_1d(after_boardsize-1, after_boardsize-1, after_boardsize)] = 0
+                        after[UtilsHex.Coordinates.coordinates_2d_to_1d(0, 0, after_boardsize)] = 0
+                        after[UtilsHex.Coordinates.coordinates_2d_to_1d(0, after_boardsize-1, after_boardsize)] = 0
+                        after[UtilsHex.Coordinates.coordinates_2d_to_1d(after_boardsize-1, 0, after_boardsize)] = 0
+                        after[UtilsHex.Coordinates.coordinates_2d_to_1d(after_boardsize-1, after_boardsize-1, after_boardsize)] = 0
                         return after
 
                     # TESTS
@@ -484,8 +492,7 @@ if __name__ == "__main__":
 
     # START TESTS
 
-    Tests.UtilsHex.BackEnd.test()
-    Tests.UtilsHex.FrontEnd.test()
+    Tests.UtilsHex.Coordinates.test()
 
     Tests.UtilsTM.Literals.test()
 
