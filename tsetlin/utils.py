@@ -5,6 +5,8 @@ import csv
 import numpy as np
 from enum import IntFlag, Enum
 from pathlib import Path
+from matplotlib import pyplot as plt
+from matplotlib.patches import RegularPolygon, Circle
 from pysgf import SGF
 
 # TODO: document every method with """ """
@@ -456,3 +458,97 @@ class UtilsTM:
 
         except (FileNotFoundError, NotADirectoryError) as e:
             print(e, file=sys.stderr)
+
+
+class UtilsPlot:
+
+    @staticmethod
+    def plot_literals(literals: list[int], boardsize: int, filepath: Path):
+        # Plot a hexagonal grid
+        # Later to be used to visualise all good things Hex
+        # Hexagonal Grid logic from: https://www.redblobgames.com/grids/hexagons/
+
+        def get_cell_position(x: float, y: float) -> tuple[float, float]:
+            pos_x = x * dx + (y * dx / 2)  # Add additional row offset as we go down
+            pos_y = (boardsize - 1 - y) * dy  # Row 0 is at the top, so need to reverse y
+            return pos_x, pos_y
+
+        # Get the literals for each player
+        literals_per_player = boardsize ** 2
+        black_literals = literals[:literals_per_player]
+        white_literals = literals[literals_per_player:]
+
+        # Set up the hex board
+        cell_color = 'lightyellow'
+        piece_colors = ['black', 'white']
+        grid_color = 'black'
+
+        # Set up the figure
+        hex_radius = 1
+        fig, ax = plt.subplots(figsize=(10, 10))
+
+        # Define the grid properties
+        dy = (3 / 2) * hex_radius
+        dx = np.sqrt(3) * hex_radius
+
+        # Plot each hex cell at the desired position
+        for y in range(boardsize):
+            for x in range(boardsize):
+                position = get_cell_position(x, y)
+
+                # Plot the grid
+                hexagon = RegularPolygon(position, numVertices=6, radius=hex_radius,
+                                         orientation=0, edgecolor=grid_color, facecolor=cell_color)
+                ax.add_patch(hexagon)
+
+                # Plot any piece
+                i = UtilsHex.Coordinates.coordinates_2d_to_1d(x, y, boardsize)
+                player = 0 if black_literals[i] else 1 if white_literals[i] else -1
+                if player != -1:
+                    piece = Circle(position, radius=hex_radius * 0.6,
+                                   edgecolor=grid_color, facecolor=piece_colors[player])
+                    ax.add_patch(piece)
+
+                # Write the hex position
+                hex_pos_text = UtilsHex.Coordinates.index_to_position(i, boardsize)
+                hex_pos_text_color = grid_color if player == -1 else piece_colors[1 - player]
+                ax.text(*position, hex_pos_text, ha='center', va='center', size=7, color=hex_pos_text_color)
+
+        # Plot the axis labels for hex
+        text_offset = hex_radius * 1.4
+        for i in range(boardsize):
+            # Along the bottom
+            position = get_cell_position(i, boardsize - 1)
+            string = UtilsHex.Coordinates._number_to_string(i + 1)
+            ax.text(position[0], position[1] - text_offset, string.upper(), ha='center', va='center', size=10)
+
+            # Along the top
+            position = get_cell_position(i, 0)
+            string = UtilsHex.Coordinates._number_to_string(i + 1)
+            ax.text(position[0], position[1] + text_offset, string.upper(), ha='center', va='center', size=10)
+
+            # Along the left
+            string = str(i + 1)
+            ax.text(*get_cell_position(-1, i), string.upper(), ha='center', va='center', size=10)
+
+            # Along the right
+            string = str(i + 1)
+            ax.text(*get_cell_position(boardsize, i), string.upper(), ha='center', va='center', size=10)
+
+        # Calculate the width and height of the grid
+        grid_width = (boardsize + 1) * dx + boardsize * (dx / 2)
+        grid_height = (boardsize + 1) * dy
+
+        # Crop the plot to only the area used for the hex board
+        grid_center = get_cell_position((boardsize - 1) / 2, (boardsize - 1) / 2)
+        ax.set_xlim(grid_center[0] - grid_width / 2, grid_center[0] + grid_width / 2)
+        ax.set_ylim(grid_center[1] - grid_height / 2, grid_center[1] + grid_height / 2)
+        ax.set_aspect('equal')
+        plt.axis('off')
+
+        # Save the plot to a file
+        plt.savefig(filepath, dpi=300, bbox_inches='tight')  # Change filename and dpi as needed
+        plt.close()  # Close the plot to free resources
+
+
+# UtilsHex.Templates.load_templates(Path("templates"))
