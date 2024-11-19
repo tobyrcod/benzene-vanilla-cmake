@@ -33,17 +33,6 @@ class UtilsHex:
 
 
     @staticmethod
-    def string_to_number(hex_string: str) -> int:
-        # Treat the hex_string as a base 26 number, increasing powers left-to-right
-        number = 0
-        for c in hex_string:
-            value = ord(c) - ord('a') + 1
-            number *= 26
-            number += value
-        return number
-
-
-    @staticmethod
     def position_to_index(position: str, boardsize: int) -> int:
         # move will be e.g. 'a1'
         # First job is to split this into 'a' and '1'
@@ -60,7 +49,7 @@ class UtilsHex:
         number = position[split_index:]
 
         # Second, convert from letter, number to x, y coordinates
-        x = UtilsHex.string_to_number(string) - 1
+        x = UtilsHex._string_to_number(string) - 1
         y = int(number) - 1
         if x < 0 or x >= boardsize or y < 0 or y >= boardsize:  # Ensure the coordinate is on the board
             return -1
@@ -68,6 +57,46 @@ class UtilsHex:
         # Finally, convert from 2D coordinates to 1D index
         return UtilsHex.coordinates_2d_to_1d(x, y, boardsize)
 
+
+    @staticmethod
+    def index_to_position(index: int, boardsize: int) -> str:
+        # Firstly, convert from 1d index to 2D coordinates
+        x, y = UtilsHex.coordinates_1d_to_2d(index, boardsize)
+
+        # Second, convert to hex string representation
+        x = UtilsHex._number_to_string(x + 1)
+        y = str(y + 1)
+
+        # Finally, combine this back into a hex string position
+        return f"{x}{y}"
+
+
+    @staticmethod
+    def _string_to_number(hex_string: str) -> int:
+        if not hex_string.isalnum():
+            raise ValueError("Hex string must be alphanumeric")
+
+        # Treat the hex_string as a base 26 number, increasing powers left-to-right
+        number = 0
+        for c in hex_string:
+            value = ord(c) - ord('a') + 1
+            number *= 26
+            number += value
+        return number
+
+
+    @staticmethod
+    def _number_to_string(number: int) -> str:
+        if number <= 0:
+            raise ValueError("Hex number must be >= 1")
+
+        string = ""
+        while number > 0:
+            value = (number - 1) % 26
+            string = chr(ord('a') + value) + string
+            number = (number - 1) // 26
+
+        return string
 
 class UtilsTournament:
 
