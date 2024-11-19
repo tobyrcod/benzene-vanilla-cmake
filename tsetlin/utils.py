@@ -7,7 +7,8 @@ from enum import IntFlag, Enum
 from pathlib import Path
 from matplotlib import pyplot as plt
 from matplotlib.patches import RegularPolygon, Circle
-from pysgf import SGF
+from pysgf import SGF, SGFNode
+
 
 # TODO: document every method with """ """
 
@@ -100,6 +101,55 @@ class UtilsHex:
                 number = (number - 1) // 26
 
             return string
+
+    class Templates:
+
+        @staticmethod
+        def load_template(template_path: Path):
+            sgf = SGF.parse_file(template_path)
+
+            #
+            # Perform metadata sgf checks
+
+            # File Format
+            if int(sgf.get_property('FF')) != 4:
+                raise Exception("Template Loading is only supported for SGF file format 4 (FF[4])")
+
+            # Game Check
+            if int(sgf.get_property('GM')) != 11:
+                raise Exception("Supplied SGF file is not for the game of Hex")
+
+            # Application
+            if not (application_string:=sgf.get_property('AP')) or application_string[0:6] != 'HexGui':
+                raise Exception("Template Loading is only supported for SGF files created by HexGUI")
+
+            # Position or Game?
+            if sgf.get_property('RE'):
+                raise Exception("Supplied SGF File represents a game, not a board position")
+
+            # Boardsize
+            if not (boardsize_string:=sgf.get_property('SZ')):
+                raise Exception("Template file is missing the boardsize")
+            boardsize = int(boardsize_string)
+
+
+            #
+            # Load the move from the sgf file
+
+            # Check we have any move information
+            if not sgf.children or len(sgf.children) != 1:
+                raise Exception("Supplied SGF File has the wrong number of children - 1 is expected")
+            move_node: SGFNode = sgf.children[0]
+            if move_node.children:
+                raise Exception("Unexpected Children found for the Move Node")
+
+            # Get the black and white pieces if they exist
+            if not (black_pieces:=move_node.get_list_property('AB')):
+                raise Exception("Supplied SGF File has no Black Pieces")
+            if not (white_pieces:=move_node.get_list_property('AW')):
+                raise Exception("Supplied SGF File has no White Pieces")
+
+            return black_pieces, white_pieces, boardsize
 
 
 class UtilsTournament:
@@ -551,4 +601,6 @@ class UtilsPlot:
         plt.close()  # Close the plot to free resources
 
 
-# UtilsHex.Templates.load_templates(Path("templates"))
+if __name__ == "__main__":
+    black_pieces, white_pieces, boardsize = UtilsHex.Templates.load_template(Path("../templates/positive/bridge.sgf"))
+    print(black_pieces, white_pieces, boardsize)
