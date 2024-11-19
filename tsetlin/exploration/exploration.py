@@ -137,6 +137,7 @@ def game_lengths():
     plt.close()  # Close the plot to free resources
 
 def hex_plot(literals: list[int], boardsize: int):
+    # TODO: fix rows being 6->1 and not 1->6 (AAAAAAA)
     # Plot a hexagonal grid
     # Later to be used to visualise all good things Hex
     # Hexagonal Grid logic from: https://www.redblobgames.com/grids/hexagons/
@@ -147,8 +148,6 @@ def hex_plot(literals: list[int], boardsize: int):
     literals_per_player = boardsize**2
     black_literals = literals[:literals_per_player]
     white_literals = literals[literals_per_player:]
-    print(black_literals)
-    print(white_literals)
 
     # Set up the hex board
     cell_positions = np.zeros(shape=(literals_per_player, 2), dtype=float)
@@ -192,10 +191,40 @@ def hex_plot(literals: list[int], boardsize: int):
                                edgecolor=grid_color, facecolor=piece_colors[player])
                 ax.add_patch(piece)
 
+            # Write the hex position
+            hex_pos_text = UtilsHex.index_to_position(i, boardsize)
+            hex_pos_text_color = grid_color if player == -1 else piece_colors[1-player]
+            ax.text(*position, hex_pos_text, ha='center', va='center', size=7, color=hex_pos_text_color)
+
 
 
     # Plot the axis labels for hex
+    text_offset = hex_radius * 1.3
+    for i in range(boardsize):
 
+        # Along the bottom
+        bottom_index = UtilsHex.coordinates_2d_to_1d(i, 0, boardsize)
+        position = cell_positions[bottom_index]
+        string = UtilsHex._number_to_string(i+1)
+        ax.text(position[0], position[1] - text_offset, string.upper(), ha='center', va='center', size=10)
+
+        # Along the top
+        top_index = UtilsHex.coordinates_2d_to_1d(i, boardsize-1, boardsize)
+        position = cell_positions[top_index]
+        string = UtilsHex._number_to_string(i+1)
+        ax.text(position[0], position[1] + text_offset, string.upper(), ha='center', va='center', size=10)
+
+        # Along the left
+        left_index = UtilsHex.coordinates_2d_to_1d(0, i, boardsize)
+        position = cell_positions[left_index]
+        string = str(i+1)
+        ax.text(position[0] - text_offset, position[1], string.upper(), ha='center', va='center', size=10)
+
+        # Along the right
+        right_index = UtilsHex.coordinates_2d_to_1d(boardsize-1, i, boardsize)
+        position = cell_positions[right_index]
+        string = str(i+1)
+        ax.text(position[0] + text_offset, position[1], string.upper(), ha='center', va='center', size=10)
 
 
     # Calculate the width and height of the grid
