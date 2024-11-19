@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.patches import RegularPolygon
+from matplotlib.patches import RegularPolygon, Circle
 
 from tsetlin.utils import UtilsTM, UtilsTournament, UtilsHex
 from pathlib import Path
@@ -136,15 +136,27 @@ def game_lengths():
     plt.savefig(filepath, dpi=300)  # Change filename and dpi as needed
     plt.close()  # Close the plot to free resources
 
-def hex_plot():
+def hex_plot(literals: list[int], boardsize: int):
     # Plot a hexagonal grid
     # Later to be used to visualise all good things Hex
     # Hexagonal Grid logic from: https://www.redblobgames.com/grids/hexagons/
     # IDEAS: plot all pieces/literals, step through games interactively, see other stats on board/around plot too?
-    # IDEAS: interactive to let me define templates visually?
+    # Help Adding text: https://stackoverflow.com/questions/46525981/how-to-plot-x-y-z-coordinates-in-the-shape-of-a-hexagonal-grid/46526761#46526761
+
+    # Get the literals for each player
+    literals_per_player = boardsize**2
+    black_literals = literals[:literals_per_player]
+    white_literals = literals[literals_per_player:]
+    print(black_literals)
+    print(white_literals)
+
+    # Set up the hex board
+    cell_positions = np.zeros(shape=(literals_per_player, 2), dtype=float)
+    cell_color = 'lightyellow'
+    piece_colors = ['black', 'white']
+    grid_color = 'black'
 
     # Set up the figure
-    boardsize = 6
     hex_radius = 1
     fig, ax = plt.subplots(figsize=(10, 10))
 
@@ -153,7 +165,6 @@ def hex_plot():
     dx = np.sqrt(3) * hex_radius
 
     # Calculate the center position for each hex cell
-    cell_positions = np.zeros(shape=(boardsize*boardsize, 2), dtype=float)
     for y in range(boardsize):
         for x in range(boardsize):
             i = UtilsHex.coordinates_2d_to_1d(x, y, boardsize)
@@ -168,9 +179,23 @@ def hex_plot():
         for x in range(boardsize):
             i = UtilsHex.coordinates_2d_to_1d(x, y, boardsize)
             position = cell_positions[i]
+
+            # Plot the grid
             hexagon = RegularPolygon(position, numVertices=6, radius=hex_radius,
-                                     orientation=0, edgecolor='black', facecolor='lightblue')
+                                     orientation=0, edgecolor=grid_color, facecolor=cell_color)
             ax.add_patch(hexagon)
+
+            # Plot any piece
+            player = 0 if black_literals[i] else 1 if white_literals[i] else -1
+            if player != -1:
+                piece = Circle(position, radius=hex_radius * 0.6,
+                               edgecolor=grid_color, facecolor=piece_colors[player])
+                ax.add_patch(piece)
+
+
+
+    # Plot the axis labels for hex
+
 
 
     # Calculate the width and height of the grid
@@ -191,4 +216,5 @@ def hex_plot():
     plt.savefig(filepath, dpi=300, bbox_inches='tight')  # Change filename and dpi as needed
     plt.close()  # Close the plot to free resources
 
-hex_plot()
+boardsize = 6
+hex_plot(UtilsTM.Literals.make_random_board(boardsize), boardsize)
