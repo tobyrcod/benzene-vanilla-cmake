@@ -11,6 +11,7 @@ tournaments_path = Path("../tournaments")
 tournament_name = "6x6-3ply-simple"
 tournament_path = tournaments_path / tournament_name
 plots_path = Path("plots")
+templates_path = Path("../../templates")
 
 def get_games_to_explore():
     dataset_path = tournament_path / "dataset.csv"
@@ -135,7 +136,23 @@ def game_lengths():
     plt.savefig(filepath, dpi=300)  # Change filename and dpi as needed
     plt.close()  # Close the plot to free resources
 
-if __name__ == "__main__":
+def templates_search():
     boardsize = 13
-    literals = UtilsTM.Literals.make_random_board(boardsize, 30)
+    template = UtilsHex.Templates.load_template(templates_path / "interior/positive/wheel.sgf")
+    search_pattern = UtilsHex.Templates.template_to_search_pattern(template)
+
+    i = 0
+    found = False
+    while not found:
+        print(i)
+        literals = UtilsTM.Literals.make_random_board(boardsize, 50)
+        match = UtilsTM.Literals.search_for_pattern_in_literals(search_pattern, literals, boardsize)
+        if match:
+            found = True
+        i += 1
+
     UtilsPlot.plot_literals(literals, boardsize, plots_path / "hex/hex.png")
+    print(match)
+
+if __name__ == "__main__":
+    templates_search()

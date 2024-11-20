@@ -143,12 +143,10 @@ class UtilsHex:
 
             return string
 
-
-
     class Templates:
 
         @staticmethod
-        def load_template(template_path: Path) -> tuple[list[str], list[str], int]:
+        def load_template(template_path: Path) -> tuple[list[str], list[str]]:
             sgf = SGF.parse_file(template_path)
 
             #
@@ -173,8 +171,6 @@ class UtilsHex:
             # Boardsize
             if not (boardsize_string:=sgf.get_property('SZ')):
                 raise Exception("Template file is missing the boardsize")
-            boardsize = int(boardsize_string)
-
 
             #
             # Load the move from the sgf file
@@ -194,7 +190,26 @@ class UtilsHex:
 
             # The black pieces represent the black template
             # The white pieces represent the intrusion zone
-            return template_positions, intrusion_positions, boardsize
+            return template_positions, intrusion_positions
+
+
+        @staticmethod
+        def template_to_search_pattern(template: tuple[list[str], list[str]]):
+            template_positions, intrusion_positions = template
+
+            # First, convert from hex positions to coordinates
+            template_coords = np.array(list(map(UtilsHex.Coordinates.position_to_coord, template_positions)))
+            intrusion_coords = np.array(list(map(UtilsHex.Coordinates.position_to_coord, intrusion_positions)))
+
+            # Second, recenter the template by the top-left most template position
+            # This is to make the coordinates independent of where they appear on the original sgf grid
+            center = np.copy(template_coords[0])
+            template_offsets = template_coords - center
+            intrusion_offsets = intrusion_coords - center
+
+            # TODO: Add rotations - https://www.redblobgames.com/grids/hexagons/#rotation
+
+            return template_offsets, intrusion_offsets
 
 
 class UtilsTournament:
@@ -433,6 +448,76 @@ class UtilsTM:
                 return new_literals
 
         @staticmethod
+        def search_for_pattern_in_literals(search_pattern: tuple[np.array, np.array], literals: list[int], boardsize: int) -> tuple[int, str]:
+            """
+            Search through a set of literals to try and find a pattern
+            :param search_pattern: coordinates that must contain a piece of the players color, and coordinates that must NOT contain any piece
+            :param literals: unaugmented literals representing the board state to search through
+            :param boardsize: the nxn size of the board represented by the literals
+            :return: the player the pattern matches for and the position of the match
+            """
+
+            include_offsets, exclude_offsets = search_pattern
+            literals_per_player = boardsize ** 2
+
+            def match_pattern_at_start_coord(start_coord) -> int:
+                """
+                :param start_coord: the coordinate to start the pattern at
+                :return: integer representing the player for which the pattern matched
+                """
+
+                # Check we have a piece at the starting position
+                start_i = UtilsHex.Coordinates.coord_to_index(start_x, start_y, boardsize)
+                player = 0 if literals[start_i] else 1 if literals[literals_per_player + start_i] else -1
+                if player == -1:
+                    return -1
+
+                # We have a player piece in the start position,
+                # So we check for player pieces in all the positions of this pattern
+                start_coord = np.array([*start_coord])
+                player_offset = player * literals_per_player
+                for include_offset in include_offsets:
+                    # Check that the position we want to include is on the board from this start position
+                    include_coord = start_coord + include_offset
+                    include_index = UtilsHex.Coordinates.coord_to_index(*include_coord, boardsize)
+                    if include_index == -1:
+                        return -1
+
+                    # Check the position has a player piece
+                    if not literals[player_offset + include_index]:
+                        return -1
+
+                # We have a piece of the right player in every position of the pattern
+                # So now we need to ensure we DON'T have any pieces (of either player) in the exclude positions
+                for exclude_offset in exclude_offsets:
+                    # If the position we want to exclude is off the board from this start position
+                    exclude_coord = start_coord + exclude_offset
+                    exclude_index = UtilsHex.Coordinates.coord_to_index(*exclude_coord, boardsize)
+                    if exclude_index == -1:
+                        # We don't care and can just ignore it
+                        continue
+
+                    # Check that NEITHER player has a piece in the position
+                    if literals[exclude_index] or literals[literals_per_player + exclude_index]:
+                        return -1
+
+                # We fully match this pattern for the player in the start position
+                return player
+
+            # Every literal position is a potential start position for the pattern
+            for start_y in range(boardsize):
+                for start_x in range(boardsize):
+                    start_coord = (start_x, start_y)
+                    match_player = match_pattern_at_start_coord(start_coord)
+                    if match_player != -1:
+                        match_position = UtilsHex.Coordinates.coord_to_position(*start_coord)
+                        return match_player, match_position
+
+            # No starting positions match this search pattern
+            return None
+
+
+        @staticmethod
         def get_literal_difference(literalsA: list[int], literalsB: list[int]) -> list[int]:
             return [a ^ b for (a, b) in zip(literalsA, literalsB)]
 
@@ -644,9 +729,3 @@ class UtilsPlot:
         # Save the plot to a file
         plt.savefig(filepath, dpi=300, bbox_inches='tight')  # Change filename and dpi as needed
         plt.close()  # Close the plot to free resources
-
-
-if __name__ == "__main__":
-    template_positions, intrusion_positions, boardsize = UtilsHex.Templates.load_template(Path(
-        "../templates/interior/positive/bridge.sgf"))
-    print(template_positions, intrusion_positions, boardsize)
