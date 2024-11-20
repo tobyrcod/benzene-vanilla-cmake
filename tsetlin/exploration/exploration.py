@@ -136,6 +136,6 @@ def game_lengths():
     plt.close()  # Close the plot to free resources
 
 if __name__ == "__main__":
-    boardsize = 6
-    literals = UtilsTM.Literals.make_random_board(boardsize, 15)
+    boardsize = 13
+    literals = UtilsTM.Literals.make_random_board(boardsize, 30)
     UtilsPlot.plot_literals(literals, boardsize, plots_path / "hex/hex.png")

@@ -105,7 +105,7 @@ class UtilsHex:
     class Templates:
 
         @staticmethod
-        def load_template(template_path: Path):
+        def load_template(template_path: Path) -> tuple[list[str], list[str], int]:
             sgf = SGF.parse_file(template_path)
 
             #
@@ -144,12 +144,14 @@ class UtilsHex:
                 raise Exception("Unexpected Children found for the Move Node")
 
             # Get the black and white pieces if they exist
-            if not (black_pieces:=move_node.get_list_property('AB')):
+            if not (template_positions:=move_node.get_list_property('AB')):
                 raise Exception("Supplied SGF File has no Black Pieces")
-            if not (white_pieces:=move_node.get_list_property('AW')):
+            if not (intrusion_positions:=move_node.get_list_property('AW')):
                 raise Exception("Supplied SGF File has no White Pieces")
 
-            return black_pieces, white_pieces, boardsize
+            # The black pieces represent the black template
+            # The white pieces represent the intrusion zone
+            return template_positions, intrusion_positions, boardsize
 
 
 class UtilsTournament:
@@ -602,5 +604,6 @@ class UtilsPlot:
 
 
 if __name__ == "__main__":
-    black_pieces, white_pieces, boardsize = UtilsHex.Templates.load_template(Path("../templates/positive/bridge.sgf"))
-    print(black_pieces, white_pieces, boardsize)
+    template_positions, intrusion_positions, boardsize = UtilsHex.Templates.load_template(Path(
+        "../templates/interior/positive/bridge.sgf"))
+    print(template_positions, intrusion_positions, boardsize)
