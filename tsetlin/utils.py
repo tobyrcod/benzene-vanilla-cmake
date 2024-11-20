@@ -518,8 +518,8 @@ class UtilsTM:
 
 
         @staticmethod
-        def get_literal_difference(literalsA: list[int], literalsB: list[int]) -> list[int]:
-            return [a ^ b for (a, b) in zip(literalsA, literalsB)]
+        def get_literal_difference(A: list[int], B: list[int]) -> list[int]:
+            return [a ^ b for (a, b) in zip(A, B)]
 
 
         @staticmethod
