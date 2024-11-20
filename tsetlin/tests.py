@@ -26,26 +26,26 @@ class Tests:
                             def test():
 
                                 def test_1d_to_2d():
-                                    assert UtilsHex.Coordinates.coordinates_1d_to_2d(0, 6) == (0, 0)
-                                    assert UtilsHex.Coordinates.coordinates_1d_to_2d(1, 6) == (1, 0)
-                                    assert UtilsHex.Coordinates.coordinates_1d_to_2d(6, 6) == (0, 1)
-                                    assert UtilsHex.Coordinates.coordinates_1d_to_2d(7, 6) == (1, 1)
-                                    assert UtilsHex.Coordinates.coordinates_1d_to_2d(35, 6) == (5, 5)
+                                    assert UtilsHex.Coordinates.index_to_coord(0, 6) == (0, 0)
+                                    assert UtilsHex.Coordinates.index_to_coord(1, 6) == (1, 0)
+                                    assert UtilsHex.Coordinates.index_to_coord(6, 6) == (0, 1)
+                                    assert UtilsHex.Coordinates.index_to_coord(7, 6) == (1, 1)
+                                    assert UtilsHex.Coordinates.index_to_coord(35, 6) == (5, 5)
 
                                 def test_2d_to_1d():
-                                    assert UtilsHex.Coordinates.coordinates_2d_to_1d(0, 0, 6) == 0
-                                    assert UtilsHex.Coordinates.coordinates_2d_to_1d(1, 0, 6) == 1
-                                    assert UtilsHex.Coordinates.coordinates_2d_to_1d(0, 1, 6) == 6
-                                    assert UtilsHex.Coordinates.coordinates_2d_to_1d(1, 1, 6) == 7
-                                    assert UtilsHex.Coordinates.coordinates_2d_to_1d(5, 5, 6) == 35
+                                    assert UtilsHex.Coordinates.coord_to_index(0, 0, 6) == 0
+                                    assert UtilsHex.Coordinates.coord_to_index(1, 0, 6) == 1
+                                    assert UtilsHex.Coordinates.coord_to_index(0, 1, 6) == 6
+                                    assert UtilsHex.Coordinates.coord_to_index(1, 1, 6) == 7
+                                    assert UtilsHex.Coordinates.coord_to_index(5, 5, 6) == 35
 
                                 def test_inverse():
                                     for boardsize in range(6, 14):
                                         i = 0
                                         for y in range(boardsize):
                                             for x in range(boardsize):
-                                                assert UtilsHex.Coordinates.coordinates_2d_to_1d(*UtilsHex.Coordinates.coordinates_1d_to_2d(i, boardsize), boardsize) == i
-                                                assert UtilsHex.Coordinates.coordinates_1d_to_2d(UtilsHex.Coordinates.coordinates_2d_to_1d(x, y, boardsize), boardsize) == (x, y)
+                                                assert UtilsHex.Coordinates.coord_to_index(*UtilsHex.Coordinates.index_to_coord(i, boardsize), boardsize) == i
+                                                assert UtilsHex.Coordinates.index_to_coord(UtilsHex.Coordinates.coord_to_index(x, y, boardsize), boardsize) == (x, y)
                                                 i += 1
 
                                 test_1d_to_2d()
@@ -282,10 +282,10 @@ class Tests:
                             else:
                                 side = int(not is_black)
                                 after.extend([side] + player_rows[row-1] + [side])
-                        after[UtilsHex.Coordinates.coordinates_2d_to_1d(0, 0, after_boardsize)] = 0
-                        after[UtilsHex.Coordinates.coordinates_2d_to_1d(0, after_boardsize-1, after_boardsize)] = 0
-                        after[UtilsHex.Coordinates.coordinates_2d_to_1d(after_boardsize-1, 0, after_boardsize)] = 0
-                        after[UtilsHex.Coordinates.coordinates_2d_to_1d(after_boardsize-1, after_boardsize-1, after_boardsize)] = 0
+                        after[UtilsHex.Coordinates.coord_to_index(0, 0, after_boardsize)] = 0
+                        after[UtilsHex.Coordinates.coord_to_index(0, after_boardsize - 1, after_boardsize)] = 0
+                        after[UtilsHex.Coordinates.coord_to_index(after_boardsize - 1, 0, after_boardsize)] = 0
+                        after[UtilsHex.Coordinates.coord_to_index(after_boardsize - 1, after_boardsize - 1, after_boardsize)] = 0
                         return after
 
                     # TESTS

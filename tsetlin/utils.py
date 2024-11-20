@@ -26,20 +26,77 @@ class Helpers:
 class UtilsHex:
 
     class Coordinates:
-        @staticmethod
-        def coordinates_2d_to_1d(x: int, y: int, boardsize: int) -> int:
-            return y * boardsize + x
 
+        # TYPE                          DESCRIPTION                                             EXAMPLE     ALLOWED-OFF-BOARD
+        # ---------------------------------------------------------------------------------------------------------------------
+        # index:    int                 a 1d representation used for an array                   0           False
+        # coord:    tuple[int, int]     a 2d representation used for a grid                     (0, 0)      True
+        # position: str                 a letter-number representation used on the hex board    a1          True
+
+        # ---------------------------------------------------------------------------------------------------------------------
+        #  VALIDITY - ARE WE ON THE BOARD?
+        # ---------------------------------------------------------------------------------------------------------------------
 
         @staticmethod
-        def coordinates_1d_to_2d(i: int, boardsize: int) -> tuple[int, int]:
+        def is_index_on_board(index: int, boardsize: int) -> bool:
+            return 0 <= index < boardsize**2
+
+        @staticmethod
+        def is_coord_on_board(x: int, y: int, boardsize: int) -> bool:
+            if not 0 <= x < boardsize: return False
+            if not 0 <= y < boardsize: return False
+            return True
+
+        @staticmethod
+        def is_position_on_board(position: str, boardsize: int) -> bool:
+            x, y = UtilsHex.Coordinates.position_to_coord(position)
+            return UtilsHex.Coordinates.is_coord_on_board(x, y, boardsize)
+
+        # ---------------------------------------------------------------------------------------------------------------------
+        #  CONVERSION - MOVE BETWEEN INDICES, COORDS, & POSITIONS
+        # ---------------------------------------------------------------------------------------------------------------------
+
+        @staticmethod
+        def index_to_coord(i: int, boardsize: int) -> tuple[int, int]:
             return i % boardsize, i // boardsize
 
 
         @staticmethod
+        def coord_to_index(x: int, y: int, boardsize: int) -> int:
+            if not UtilsHex.Coordinates.is_coord_on_board(x, y, boardsize): return -1
+            return y * boardsize + x
+
+
+        @staticmethod
+        def index_to_position(index: int, boardsize: int) -> str:
+            # Firstly, convert from 1d index to 2D coordinates
+            x, y = UtilsHex.Coordinates.index_to_coord(index, boardsize)
+
+            # Finally, convert from 2D coordinates to position string
+            return UtilsHex.Coordinates.coord_to_position(x, y)
+
+
+        @staticmethod
         def position_to_index(position: str, boardsize: int) -> int:
-            # move will be e.g. 'a1'
-            # First job is to split this into 'a' and '1'
+            # First, convert the position to 2D
+            (x, y) = UtilsHex.Coordinates.position_to_coord(position)
+
+            # Finally, convert from 2D coordinates to 1D index
+            return UtilsHex.Coordinates.coord_to_index(x, y, boardsize)
+
+
+        @staticmethod
+        def coord_to_position(x, y):
+            # First, convert to hex string representation
+            x = UtilsHex.Coordinates._number_to_string(x + 1)
+            y = str(y + 1)
+
+            # Finally, combine this back into a hex string position
+            return f"{x}{y}"
+
+
+        @staticmethod
+        def position_to_coord(position: str) -> tuple[int, int]:
             split_index = -1
             for i, c in enumerate(position):
                 if c.isalpha():
@@ -48,31 +105,15 @@ class UtilsHex:
                     split_index = i
                 break
             if split_index == -1:
-                return -1
+                raise ValueError(f"{position} is not a valid position string")
             string = position[:split_index]
             number = position[split_index:]
 
-            # Second, convert from letter, number to x, y coordinates
+            # Then, convert from (letter, number) to (x, y) coordinates
             x = UtilsHex.Coordinates._string_to_number(string) - 1
             y = int(number) - 1
-            if x < 0 or x >= boardsize or y < 0 or y >= boardsize:  # Ensure the coordinate is on the board
-                return -1
 
-            # Finally, convert from 2D coordinates to 1D index
-            return UtilsHex.Coordinates.coordinates_2d_to_1d(x, y, boardsize)
-
-
-        @staticmethod
-        def index_to_position(index: int, boardsize: int) -> str:
-            # Firstly, convert from 1d index to 2D coordinates
-            x, y = UtilsHex.Coordinates.coordinates_1d_to_2d(index, boardsize)
-
-            # Second, convert to hex string representation
-            x = UtilsHex.Coordinates._number_to_string(x + 1)
-            y = str(y + 1)
-
-            # Finally, combine this back into a hex string position
-            return f"{x}{y}"
+            return x, y
 
 
         @staticmethod
@@ -101,6 +142,8 @@ class UtilsHex:
                 number = (number - 1) // 26
 
             return string
+
+
 
     class Templates:
 
@@ -329,13 +372,13 @@ class UtilsTM:
                     # Move the literals on the nxn board to the centre of the new (n+2)x(n+2) board
                     for i in range(literals_per_player):
                         # First, convert from nxn 1d coordinates to nxn 2d coordinates
-                        x1, y1 = UtilsHex.Coordinates.coordinates_1d_to_2d(i, boardsize)
+                        x1, y1 = UtilsHex.Coordinates.index_to_coord(i, boardsize)
 
                         # Second, add 1 to the coordinate to get the new coordinates in the (n+2)x(n_2) grid
                         x2, y2 = x1 + 1, y1 + 1
 
                         # Next, convert from (n+2)x(n+2) 2d coordinates to (n+2)x(n_2) 1d coordinates
-                        j = UtilsHex.Coordinates.coordinates_2d_to_1d(x2, y2, boardsize + 2)
+                        j = UtilsHex.Coordinates.coord_to_index(x2, y2, boardsize + 2)
 
                         # Finally, move the literal to its new position
                         new_literals[j] = literals[i]  # black
@@ -346,12 +389,12 @@ class UtilsTM:
                     # Black wins top to bottom, so the first and last row should be all black
                     for y in [0, new_boardsize - 1]:
                         for x in range(1, new_boardsize - 1):
-                            i = UtilsHex.Coordinates.coordinates_2d_to_1d(x, y, new_boardsize)
+                            i = UtilsHex.Coordinates.coord_to_index(x, y, new_boardsize)
                             new_literals[i] = 1
                     # White wins left to right, so each row should begin and end with white
                     for y in range(1, new_boardsize - 1):
                         for x in [0, new_boardsize - 1]:
-                            i = UtilsHex.Coordinates.coordinates_2d_to_1d(x, y, new_boardsize)
+                            i = UtilsHex.Coordinates.coord_to_index(x, y, new_boardsize)
                             new_literals[new_literals_per_player + i] = 1
 
                 if self & UtilsTM.Literals.Augmentation.AUG_PAIR_POSITIONS:
@@ -554,7 +597,7 @@ class UtilsPlot:
                 ax.add_patch(hexagon)
 
                 # Plot any piece
-                i = UtilsHex.Coordinates.coordinates_2d_to_1d(x, y, boardsize)
+                i = UtilsHex.Coordinates.coord_to_index(x, y, boardsize)
                 player = 0 if black_literals[i] else 1 if white_literals[i] else -1
                 if player != -1:
                     piece = Circle(position, radius=hex_radius * 0.6,
