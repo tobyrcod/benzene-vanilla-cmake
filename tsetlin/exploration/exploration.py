@@ -137,18 +137,17 @@ def game_lengths():
     plt.close()  # Close the plot to free resources
 
 def templates_search():
-    boardsize = 13
-    template = UtilsHex.Templates.load_template(templates_path / "interior/positive/wheel.sgf")
-    search_pattern = UtilsHex.Templates.template_to_search_pattern(template)
+    boardsize = 6
+    template_name = 'bridge'
+    template = UtilsHex.Template.load_template(templates_path / f"interior/positive/{template_name}.sgf")
+    search_pattern = UtilsHex.SearchPattern.from_template(template)
 
     i = 0
-    found = False
-    while not found:
-        print(i)
-        literals = UtilsTM.Literals.make_random_board(boardsize, 50)
-        match = UtilsTM.Literals.search_for_pattern_in_literals(search_pattern, literals, boardsize)
-        if match:
-            found = True
+    literals = None
+    match = None
+    while not match:
+        literals = UtilsTM.Literals.make_random_board(boardsize)
+        match = UtilsHex.SearchPattern.search_literals(search_pattern, literals, boardsize)
         i += 1
 
     UtilsPlot.plot_literals(literals, boardsize, plots_path / "hex/hex.png")
@@ -156,3 +155,4 @@ def templates_search():
 
 if __name__ == "__main__":
     templates_search()
+

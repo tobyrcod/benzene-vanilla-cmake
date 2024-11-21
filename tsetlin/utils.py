@@ -2,6 +2,8 @@ import itertools
 import random
 import sys
 import csv
+
+import matplotlib.pyplot
 import numpy as np
 from enum import IntFlag, Enum
 from pathlib import Path
@@ -11,6 +13,9 @@ from pysgf import SGF, SGFNode
 
 
 # TODO: document every method with """ """
+# TODO: actually instantiate & use the types
+# TODO: make literals a type to carry around their augmentation for easy undo
+# TODO: use numpy for hex_grid (current indexing in '_search_hex_grid' is AWFUL)
 
 class Helpers:
 
@@ -143,7 +148,58 @@ class UtilsHex:
 
             return string
 
-    class Templates:
+    # BOARD REPRESENTATION      DESCRIPTION                                                         USAGE
+    # -------------------------------------------------------------------------------------------------------------------------------------------
+    # Entire Board:
+    # Hex Grid                  2D: 0 for black, 1 for white, -1 for nothing                        Simple Base for plotting and searching in
+    # Literals                  1D: all black pieces followed by all white pieces                   Tsetlin Machine
+    #
+    # Independent of a board:
+    # Templates                 all hex positions where there should and shouldn't be a piece       Defining SGF Patterns in File
+    # Search Patterns           coordinate offsets to have or not have a piece                      Searching for
+
+    class HexGrid:
+
+        @staticmethod
+        def from_literals(literals: list[int], boardsize: int) -> list[list[int]]:
+            hex_grid = [[-1 for x in range(boardsize)] for y in range(boardsize)]
+
+            literals_per_player = boardsize**2
+            for y in range(boardsize):
+                for x in range(boardsize):
+                    i = UtilsHex.Coordinates.coord_to_index(x, y, boardsize)
+                    player = 0 if literals[i] else 1 if literals[literals_per_player+i] else -1
+                    hex_grid[y][x] = player
+
+            return hex_grid
+
+        @staticmethod
+        def from_search_pattern(search_pattern) -> list[list[int]]:
+            # Search patterns are all independent of boards
+            # So we need to create a new board on which this search pattern could fit
+            include_offsets, exclude_offsets = search_pattern
+
+            # Find the most negative offsets in both directions
+            all_offsets = np.concatenate(search_pattern, axis=0)
+            min_offsets = np.min(all_offsets, axis=0)
+
+            # Find the most positive offsets in both directions and work out the boardsize needed
+            max_offsets = np.max(all_offsets, axis=0)
+            range_offsets = max_offsets - min_offsets
+            boardsize = max(range_offsets + 1)
+
+            # TODO: make working with search pattern object (not tuple) much easier
+            hex_grid = [[-1 for x in range(boardsize)] for y in range(boardsize)]
+            for include_offset in include_offsets:
+                include_coord = include_offset - min_offsets
+                hex_grid[include_coord[1]][include_coord[0]] = 0
+            for exclude_offset in exclude_offsets:
+                exclude_coord = exclude_offset - min_offsets
+                hex_grid[exclude_coord[1]][exclude_coord[0]] = 1
+
+            return hex_grid
+
+    class Template:
 
         @staticmethod
         def load_template(template_path: Path) -> tuple[list[str], list[str]]:
@@ -192,9 +248,16 @@ class UtilsHex:
             # The white pieces represent the intrusion zone
             return template_positions, intrusion_positions
 
+    class SearchPattern:
 
         @staticmethod
-        def template_to_search_pattern(template: tuple[list[str], list[str]]):
+        def from_template(template: tuple[list[str], list[str]]) -> tuple[np.array, np.array]:
+            """
+            Create a new search pattern from a hex template
+            :param template: The template to turn into a search pattern
+            :return: The search pattern resulting from the template
+            """
+
             template_positions, intrusion_positions = template
 
             # First, convert from hex positions to coordinates
@@ -207,10 +270,97 @@ class UtilsHex:
             template_offsets = template_coords - center
             intrusion_offsets = intrusion_coords - center
 
-            # TODO: Add rotations - https://www.redblobgames.com/grids/hexagons/#rotation
-
             return template_offsets, intrusion_offsets
 
+        @staticmethod
+        def get_all_rotations(search_pattern: tuple[np.array, np.array]) -> list[tuple[np.array, np.array]]:
+            """
+            Rotate a search pattern on a hexagonal grid to all equivalent rotated search patterns
+            :param search_pattern: The search pattern we want to rotate
+            :return: A list of search patterns that result from rotating the original
+            """
+
+            return [search_pattern]
+
+        @staticmethod
+        def search_literals(search_pattern: tuple[np.array, np.array], literals: list[int], boardsize: int) -> tuple[int, str]:
+            """
+            Search through a set of literals to try and find a pattern
+            :param search_pattern: coordinates that must contain a piece of the players color, and coordinates that must NOT contain any piece
+            :param literals: unaugmented literals representing the board state to search through
+            :param boardsize: the nxn size of the board represented by the literals
+            :return: the player the pattern matches for and the position of the match
+            """
+
+            # Convert the literals to a hex grid
+            hex_grid = UtilsHex.HexGrid.from_literals(literals, boardsize)
+
+            # And search the hex grid
+            return UtilsHex.SearchPattern._search_hex_grid(search_pattern, hex_grid)
+
+        @staticmethod
+        def _search_hex_grid(search_pattern: tuple[np.array, np.array], hex_grid: list[list[int]]) -> tuple[int, str]:
+            """
+            Search through a hex grid to try and find a pattern
+            :param search_pattern: coordinates that must contain a piece of the players color, and coordinates that must NOT contain any piece
+            :param hex_grid: 2d grid board state to search through
+            :return: the player the pattern matches for and the position of the match
+            """
+
+            include_offsets, exclude_offsets = search_pattern
+
+            def match_pattern_at_start_coord(start_x, start_y) -> int:
+                """
+                :param start_x: the x coordinate to start the pattern at
+                :param start_y: the y coordinate to start the pattern at
+                :return: integer representing the player for which the pattern matched
+                """
+
+                # Check we have a piece at the starting position
+                player = hex_grid[start_y][start_x]
+                if player == -1:
+                    return -1
+
+                # We have a player piece in the start position,
+                # So we check for player pieces in all the positions of this pattern
+                start_coord = np.array([start_x, start_y])
+                for include_offset in include_offsets:
+                    # Check that the position we want to include is on the board from this start position
+                    include_coord = start_coord + include_offset
+                    if not UtilsHex.Coordinates.is_coord_on_board(*include_coord, boardsize):
+                        return -1
+
+                    # Check the position has a player piece
+                    if hex_grid[include_coord[1]][include_coord[0]] != player:
+                        return -1
+
+                # We have a piece of the right player in every position of the pattern
+                # So now we need to ensure we DON'T have any pieces (of either player) in the exclude positions
+                for exclude_offset in exclude_offsets:
+                    # If the position we want to exclude is off the board from this start position
+                    exclude_coord = start_coord + exclude_offset
+                    if not UtilsHex.Coordinates.is_coord_on_board(*exclude_coord, boardsize):
+                        # We don't care and can just ignore it
+                        continue
+
+                    # Check that NEITHER player has a piece in the position
+                    if hex_grid[exclude_coord[1]][exclude_coord[0]] != -1:
+                        return -1
+
+                # We fully match this pattern for the player in the start position
+                return player
+
+            # Every literal position is a potential start position for the pattern
+            boardsize = len(hex_grid)
+            for start_y in range(boardsize):
+                for start_x in range(boardsize):
+                    match_player = match_pattern_at_start_coord(start_x, start_y)
+                    if match_player != -1:
+                        match_position = UtilsHex.Coordinates.coord_to_position(start_x, start_y)
+                        return match_player, match_position
+
+            # No starting positions match this search pattern
+            return None
 
 class UtilsTournament:
 
@@ -447,75 +597,6 @@ class UtilsTM:
 
                 return new_literals
 
-        @staticmethod
-        def search_for_pattern_in_literals(search_pattern: tuple[np.array, np.array], literals: list[int], boardsize: int) -> tuple[int, str]:
-            """
-            Search through a set of literals to try and find a pattern
-            :param search_pattern: coordinates that must contain a piece of the players color, and coordinates that must NOT contain any piece
-            :param literals: unaugmented literals representing the board state to search through
-            :param boardsize: the nxn size of the board represented by the literals
-            :return: the player the pattern matches for and the position of the match
-            """
-
-            include_offsets, exclude_offsets = search_pattern
-            literals_per_player = boardsize ** 2
-
-            def match_pattern_at_start_coord(start_coord) -> int:
-                """
-                :param start_coord: the coordinate to start the pattern at
-                :return: integer representing the player for which the pattern matched
-                """
-
-                # Check we have a piece at the starting position
-                start_i = UtilsHex.Coordinates.coord_to_index(start_x, start_y, boardsize)
-                player = 0 if literals[start_i] else 1 if literals[literals_per_player + start_i] else -1
-                if player == -1:
-                    return -1
-
-                # We have a player piece in the start position,
-                # So we check for player pieces in all the positions of this pattern
-                start_coord = np.array([*start_coord])
-                player_offset = player * literals_per_player
-                for include_offset in include_offsets:
-                    # Check that the position we want to include is on the board from this start position
-                    include_coord = start_coord + include_offset
-                    include_index = UtilsHex.Coordinates.coord_to_index(*include_coord, boardsize)
-                    if include_index == -1:
-                        return -1
-
-                    # Check the position has a player piece
-                    if not literals[player_offset + include_index]:
-                        return -1
-
-                # We have a piece of the right player in every position of the pattern
-                # So now we need to ensure we DON'T have any pieces (of either player) in the exclude positions
-                for exclude_offset in exclude_offsets:
-                    # If the position we want to exclude is off the board from this start position
-                    exclude_coord = start_coord + exclude_offset
-                    exclude_index = UtilsHex.Coordinates.coord_to_index(*exclude_coord, boardsize)
-                    if exclude_index == -1:
-                        # We don't care and can just ignore it
-                        continue
-
-                    # Check that NEITHER player has a piece in the position
-                    if literals[exclude_index] or literals[literals_per_player + exclude_index]:
-                        return -1
-
-                # We fully match this pattern for the player in the start position
-                return player
-
-            # Every literal position is a potential start position for the pattern
-            for start_y in range(boardsize):
-                for start_x in range(boardsize):
-                    start_coord = (start_x, start_y)
-                    match_player = match_pattern_at_start_coord(start_coord)
-                    if match_player != -1:
-                        match_position = UtilsHex.Coordinates.coord_to_position(*start_coord)
-                        return match_player, match_position
-
-            # No starting positions match this search pattern
-            return None
-
 
         @staticmethod
         def get_literal_difference(A: list[int], B: list[int]) -> list[int]:
@@ -642,34 +723,31 @@ class UtilsTM:
 
 class UtilsPlot:
 
+    HEX_PLOT_TEXT = True
+
     @staticmethod
-    def plot_literals(literals: list[int], boardsize: int, filepath: Path):
-        # Plot a hexagonal grid
-        # Later to be used to visualise all good things Hex
-        # Hexagonal Grid logic from: https://www.redblobgames.com/grids/hexagons/
+    def _plot_hex_grid(hex_grid: list[list[int]], filepath: Path):
+        # Plot a Hexagonal Grid
+        # - logic from: https://www.redblobgames.com/grids/hexagons/
+
+        # Define the grid colors
+        cell_color = 'lightyellow'
+        piece_colors = ['black', 'white']
+        grid_color = 'black'
+
+        # Define the grid properties
+        boardsize = len(hex_grid)
+        hex_radius = 1
+        dy = (3 / 2) * hex_radius
+        dx = np.sqrt(3) * hex_radius
 
         def get_cell_position(x: float, y: float) -> tuple[float, float]:
             pos_x = x * dx + (y * dx / 2)  # Add additional row offset as we go down
             pos_y = (boardsize - 1 - y) * dy  # Row 0 is at the top, so need to reverse y
             return pos_x, pos_y
 
-        # Get the literals for each player
-        literals_per_player = boardsize ** 2
-        black_literals = literals[:literals_per_player]
-        white_literals = literals[literals_per_player:]
-
-        # Set up the hex board
-        cell_color = 'lightyellow'
-        piece_colors = ['black', 'white']
-        grid_color = 'black'
-
         # Set up the figure
-        hex_radius = 1
         fig, ax = plt.subplots(figsize=(10, 10))
-
-        # Define the grid properties
-        dy = (3 / 2) * hex_radius
-        dx = np.sqrt(3) * hex_radius
 
         # Plot each hex cell at the desired position
         for y in range(boardsize):
@@ -682,38 +760,39 @@ class UtilsPlot:
                 ax.add_patch(hexagon)
 
                 # Plot any piece
-                i = UtilsHex.Coordinates.coord_to_index(x, y, boardsize)
-                player = 0 if black_literals[i] else 1 if white_literals[i] else -1
+                player = hex_grid[y][x]
                 if player != -1:
                     piece = Circle(position, radius=hex_radius * 0.6,
                                    edgecolor=grid_color, facecolor=piece_colors[player])
                     ax.add_patch(piece)
 
                 # Write the hex position
-                hex_pos_text = UtilsHex.Coordinates.index_to_position(i, boardsize)
-                hex_pos_text_color = grid_color if player == -1 else piece_colors[1 - player]
-                ax.text(*position, hex_pos_text, ha='center', va='center', size=7, color=hex_pos_text_color)
+                if UtilsPlot.HEX_PLOT_TEXT:
+                    hex_pos_text = UtilsHex.Coordinates.coord_to_position(x, y)
+                    hex_pos_text_color = grid_color if player == -1 else piece_colors[1 - player]
+                    ax.text(*position, hex_pos_text, ha='center', va='center', size=7, color=hex_pos_text_color)
 
         # Plot the axis labels for hex
-        text_offset = hex_radius * 1.4
-        for i in range(boardsize):
-            # Along the bottom
-            position = get_cell_position(i, boardsize - 1)
-            string = UtilsHex.Coordinates._number_to_string(i + 1)
-            ax.text(position[0], position[1] - text_offset, string.upper(), ha='center', va='center', size=10)
+        if UtilsPlot.HEX_PLOT_TEXT:
+            text_offset = hex_radius * 1.4
+            for i in range(boardsize):
+                # Along the bottom
+                position = get_cell_position(i, boardsize - 1)
+                string = UtilsHex.Coordinates._number_to_string(i + 1)
+                ax.text(position[0], position[1] - text_offset, string.upper(), ha='center', va='center', size=10)
 
-            # Along the top
-            position = get_cell_position(i, 0)
-            string = UtilsHex.Coordinates._number_to_string(i + 1)
-            ax.text(position[0], position[1] + text_offset, string.upper(), ha='center', va='center', size=10)
+                # Along the top
+                position = get_cell_position(i, 0)
+                string = UtilsHex.Coordinates._number_to_string(i + 1)
+                ax.text(position[0], position[1] + text_offset, string.upper(), ha='center', va='center', size=10)
 
-            # Along the left
-            string = str(i + 1)
-            ax.text(*get_cell_position(-1, i), string.upper(), ha='center', va='center', size=10)
+                # Along the left
+                string = str(i + 1)
+                ax.text(*get_cell_position(-1, i), string.upper(), ha='center', va='center', size=10)
 
-            # Along the right
-            string = str(i + 1)
-            ax.text(*get_cell_position(boardsize, i), string.upper(), ha='center', va='center', size=10)
+                # Along the right
+                string = str(i + 1)
+                ax.text(*get_cell_position(boardsize, i), string.upper(), ha='center', va='center', size=10)
 
         # Calculate the width and height of the grid
         grid_width = (boardsize + 1) * dx + boardsize * (dx / 2)
@@ -726,6 +805,39 @@ class UtilsPlot:
         ax.set_aspect('equal')
         plt.axis('off')
 
+        # Save the plot
+        UtilsPlot.save_plot(plt, filepath)
+
+    @staticmethod
+    def plot_literals(literals: list[int], boardsize: int, filepath: Path):
+        # Convert the literals to a hex grid
+        hex_grid = UtilsHex.HexGrid.from_literals(literals, boardsize)
+
+        # And plot the hex grid
+        UtilsPlot.HEX_PLOT_TEXT = True
+        UtilsPlot._plot_hex_grid(hex_grid, filepath)
+
+    @staticmethod
+    def plot_search_pattern(search_pattern: tuple[np.array, np.array], filepath: Path):
+        # Convert the search pattern to a hex grid
+        hex_grid = UtilsHex.HexGrid.from_search_pattern(search_pattern)
+
+        # And plot the hex grid
+        UtilsPlot.HEX_PLOT_TEXT = False
+        UtilsPlot._plot_hex_grid(hex_grid, filepath)
+
+    @staticmethod
+    def save_plot(plt: matplotlib.pyplot.plot, filepath: Path):
         # Save the plot to a file
         plt.savefig(filepath, dpi=300, bbox_inches='tight')  # Change filename and dpi as needed
         plt.close()  # Close the plot to free resources
+
+
+if __name__ == "__main__":
+    templates_path = Path("../templates")
+    template_name = 'trapezoid'
+    template = UtilsHex.Template.load_template(templates_path / f"interior/positive/{template_name}.sgf")
+
+    plots_path = Path("exploration/plots/hex")
+    search_pattern = UtilsHex.SearchPattern.from_template(template)
+    UtilsPlot.plot_search_pattern(search_pattern, plots_path / f"{template_name}.png")
