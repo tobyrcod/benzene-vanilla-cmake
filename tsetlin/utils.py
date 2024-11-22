@@ -11,6 +11,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from matplotlib.patches import RegularPolygon, Circle
 from pysgf import SGF, SGFNode
+from typing import Any, Dict
 
 
 # TODO: document every method with """ """
@@ -175,39 +176,54 @@ class UtilsHex:
             return hex_grid
 
         @staticmethod
-        def from_search_pattern(search_pattern) -> list[list[int]]:
+        def from_search_pattern(search_pattern: "UtilsHex.SearchPattern") -> list[list[int]]:
             # Search patterns are all independent of boards
             # So we need to create a new board on which this search pattern could fit
-            include_offsets, exclude_offsets = search_pattern
 
-            # Find the most negative offsets in both directions
-            all_offsets = np.concatenate(search_pattern, axis=0)
-            min_offsets = np.min(all_offsets, axis=0)
-
-            # Find the most positive offsets in both directions and work out the boardsize needed
-            max_offsets = np.max(all_offsets, axis=0)
-            range_offsets = max_offsets - min_offsets
-            boardsize = max(range_offsets + 1)
-
-            # TODO: make working with search pattern object (not tuple) much easier
+            boardsize = search_pattern.induced_boardsize
             hex_grid = [[-1 for x in range(boardsize)] for y in range(boardsize)]
-            for include_offset in include_offsets:
-                include_coord = include_offset - min_offsets
+            for include_offset in search_pattern.include_offsets:
+                # Make all the offsets positive by subtracting the smallest value in each dimension
+                # This then gives us offsets that will fit on a standard positive indexed grid
+                include_coord = include_offset - search_pattern.min_offsets
                 hex_grid[include_coord[1]][include_coord[0]] = 0
-            for exclude_offset in exclude_offsets:
-                exclude_coord = exclude_offset - min_offsets
+            for exclude_offset in search_pattern.exclude_offsets:
+                exclude_coord = exclude_offset - search_pattern.min_offsets
                 hex_grid[exclude_coord[1]][exclude_coord[0]] = 1
 
             return hex_grid
 
     class Template:
 
-        @staticmethod
-        def load_template(template_path: Path) -> tuple[list[str], list[str]]:
-            sgf = SGF.parse_file(template_path)
+        _FILE_EXTENSION = ".sgf"
 
-            #
-            # Perform metadata sgf checks
+        def __init__(self, name:str, template_positions: list[str], intrusion_positions: list[str]):
+            self.name = name
+            self.template_positions = template_positions
+            self.intrusion_positions = intrusion_positions
+
+        def __str__(self):
+            return f"Template: {self.name}"
+
+        def __repr__(self):
+            return str(self)
+
+        @staticmethod
+        def _load_from_directory(directory_path: Path) -> list["UtilsHex.Template"]:
+            templates = []
+            template_files = directory_path.rglob(f"*{UtilsHex.Template._FILE_EXTENSION}")
+            for file in template_files:
+                try:
+                    template = UtilsHex.Template._load_from_file(file)
+                    templates.append(template)
+                except Exception as e:
+                    print(e)
+                    continue
+            return templates
+
+        @staticmethod
+        def _load_from_file(file_path: Path) -> "UtilsHex.Template":
+            sgf = SGF.parse_file(file_path)
 
             # File Format
             if int(sgf.get_property('FF')) != 4:
@@ -218,7 +234,7 @@ class UtilsHex:
                 raise Exception("Supplied SGF file is not for the game of Hex")
 
             # Application
-            if not (application_string:=sgf.get_property('AP')) or application_string[0:6] != 'HexGui':
+            if not (application_string := sgf.get_property('AP')) or application_string[0:6] != 'HexGui':
                 raise Exception("Template Loading is only supported for SGF files created by HexGUI")
 
             # Position or Game?
@@ -226,11 +242,9 @@ class UtilsHex:
                 raise Exception("Supplied SGF File represents a game, not a board position")
 
             # Boardsize
-            if not (boardsize_string:=sgf.get_property('SZ')):
+            if not (boardsize_string := sgf.get_property('SZ')):
                 raise Exception("Template file is missing the boardsize")
 
-            #
-            # Load the move from the sgf file
 
             # Check we have any move information
             if not sgf.children or len(sgf.children) != 1:
@@ -240,30 +254,75 @@ class UtilsHex:
                 raise Exception("Unexpected Children found for the Move Node")
 
             # Get the black and white pieces if they exist
-            if not (template_positions:=move_node.get_list_property('AB')):
+            if not (black_pieces := move_node.get_list_property('AB')):
                 raise Exception("Supplied SGF File has no Black Pieces")
-            if not (intrusion_positions:=move_node.get_list_property('AW')):
+            if not (white_pieces := move_node.get_list_property('AW')):
                 raise Exception("Supplied SGF File has no White Pieces")
 
-            # The black pieces represent the black template
-            # The white pieces represent the intrusion zone
-            return template_positions, intrusion_positions
+            # Make a new template
+            return UtilsHex.Template(file_path.stem, black_pieces, white_pieces)
+
 
     class SearchPattern:
 
+        def __init__(self, base_name: str,
+                     include_offsets: np.ndarray[Any, np.dtype[np.float64]],
+                     exclude_offsets: np.ndarray[Any, np.dtype[np.float64]],
+                     variation_name: str = ""):
+
+            self.base_name: str = base_name
+            self.variation_name: str = variation_name
+
+            self.include_offsets = include_offsets
+            self.exclude_offsets = exclude_offsets
+
+            all_offsets = np.concatenate([self.include_offsets, self.exclude_offsets], axis=0)
+            self.min_offsets = np.min(all_offsets, axis=0)
+            max_offsets = np.max(all_offsets, axis=0)
+            range_offsets = max_offsets - self.min_offsets
+            self.induced_boardsize = max(range_offsets + 1)
+
+
+        def __str__(self):
+            string = self.base_name
+            if self.variation_name:
+                string += f"_{self.variation_name}"
+            return string
+
+        def __repr__(self):
+            return f"Search Pattern: {str(self)}"
+
+        _DATASET: Dict[str, list["UtilsHex.SearchPattern"]] = dict()
+
         @staticmethod
-        def from_template(template: tuple[list[str], list[str]]) -> tuple[np.array, np.array]:
-            """
-            Create a new search pattern from a hex template
-            :param template: The template to turn into a search pattern
-            :return: The search pattern resulting from the template
-            """
+        def get_pattern_names() -> list[str]:
+            return list(UtilsHex.SearchPattern._DATASET.keys())
 
-            template_positions, intrusion_positions = template
+        @staticmethod
+        def get_pattern_variations(base_name: str) -> list["UtilsHex.SearchPattern"]:
+            return UtilsHex.SearchPattern._DATASET.get(base_name, [])
 
+        @staticmethod
+        def add_from_templates_directory(directory_path: Path):
+            templates = UtilsHex.Template._load_from_directory(directory_path)
+            search_patterns = list(map(UtilsHex.SearchPattern._create_from_template, templates))
+            UtilsHex.SearchPattern._add_search_patterns(search_patterns)
+
+        @staticmethod
+        def _add_search_patterns(search_patterns: list["UtilsHex.SearchPattern"]):
+            for search_pattern in search_patterns:
+                UtilsHex.SearchPattern._add_search_pattern(search_pattern)
+
+        @staticmethod
+        def _add_search_pattern(search_pattern: "UtilsHex.SearchPattern"):
+            variations = UtilsHex.SearchPattern._create_pattern_variations(search_pattern)
+            UtilsHex.SearchPattern._DATASET[search_pattern.base_name] = variations
+
+        @staticmethod
+        def _create_from_template(template: "UtilsHex.Template") -> "UtilsHex.SearchPattern":
             # First, convert from hex positions to coordinates
-            template_coords = np.array(list(map(UtilsHex.Coordinates.position_to_coord, template_positions)))
-            intrusion_coords = np.array(list(map(UtilsHex.Coordinates.position_to_coord, intrusion_positions)))
+            template_coords = np.array(list(map(UtilsHex.Coordinates.position_to_coord, template.template_positions)))
+            intrusion_coords = np.array(list(map(UtilsHex.Coordinates.position_to_coord, template.intrusion_positions)))
 
             # Second, recenter the template by the top-left most template position
             # This is to make the coordinates independent of where they appear on the original sgf grid
@@ -271,38 +330,42 @@ class UtilsHex:
             template_offsets = template_coords - center
             intrusion_offsets = intrusion_coords - center
 
-            return template_offsets, intrusion_offsets
+            return UtilsHex.SearchPattern(template.name, template_offsets, intrusion_offsets)
 
         @staticmethod
-        def get_all_rotations(search_pattern: tuple[np.array, np.array]) -> list[tuple[np.array, np.array]]:
-            """
-            Rotate a search pattern on a hexagonal grid to all equivalent rotated search patterns
-            :param search_pattern: The search pattern we want to rotate
-            :return: A list of search patterns that result from rotating the original
-            """
+        def _create_pattern_variations(search_pattern: "UtilsHex.SearchPattern") -> list["UtilsHex.SearchPattern"]:
+            # TODO: add 'flip/reflection and use 'get_all_variations' instead.
+            # TODO: remove all duplicates across all variations
 
-            # Algorithm described by Red Blob Games:
+            # Algorithms described by Red Blob Games:
             # - https://www.redblobgames.com/grids/hexagons/#rotation
 
-            def rotate_60(vec):
+            # Calculate the other search patterns we could reach if we rotate this one
+            def calculate_rotation_variants() -> list["UtilsHex.SearchPattern"]:
                 # Counterclockwise rotation on hexagonal grid
-                x, y = vec
-                return np.array([x + y, -x])
+                def rotate_60(vec):
+                    # TODO: use param for how many times, and switch for what to do
+                    x, y = vec
+                    return np.array([x + y, -x])
 
-            patterns = [search_pattern]
-            # Each rotation goes 60 degrees further than the previous
-            # So we construct [0, 60, 120, 180, 240, 300] degree rotations
-            while len(patterns) < 6:
-                pattern = patterns[-1]
-                include_offsets, exclude_offsets = pattern
-                rotated_include_offsets = np.apply_along_axis(rotate_60, axis=1, arr=include_offsets)
-                rotated_exclude_offsets = np.apply_along_axis(rotate_60, axis=1, arr=exclude_offsets)
-                rotated_search_pattern = rotated_include_offsets, rotated_exclude_offsets
-                patterns.append(rotated_search_pattern)
+                # Each rotation goes 60 degrees further than the previous
+                # So we construct [60, 120, 180, 240, 300] degree rotations
+                rotation_variants = []
+                for rotations in range(1, 6):
+                    pattern = search_pattern if not rotation_variants else rotation_variants[-1]
+                    rotated_include_offsets = np.apply_along_axis(rotate_60, axis=1, arr=pattern.include_offsets)
+                    rotated_exclude_offsets = np.apply_along_axis(rotate_60, axis=1, arr=pattern.exclude_offsets)
 
-            # TODO: remove duplicates from rotation
+                    rotated_pattern = UtilsHex.SearchPattern(
+                        search_pattern.base_name,
+                        rotated_include_offsets,
+                        rotated_exclude_offsets,
+                        variation_name=f"rot{rotations*60}"
+                    )
+                    rotation_variants.append(rotated_pattern)
+                return rotation_variants
 
-            return patterns
+            return [search_pattern] + calculate_rotation_variants()
 
         @staticmethod
         def search_literals(search_pattern: tuple[np.array, np.array], literals: list[int], boardsize: int) -> tuple[int, str]:
@@ -383,6 +446,9 @@ class UtilsHex:
 
             # No starting positions match this search pattern
             return None
+
+
+
 
 class UtilsTournament:
 
@@ -840,7 +906,7 @@ class UtilsPlot:
         UtilsPlot._plot_hex_grid(hex_grid, filepath)
 
     @staticmethod
-    def plot_search_pattern(search_pattern: tuple[np.array, np.array], filepath: Path):
+    def plot_search_pattern(search_pattern: UtilsHex.SearchPattern, filepath: Path):
         # Convert the search pattern to a hex grid
         hex_grid = UtilsHex.HexGrid.from_search_pattern(search_pattern)
 
@@ -857,13 +923,10 @@ class UtilsPlot:
 
 if __name__ == "__main__":
     templates_path = Path("../templates")
-    template_name = 'trapezoid'
-    template = UtilsHex.Template.load_template(templates_path / f"interior/positive/{template_name}.sgf")
+    UtilsHex.SearchPattern.add_from_templates_directory(templates_path)
 
-    plots_path = Path(f"exploration/plots/templates/{template_name}")
-    plots_path.mkdir(parents=True, exist_ok=True)
-
-    search_pattern = UtilsHex.SearchPattern.from_template(template)
-    search_patterns = UtilsHex.SearchPattern.get_all_rotations(search_pattern)
-    for i, pattern in enumerate(search_patterns):
-        UtilsPlot.plot_search_pattern(pattern, plots_path / f"{template_name}-{str(i*60)}.png")
+    for pattern_name in UtilsHex.SearchPattern.get_pattern_names():
+        plots_path = Path(f"exploration/plots/templates/{pattern_name}")
+        plots_path.mkdir(parents=True, exist_ok=True)
+        for variation in UtilsHex.SearchPattern.get_pattern_variations(pattern_name):
+            UtilsPlot.plot_search_pattern(variation, plots_path / f"{variation}.png")
