@@ -1,4 +1,5 @@
 import itertools
+import os
 import random
 import sys
 import csv
@@ -280,7 +281,28 @@ class UtilsHex:
             :return: A list of search patterns that result from rotating the original
             """
 
-            return [search_pattern]
+            # Algorithm described by Red Blob Games:
+            # - https://www.redblobgames.com/grids/hexagons/#rotation
+
+            def rotate_60(vec):
+                # Counterclockwise rotation on hexagonal grid
+                x, y = vec
+                return np.array([x + y, -x])
+
+            patterns = [search_pattern]
+            # Each rotation goes 60 degrees further than the previous
+            # So we construct [0, 60, 120, 180, 240, 300] degree rotations
+            while len(patterns) < 6:
+                pattern = patterns[-1]
+                include_offsets, exclude_offsets = pattern
+                rotated_include_offsets = np.apply_along_axis(rotate_60, axis=1, arr=include_offsets)
+                rotated_exclude_offsets = np.apply_along_axis(rotate_60, axis=1, arr=exclude_offsets)
+                rotated_search_pattern = rotated_include_offsets, rotated_exclude_offsets
+                patterns.append(rotated_search_pattern)
+
+            # TODO: remove duplicates from rotation
+
+            return patterns
 
         @staticmethod
         def search_literals(search_pattern: tuple[np.array, np.array], literals: list[int], boardsize: int) -> tuple[int, str]:
@@ -838,6 +860,10 @@ if __name__ == "__main__":
     template_name = 'trapezoid'
     template = UtilsHex.Template.load_template(templates_path / f"interior/positive/{template_name}.sgf")
 
-    plots_path = Path("exploration/plots/hex")
+    plots_path = Path(f"exploration/plots/templates/{template_name}")
+    plots_path.mkdir(parents=True, exist_ok=True)
+
     search_pattern = UtilsHex.SearchPattern.from_template(template)
-    UtilsPlot.plot_search_pattern(search_pattern, plots_path / f"{template_name}.png")
+    search_patterns = UtilsHex.SearchPattern.get_all_rotations(search_pattern)
+    for i, pattern in enumerate(search_patterns):
+        UtilsPlot.plot_search_pattern(pattern, plots_path / f"{template_name}-{str(i*60)}.png")
