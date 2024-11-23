@@ -182,14 +182,10 @@ class UtilsHex:
 
             boardsize = search_pattern.induced_boardsize
             hex_grid = [[-1 for x in range(boardsize)] for y in range(boardsize)]
-            for include_offset in search_pattern.include_offsets:
-                # Make all the offsets positive by subtracting the smallest value in each dimension
-                # This then gives us offsets that will fit on a standard positive indexed grid
-                include_coord = include_offset - search_pattern.min_offsets
+            for include_coord in search_pattern.include_coords:
                 hex_grid[include_coord[1]][include_coord[0]] = 0
-            for exclude_offset in search_pattern.exclude_offsets:
-                exclude_coord = exclude_offset - search_pattern.min_offsets
-                hex_grid[exclude_coord[1]][exclude_coord[0]] = 1
+            for exclude_coords in search_pattern.exclude_coords:
+                hex_grid[exclude_coords[1]][exclude_coords[0]] = 1
 
             return hex_grid
 
@@ -273,15 +269,36 @@ class UtilsHex:
             self.base_name: str = base_name
             self.variation_name: str = variation_name
 
+            # Offsets centered at (0, 0) that define this pattern
+            # NOTE: for now it's possible for the same pattern to be different if (0, 0) centered on a different piece
             self.include_offsets = include_offsets
             self.exclude_offsets = exclude_offsets
 
             all_offsets = np.concatenate([self.include_offsets, self.exclude_offsets], axis=0)
-            self.min_offsets = np.min(all_offsets, axis=0)
+            min_offsets = np.min(all_offsets, axis=0)
             max_offsets = np.max(all_offsets, axis=0)
-            range_offsets = max_offsets - self.min_offsets
+            range_offsets = max_offsets - min_offsets
             self.induced_boardsize = max(range_offsets + 1)
 
+            # Make all the offsets positive by subtracting the smallest value in each dimension
+            # This then gives us coordinates that will fit on a standard positive indexed grid
+            standardise_func = lambda v: v-min_offsets
+            self.include_coords = np.apply_along_axis(standardise_func, axis=1, arr=include_offsets)
+            self.exclude_coords = np.apply_along_axis(standardise_func, axis=1, arr=exclude_offsets)
+
+            # Create a unique id string to identify if search patterns are the same
+            include_indices = [str(UtilsHex.Coordinates.coord_to_index(v[0], v[1], self.induced_boardsize))
+                               for v in self.include_coords]
+            exclude_indices = [str(UtilsHex.Coordinates.coord_to_index(v[0], v[1], self.induced_boardsize))
+                               for v in self.exclude_coords]
+            include_indices.sort()
+            exclude_indices.sort()
+            self.uid = f"{",".join(include_indices)}-{",".join(exclude_indices)}"
+
+        def __eq__(self, other: "UtilsHex.SearchPattern"):
+            if not isinstance(other, UtilsHex.SearchPattern):
+                return False
+            return self.uid == other.uid
 
         def __str__(self):
             string = self.base_name
@@ -293,6 +310,21 @@ class UtilsHex:
             return f"Search Pattern: {str(self)}"
 
         _DATASET: Dict[str, list["UtilsHex.SearchPattern"]] = dict()
+
+        _ROT_FUNCS = {
+            "60": lambda v: np.array([v[0] + v[1], -v[0]]),
+            "120": lambda v: np.array([v[1], -v[0] - v[1]]),
+            "180": lambda v: -v,
+            "240": lambda v: np.array([-v[0] - v[1], v[0]]),
+            "300": lambda v: np.array([-v[1], v[0] + v[1]])
+        }
+
+        # TODO: plot axis and check they are labelled correctly
+        _FLIP_FUNCS = {
+            "Q": lambda v: np.array([v[0], -v[0] - v[1]]),
+            "R": lambda v: np.array([-v[0] - v[1], v[1]]),
+            "S": lambda v: np.array([v[1], v[0]]),
+        }
 
         @staticmethod
         def get_pattern_names() -> list[str]:
@@ -334,38 +366,51 @@ class UtilsHex:
 
         @staticmethod
         def _create_pattern_variations(search_pattern: "UtilsHex.SearchPattern") -> list["UtilsHex.SearchPattern"]:
-            # TODO: add 'flip/reflection and use 'get_all_variations' instead.
-            # TODO: remove all duplicates across all variations
-
             # Algorithms described by Red Blob Games:
             # - https://www.redblobgames.com/grids/hexagons/#rotation
+            # Help simplifying converting between coordinate systems from ChatGPT
 
-            # Calculate the other search patterns we could reach if we rotate this one
-            def calculate_rotation_variants() -> list["UtilsHex.SearchPattern"]:
-                # Counterclockwise rotation on hexagonal grid
-                def rotate_60(vec):
-                    # TODO: use param for how many times, and switch for what to do
-                    x, y = vec
-                    return np.array([x + y, -x])
+            seen_variations = [search_pattern]
 
-                # Each rotation goes 60 degrees further than the previous
-                # So we construct [60, 120, 180, 240, 300] degree rotations
-                rotation_variants = []
-                for rotations in range(1, 6):
-                    pattern = search_pattern if not rotation_variants else rotation_variants[-1]
-                    rotated_include_offsets = np.apply_along_axis(rotate_60, axis=1, arr=pattern.include_offsets)
-                    rotated_exclude_offsets = np.apply_along_axis(rotate_60, axis=1, arr=pattern.exclude_offsets)
+            # Each rotation goes 60 degrees further than the previous
+            # So we construct [60, 120, 180, 240, 300] degree rotations
+            seen_so_far_variations = seen_variations.copy()
+            for variant in seen_so_far_variations:
+                for rot_angle, rot_func in UtilsHex.SearchPattern._ROT_FUNCS.items():
+                    rotated_include_offsets = np.apply_along_axis(rot_func, axis=1, arr=variant.include_offsets)
+                    rotated_exclude_offsets = np.apply_along_axis(rot_func, axis=1, arr=variant.exclude_offsets)
 
                     rotated_pattern = UtilsHex.SearchPattern(
                         search_pattern.base_name,
                         rotated_include_offsets,
                         rotated_exclude_offsets,
-                        variation_name=f"rot{rotations*60}"
+                        variation_name=f"rot{rot_angle}"
                     )
-                    rotation_variants.append(rotated_pattern)
-                return rotation_variants
 
-            return [search_pattern] + calculate_rotation_variants()
+                    # If we have seen this rotated position before, we are just repeating work
+                    if rotated_pattern in seen_variations:
+                        break
+                    seen_variations.append(rotated_pattern)
+
+            # We can now also flip any of the rotation variants to make even more variant options
+            seen_so_far_variations = seen_variations.copy()
+            for variant in seen_so_far_variations:
+                for flip_name, flip_func in UtilsHex.SearchPattern._FLIP_FUNCS.items():
+                    flipped_include_offsets = np.apply_along_axis(flip_func, axis=1, arr=variant.include_offsets)
+                    flipped_exclude_offsets = np.apply_along_axis(flip_func, axis=1, arr=variant.exclude_offsets)
+
+                    flipped_pattern = UtilsHex.SearchPattern(
+                        search_pattern.base_name,
+                        flipped_include_offsets,
+                        flipped_exclude_offsets,
+                        variation_name=f"{variant.variation_name}flip{flip_name}"
+                    )
+
+                    # If we have seen this pattern before, ignore it
+                    if flipped_pattern not in seen_variations:
+                        seen_variations.append(flipped_pattern)
+
+            return seen_variations
 
         @staticmethod
         def search_literals(search_pattern: tuple[np.array, np.array], literals: list[int], boardsize: int) -> tuple[int, str]:
