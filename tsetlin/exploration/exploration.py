@@ -141,7 +141,8 @@ def templates_search():
     templates_path = Path("../../templates")
     UtilsHex.SearchPattern.add_from_templates_directory(templates_path)
 
-    boardsize = 13
+    boardsizes = list(range(6, 14))
+    boardsize = random.choice(boardsizes)
     template_names = UtilsHex.SearchPattern.get_pattern_names()
     template_name = random.choice(template_names)
     variations = UtilsHex.SearchPattern.get_pattern_variations(template_name)
@@ -151,7 +152,7 @@ def templates_search():
     literals = None
     match = None
     while not match:
-        literals = UtilsTM.Literals.make_random_board(boardsize, 50)
+        literals = UtilsTM.Literals.make_random_board(boardsize)
         match = UtilsHex.SearchPattern.search_literals(search_pattern, literals, boardsize)
         i += 1
 
