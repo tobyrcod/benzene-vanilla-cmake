@@ -1,4 +1,5 @@
 # TODO: turn into a notebook
+import random
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -137,21 +138,31 @@ def game_lengths():
     plt.close()  # Close the plot to free resources
 
 def templates_search():
-    boardsize = 6
-    template_name = 'bridge'
-    template = UtilsHex.Template.load_template(templates_path / f"interior/positive/{template_name}.sgf")
-    search_pattern = UtilsHex.SearchPattern.from_template(template)
+    templates_path = Path("../../templates")
+    UtilsHex.SearchPattern.add_from_templates_directory(templates_path)
+
+    boardsize = 13
+    template_names = UtilsHex.SearchPattern.get_pattern_names()
+    template_name = random.choice(template_names)
+    variations = UtilsHex.SearchPattern.get_pattern_variations(template_name)
+    search_pattern = random.choice(variations)
 
     i = 0
     literals = None
     match = None
     while not match:
-        literals = UtilsTM.Literals.make_random_board(boardsize)
+        literals = UtilsTM.Literals.make_random_board(boardsize, 50)
         match = UtilsHex.SearchPattern.search_literals(search_pattern, literals, boardsize)
         i += 1
 
-    UtilsPlot.plot_literals(literals, boardsize, plots_path / "hex/hex.png")
-    print(match)
+    player, position = match
+    player = "black" if player == 0 else "white"
+    search_file_name = f"{boardsize}x{boardsize}_{search_pattern}_at_{position}_for_{player}"
+    template_search_path = plots_path / "templates" / template_name / "searches"
+    template_search_path.mkdir(parents=True, exist_ok=True)
+
+    UtilsPlot.plot_literals(literals, boardsize, template_search_path / f"{search_file_name}.png")
+    print(search_pattern, match)
 
 if __name__ == "__main__":
     templates_search()

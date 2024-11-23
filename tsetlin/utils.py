@@ -413,7 +413,7 @@ class UtilsHex:
             return seen_variations
 
         @staticmethod
-        def search_literals(search_pattern: tuple[np.array, np.array], literals: list[int], boardsize: int) -> tuple[int, str]:
+        def search_literals(search_pattern: "UtilsHex.SearchPattern", literals: list[int], boardsize: int) -> tuple[int, str]:
             """
             Search through a set of literals to try and find a pattern
             :param search_pattern: coordinates that must contain a piece of the players color, and coordinates that must NOT contain any piece
@@ -429,15 +429,13 @@ class UtilsHex:
             return UtilsHex.SearchPattern._search_hex_grid(search_pattern, hex_grid)
 
         @staticmethod
-        def _search_hex_grid(search_pattern: tuple[np.array, np.array], hex_grid: list[list[int]]) -> tuple[int, str]:
+        def _search_hex_grid(search_pattern: "UtilsHex.SearchPattern", hex_grid: list[list[int]]) -> tuple[int, str]:
             """
             Search through a hex grid to try and find a pattern
             :param search_pattern: coordinates that must contain a piece of the players color, and coordinates that must NOT contain any piece
             :param hex_grid: 2d grid board state to search through
             :return: the player the pattern matches for and the position of the match
             """
-
-            include_offsets, exclude_offsets = search_pattern
 
             def match_pattern_at_start_coord(start_x, start_y) -> int:
                 """
@@ -454,7 +452,7 @@ class UtilsHex:
                 # We have a player piece in the start position,
                 # So we check for player pieces in all the positions of this pattern
                 start_coord = np.array([start_x, start_y])
-                for include_offset in include_offsets:
+                for include_offset in search_pattern.include_offsets:
                     # Check that the position we want to include is on the board from this start position
                     include_coord = start_coord + include_offset
                     if not UtilsHex.Coordinates.is_coord_on_board(*include_coord, boardsize):
@@ -466,7 +464,7 @@ class UtilsHex:
 
                 # We have a piece of the right player in every position of the pattern
                 # So now we need to ensure we DON'T have any pieces (of either player) in the exclude positions
-                for exclude_offset in exclude_offsets:
+                for exclude_offset in search_pattern.exclude_offsets:
                     # If the position we want to exclude is off the board from this start position
                     exclude_coord = start_coord + exclude_offset
                     if not UtilsHex.Coordinates.is_coord_on_board(*exclude_coord, boardsize):
@@ -491,8 +489,6 @@ class UtilsHex:
 
             # No starting positions match this search pattern
             return None
-
-
 
 
 class UtilsTournament:
