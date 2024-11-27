@@ -10,6 +10,7 @@ dataset_path = tournament_path / "dataset.csv"
 
 
 # Load the dataset into game states (X) and results (Y)
+# TODO: make UtilsDataset to load in the right combination and class balance of plys and winner etc...
 X, Y = UtilsTM.load_winner_pred_dataset(
     dataset_path=dataset_path,
     augmentation=UtilsTM.Literals.Augmentation.AUG_NONE,
