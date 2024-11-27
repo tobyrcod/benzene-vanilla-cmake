@@ -11,7 +11,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from matplotlib.patches import RegularPolygon, Circle
 from pysgf import SGF, SGFNode
-from typing import Any, Dict
+from typing import Any, Dict, List, Tuple
 
 
 # TODO: document every method with """ """
@@ -64,7 +64,7 @@ class UtilsHex:
         # ---------------------------------------------------------------------------------------------------------------------
 
         @staticmethod
-        def index_to_coord(i: int, boardsize: int) -> tuple[int, int]:
+        def index_to_coord(i: int, boardsize: int) -> Tuple[int, int]:
             return i % boardsize, i // boardsize
 
 
@@ -103,7 +103,7 @@ class UtilsHex:
 
 
         @staticmethod
-        def position_to_coord(position: str) -> tuple[int, int]:
+        def position_to_coord(position: str) -> Tuple[int, int]:
             split_index = -1
             for i, c in enumerate(position):
                 if c.isalpha():
@@ -163,7 +163,7 @@ class UtilsHex:
     class HexGrid:
 
         @staticmethod
-        def from_literals(literals: list[int], boardsize: int) -> list[list[int]]:
+        def from_literals(literals: List[int], boardsize: int) -> List[List[int]]:
             hex_grid = [[-1 for x in range(boardsize)] for y in range(boardsize)]
 
             literals_per_player = boardsize**2
@@ -176,7 +176,7 @@ class UtilsHex:
             return hex_grid
 
         @staticmethod
-        def from_search_pattern(search_pattern: "UtilsHex.SearchPattern") -> list[list[int]]:
+        def from_search_pattern(search_pattern: "UtilsHex.SearchPattern") -> List[List[int]]:
             # Search patterns are all independent of boards
             # So we need to create a new board on which this search pattern could fit
 
@@ -193,7 +193,7 @@ class UtilsHex:
 
         _FILE_EXTENSION = ".sgf"
 
-        def __init__(self, name:str, template_positions: list[str], intrusion_positions: list[str]):
+        def __init__(self, name:str, template_positions: List[str], intrusion_positions: List[str]):
             self.name = name
             self.template_positions = template_positions
             self.intrusion_positions = intrusion_positions
@@ -205,7 +205,7 @@ class UtilsHex:
             return str(self)
 
         @staticmethod
-        def _load_from_directory(directory_path: Path) -> list["UtilsHex.Template"]:
+        def _load_from_directory(directory_path: Path) -> List["UtilsHex.Template"]:
             templates = []
             template_files = directory_path.rglob(f"*{UtilsHex.Template._FILE_EXTENSION}")
             for file in template_files:
@@ -262,8 +262,8 @@ class UtilsHex:
     class SearchPattern:
 
         def __init__(self, base_name: str,
-                     include_offsets: np.ndarray[Any, np.dtype[np.float64]],
-                     exclude_offsets: np.ndarray[Any, np.dtype[np.float64]],
+                     include_offsets,
+                     exclude_offsets,
                      variation_name: str = ""):
 
             self.base_name: str = base_name
@@ -293,7 +293,7 @@ class UtilsHex:
                                for v in self.exclude_coords]
             include_indices.sort()
             exclude_indices.sort()
-            self.uid = f"{",".join(include_indices)}-{",".join(exclude_indices)}"
+            self.uid = f"{','.join(include_indices)}-{','.join(exclude_indices)}"
 
         def __eq__(self, other: "UtilsHex.SearchPattern"):
             if not isinstance(other, UtilsHex.SearchPattern):
@@ -309,7 +309,7 @@ class UtilsHex:
         def __repr__(self):
             return f"Search Pattern: {str(self)}"
 
-        _DATASET: Dict[str, list["UtilsHex.SearchPattern"]] = dict()
+        _DATASET: Dict[str, List["UtilsHex.SearchPattern"]] = dict()
 
         _ROT_FUNCS = {
             "60": lambda v: np.array([v[0] + v[1], -v[0]]),
@@ -327,11 +327,11 @@ class UtilsHex:
         }
 
         @staticmethod
-        def get_pattern_names() -> list[str]:
+        def get_pattern_names() -> List[str]:
             return list(UtilsHex.SearchPattern._DATASET.keys())
 
         @staticmethod
-        def get_pattern_variations(base_name: str) -> list["UtilsHex.SearchPattern"]:
+        def get_pattern_variations(base_name: str) -> List["UtilsHex.SearchPattern"]:
             return UtilsHex.SearchPattern._DATASET.get(base_name, [])
 
         @staticmethod
@@ -341,7 +341,7 @@ class UtilsHex:
             UtilsHex.SearchPattern._add_search_patterns(search_patterns)
 
         @staticmethod
-        def _add_search_patterns(search_patterns: list["UtilsHex.SearchPattern"]):
+        def _add_search_patterns(search_patterns: List["UtilsHex.SearchPattern"]):
             for search_pattern in search_patterns:
                 UtilsHex.SearchPattern._add_search_pattern(search_pattern)
 
@@ -365,7 +365,7 @@ class UtilsHex:
             return UtilsHex.SearchPattern(template.name, template_offsets, intrusion_offsets)
 
         @staticmethod
-        def _create_pattern_variations(search_pattern: "UtilsHex.SearchPattern") -> list["UtilsHex.SearchPattern"]:
+        def _create_pattern_variations(search_pattern: "UtilsHex.SearchPattern") -> List["UtilsHex.SearchPattern"]:
             # Algorithms described by Red Blob Games:
             # - https://www.redblobgames.com/grids/hexagons/#rotation
             # Help simplifying converting between coordinate systems from ChatGPT
@@ -413,7 +413,7 @@ class UtilsHex:
             return seen_variations
 
         @staticmethod
-        def search_literals(search_pattern: "UtilsHex.SearchPattern", literals: list[int], boardsize: int) -> tuple[int, str]:
+        def search_literals(search_pattern: "UtilsHex.SearchPattern", literals: List[int], boardsize: int) -> Tuple[int, str]:
             """
             Search through a set of literals to try and find a pattern
             :param search_pattern: coordinates that must contain a piece of the players color, and coordinates that must NOT contain any piece
@@ -429,7 +429,7 @@ class UtilsHex:
             return UtilsHex.SearchPattern._search_hex_grid(search_pattern, hex_grid)
 
         @staticmethod
-        def _search_hex_grid(search_pattern: "UtilsHex.SearchPattern", hex_grid: list[list[int]]) -> tuple[int, str]:
+        def _search_hex_grid(search_pattern: "UtilsHex.SearchPattern", hex_grid: List[List[int]]) -> Tuple[int, str]:
             """
             Search through a hex grid to try and find a pattern
             :param search_pattern: coordinates that must contain a piece of the players color, and coordinates that must NOT contain any piece
@@ -494,7 +494,7 @@ class UtilsHex:
 class UtilsTournament:
 
     @staticmethod
-    def load_tournament_games(tournament_path: Path) -> tuple[list[tuple[int, list]], int]:
+    def load_tournament_games(tournament_path: Path) -> Tuple[List[Tuple[int, list]], int]:
         result_keys = ['GAME', 'ROUND', 'OPENING', 'BLACK', 'WHITE', 'RES_B', 'RES_W', 'LENGTH', 'TIME_B', 'TIME_W', 'ERR', 'ERR_MSG']
 
         try:
@@ -527,7 +527,7 @@ class UtilsTournament:
                     game_winner = result['RES_B']
 
                     # We need to open the sgf file for the game history matching this result
-                    sgf_path = tournament_path / f"{result["GAME"]}.sgf"
+                    sgf_path = tournament_path / f"{result['GAME']}.sgf"
                     sgf = SGF.parse_file(sgf_path)
 
                     # Perform metadata game checks
@@ -560,7 +560,7 @@ class UtilsTournament:
 
 
     @staticmethod
-    def games_to_winner_prediction_dataset(games:  list[tuple[int, list]], boardsize: int, dataset_path: Path):
+    def games_to_winner_prediction_dataset(games:  List[Tuple[int, list]], boardsize: int, dataset_path: Path):
         try:
             csv_headers = ["Game#", "Winner"] + [f"x{i}" for i in range(2*boardsize**2)]
             with open(dataset_path, mode='w', newline='') as dataset:
@@ -578,7 +578,7 @@ class UtilsTournament:
 
 
     @staticmethod
-    def _get_literal_states_from_moves(moves: list[str], boardsize: int):
+    def _get_literal_states_from_moves(moves: List[str], boardsize: int):
 
         # TODO: Check literal representation process from Giri et al.
         # Logic-based AI for Interpretable Board Game Winner Prediction with Tsetlin Machine
@@ -608,7 +608,7 @@ class UtilsTM:
             HISTORY_STATE       = 1
             HISTORY_MOVE        = 2
 
-            def apply(self, literals: list[int], history: list[list[int]], boardsize: int) -> list[int]:
+            def apply(self, literals: List[int], history: List[List[int]], boardsize: int) -> List[int]:
                 if self == UtilsTM.Literals.History.HISTORY_STATE:
                     # Convert the list of game states into a big long list of all the literals
                     # e.g [[1, 2], [3, 4], [5, 6]] -> [1, 2, 3, 4, 5, 6]
@@ -644,7 +644,7 @@ class UtilsTM:
                 # Add any explicit cases that aren't allowed here
                 return True
 
-            def apply(self, literals: list[int], boardsize: int) -> list[int]:
+            def apply(self, literals: List[int], boardsize: int) -> List[int]:
                 new_boardsize = boardsize
                 new_literals = literals.copy()
 
@@ -728,18 +728,18 @@ class UtilsTM:
 
 
         @staticmethod
-        def get_literal_difference(A: list[int], B: list[int]) -> list[int]:
+        def get_literal_difference(A: List[int], B: List[int]) -> List[int]:
             return [a ^ b for (a, b) in zip(A, B)]
 
 
         @staticmethod
-        def make_empty_board(boardsize: int) -> list[int]:
+        def make_empty_board(boardsize: int) -> List[int]:
             literals_per_player = boardsize ** 2
             return [0 for _ in range(2 * literals_per_player)]
 
 
         @staticmethod
-        def make_random_board(boardsize: int, num_pieces: int = None) -> list[int]:
+        def make_random_board(boardsize: int, num_pieces: int = None) -> List[int]:
             max_num_pieces = boardsize ** 2
             if num_pieces is None:
                 num_pieces = random.randint(0, max_num_pieces)
@@ -756,13 +756,13 @@ class UtilsTM:
 
 
         @staticmethod
-        def make_random_move(literals: list[int], boardsize: int) -> tuple[list[int] | None, int]:
+        def make_random_move(literals: List[int], boardsize: int) -> Tuple[List[int], int]:
             move = UtilsTM.Literals._get_random_move(literals, boardsize)
             return UtilsTM.Literals._make_move(literals, move), move
 
 
         @staticmethod
-        def _get_random_move(literals: list[int], boardsize: int) -> int:
+        def _get_random_move(literals: List[int], boardsize: int) -> int:
             # Takes a literal board representation and adds a random new valid move
             move_count = sum(literals) + 1
             if move_count > boardsize ** 2:
@@ -782,7 +782,7 @@ class UtilsTM:
 
 
         @staticmethod
-        def _make_move(literals: list[int], move: int) -> list[int] | None:
+        def _make_move(literals: List[int], move: int) -> List[int]:
             if move < 0 or move >= len(literals):
                 return None  # Move isn't on board
             if literals[move] == 1:
@@ -855,7 +855,7 @@ class UtilsPlot:
     HEX_PLOT_TEXT = True
 
     @staticmethod
-    def _plot_hex_grid(hex_grid: list[list[int]], filepath: Path):
+    def _plot_hex_grid(hex_grid: List[List[int]], filepath: Path):
         # Plot a Hexagonal Grid
         # - logic from: https://www.redblobgames.com/grids/hexagons/
 
@@ -870,7 +870,7 @@ class UtilsPlot:
         dy = (3 / 2) * hex_radius
         dx = np.sqrt(3) * hex_radius
 
-        def get_cell_position(x: float, y: float) -> tuple[float, float]:
+        def get_cell_position(x: float, y: float) -> Tuple[float, float]:
             pos_x = x * dx + (y * dx / 2)  # Add additional row offset as we go down
             pos_y = (boardsize - 1 - y) * dy  # Row 0 is at the top, so need to reverse y
             return pos_x, pos_y
@@ -938,7 +938,7 @@ class UtilsPlot:
         UtilsPlot.save_plot(plt, filepath)
 
     @staticmethod
-    def plot_literals(literals: list[int], boardsize: int, filepath: Path):
+    def plot_literals(literals: List[int], boardsize: int, filepath: Path):
         # Convert the literals to a hex grid
         hex_grid = UtilsHex.HexGrid.from_literals(literals, boardsize)
 
