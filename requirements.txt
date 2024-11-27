@@ -33,8 +33,6 @@ pyparsing==3.2.0
 pysgf==0.9.0
 python-dateutil==2.9.0.post0
 pyTsetlinMachine==0.6.6
-PyTsetlinMachineCUDA==0.1.9
-pyTsetlinMachineParallel==0.2.1
 requests==2.32.3
 rich==13.9.4
 scikit-learn==1.5.2
