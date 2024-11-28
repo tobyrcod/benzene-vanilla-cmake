@@ -9,7 +9,7 @@ from pathlib import Path
 from collections import Counter
 
 tournaments_path = Path("../tournaments")
-tournament_name = "6x6-3ply-simple"
+tournament_name = "6x6-4ply-simple-incomplete"
 tournament_path = tournaments_path / tournament_name
 plots_path = Path("plots")
 templates_path = Path("../../templates")
@@ -166,5 +166,6 @@ def templates_search():
     print(search_pattern, match)
 
 if __name__ == "__main__":
-    templates_search()
+    player_win_rates()
+    game_lengths()
 
