@@ -155,13 +155,33 @@ class IterativeTournament(Tournament):
         first = self._resultsFile.getLastIndex() + 1
         maxGames = self._rounds * self._gamesPerRound
         if first < maxGames:
-            if self._resultsFile.wasExisting():
-                print('Continuing Tournament')
-            else:
+            # This tournament hasn't finished
+            if not self._resultsFile.wasExisting():
+                # This tournament is new
+                # Run the new tournament
                 print('Starting New Tournament')
-            # Run the remaining games of the tournament following the previously played games
-            for i in range(first, maxGames):
-                self.playGameFromIndex(i, False)
+                for i in range(first, maxGames):
+                    self.playGameFromIndex(i, False)
+                return
+
+            # This tournament already exists
+            failedGames = self._resultsFile.getFailedResults()
+            if not failedGames:
+                # The tournament is valid so far, so just continue it
+                print('Continuing Tournament')
+                for i in range(first, maxGames):
+                    self.playGameFromIndex(i, False)
+            else:
+                # The tournament has some failed games
+                # So before continuing the tournament, replay the broken games
+                failedIndices = [int(game['GAME']) for game in failedGames]
+                print(f'Tournament has some failed games so far: {failedIndices}')
+                print("Fixing before continuing tournament")
+                self._resultsFile.printMessage("Found Failed Games",
+                                               f"attempting to replay failed games {failedIndices}")
+                for i in failedIndices:
+                    self.playGameFromIndex(i, True)
+
         else:
             print('Tournament is finished')
             # We have finished this tournament
@@ -176,7 +196,7 @@ class IterativeTournament(Tournament):
                 return
 
             failedIndices = [int(game['GAME']) for game in failedGames]
-            print(f'Tournament is has some failed games: {failedIndices}')
+            print(f'Tournament has some failed games: {failedIndices}')
             self._resultsFile.printMessage("Found Failed Games", f"attempting to replay failed games {failedIndices}")
             for i in failedIndices:
                 self.playGameFromIndex(i, True)
