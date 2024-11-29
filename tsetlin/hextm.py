@@ -1,7 +1,7 @@
 from utils import UtilsTM, UtilsDataset
 from pathlib import Path
 from pyTsetlinMachine.tm import MultiClassTsetlinMachine
-
+from sklearn.model_selection import train_test_split
 
 # Define parameter settings
 # from winner prediction paper: Logic-based AI for Interpretable Board Game Winner Prediction with Tsetlin Machine
@@ -32,17 +32,21 @@ tm = MultiClassTsetlinMachine(
 # Define which dataset we want to use
 UtilsDataset.load_raw_datasets(Path("tournaments"))
 DATASET: UtilsDataset.Dataset = UtilsDataset.COMBINED
+DATASET.undersample()
+
+# Train Test Split
+X_train, X_test, Y_train, Y_test = train_test_split(DATASET.X, DATASET.Y,
+                                                    stratify=DATASET.Y, random_state=42,
+                                                    test_size=tm_train_test_split)
 
 # Train the TM
-for i in range(5):
-    ds = DATASET.oversample()
-
+for i in range(tm_epochs):
     tm.fit(
-        X=ds.X,
-        Y=ds.Y,
+        X=X_train,
+        Y=Y_train,
         epochs=1,
         incremental=True
     )
 
     # See how well the TM performed
-    print("Accuracy:", 100 * (tm.predict(ds.X) == ds.Y).mean())
+    print("Accuracy:", 100 * (tm.predict(X_test) == Y_test).mean())
