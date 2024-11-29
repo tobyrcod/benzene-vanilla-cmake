@@ -12,7 +12,8 @@ from matplotlib import pyplot as plt
 from matplotlib.patches import RegularPolygon, Circle
 from pysgf import SGF, SGFNode
 from typing import Any, Dict, List, Tuple
-
+from imblearn.under_sampling import RandomUnderSampler, TomekLinks, EditedNearestNeighbours
+from imblearn.over_sampling import RandomOverSampler
 
 # TODO: document every method with """ """
 # TODO: actually instantiate & use the types
@@ -258,7 +259,6 @@ class UtilsHex:
             # Make a new template
             return UtilsHex.Template(file_path.stem, black_pieces, white_pieces)
 
-
     class SearchPattern:
 
         def __init__(self, base_name: str,
@@ -494,14 +494,14 @@ class UtilsHex:
 class UtilsTournament:
 
     @staticmethod
-    def load_tournament_games(tournament_path: Path) -> Tuple[List[Tuple[int, list]], int]:
+    def load_tournament_games(tournament_dir: Path) -> Tuple[List[Tuple[int, list]], int]:
         result_keys = ['GAME', 'ROUND', 'OPENING', 'BLACK', 'WHITE', 'RES_B', 'RES_W', 'LENGTH', 'TIME_B', 'TIME_W', 'ERR', 'ERR_MSG']
 
         try:
             games = []
             game_boardsize = None
 
-            results_path = tournament_path / "results"
+            results_path = tournament_dir / "results"
             with results_path.open('r') as results_file:
                 for line_r in results_file:
                     if not line_r:
@@ -527,7 +527,7 @@ class UtilsTournament:
                     game_winner = result['RES_B']
 
                     # We need to open the sgf file for the game history matching this result
-                    sgf_path = tournament_path / f"{result['GAME']}.sgf"
+                    sgf_path = tournament_dir / f"{result['GAME']}.sgf"
                     sgf = SGF.parse_file(sgf_path)
 
                     # Perform metadata game checks
@@ -793,16 +793,144 @@ class UtilsTM:
             return new_literals
 
 
+
+
+class UtilsDataset:
+
+    class Dataset:
+        """
+        Winner Prediction Dataset
+        """
+
+        def __init__(self, X, Y, name: str):
+            self.X = X
+            self.Y = Y
+            self.name = name
+
+            X_game, Y_game = self._group_by_game()
+            self.X_game = X_game
+            self.Y_game = Y_game
+
+        @property
+        def shape(self):
+            return self.X.shape
+
+        @property
+        def num_rows(self):
+            return self.shape[0]
+
+        @property
+        def num_cols(self):
+            return self.shape[1]
+
+        def limit_rows(self, max_rows: int) -> "UtilsDataset.Dataset":
+            if self.X.shape[0] <= max_rows:
+                return None
+            X = self.X[:max_rows, :]
+            Y = self.Y[:max_rows]
+            return UtilsDataset.Dataset(X, Y, f"{self.name}_limit{max_rows}")
+
+        def undersample(self) -> "UtilsDataset.Dataset":
+            return self._undersample_random()
+
+        def _undersample_tomeklinks(self) -> "UtilsDataset.Dataset":
+            # NOTE: takes too long
+            tomek = TomekLinks(n_jobs=16)
+            X_undersampled, Y_undersampled = tomek.fit_resample(self.X, self.Y)
+            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, f"{self.name}_under-tomek")
+
+        def _undersample_nearest_neighbours(self) -> "UtilsDataset.Dataset":
+            # NOTE: takes too long
+            # TODO: try to run (and tomek) on collab/ncc and save it once
+            enn = EditedNearestNeighbours(n_jobs=2)
+            X_undersampled, Y_undersampled = enn.fit_resample(self.X, self.Y)
+            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, f"{self.name}_under-knn")
+
+        def _undersample_random(self) -> "UtilsDataset.Dataset":
+            rus = RandomUnderSampler(random_state=42)
+            X_undersampled, Y_undersampled = rus.fit_resample(self.X, self.Y)
+            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, f"{self.name}_under-rand")
+
+        def oversample(self) -> "UtilsDataset.Dataset":
+            return self._oversample_random()
+
+        def _oversample_random(self) -> "UtilsDataset.Dataset":
+            ros = RandomOverSampler(random_state=42)
+            X_oversampled, Y_oversampled = ros.fit_resample(self.X, self.Y)
+            return UtilsDataset.Dataset(X_oversampled, Y_oversampled, f"{self.name}_over-rand")
+
+        def __add__(self, other):
+            if not isinstance(other, UtilsDataset.Dataset):
+                raise TypeError
+
+            X1, X2 = self.X, other.X
+            Y1, Y2 = self.Y, other.Y
+
+            X = np.vstack((X1, X2))
+            Y = np.hstack((Y1, Y2))
+            return UtilsDataset.Dataset(X, Y, f"({self.name} + {other.name})")
+
+        def __str__(self):
+            return f"{self.name}: {len(self.X)}"
+
+        def __repr__(self):
+            return f"Dataset: {str(self)}"
+
+        def _group_by_game(self):
+            # Split the dataset into each game
+            X_game = []
+            Y_game = []
+            for i in range(len(self.X)):
+                # If we have reached a new empty board
+                if not any(self.X[i]):
+                    # Start a new game
+                    X_game.append([])
+                    Y_game.append(int(self.Y[i]))
+                # Append this game state to the current game
+                X_game[-1].append(self.X[i])
+
+            return X_game, Y_game
+
+
+    _TOURNAMENTS_DIR = None
+    PLY_1 = None
+    PLY_2 = None
+    PLY_3 = None
+    PLY_4 = None
+    COMBINED = None
+
     @staticmethod
-    def load_winner_pred_dataset(dataset_path: Path,
-                                 augmentation: Literals.Augmentation = Literals.Augmentation.AUG_NONE,
-                                 history_type: Literals.History = Literals.History.HISTORY_NONE,
-                                 history_size: int = 0):
+    def load_raw_datasets(tournaments_directory: Path):
+        """
+        Load some hardcoded datasets
+        :return:
+        """
+
+        UtilsDataset._TOURNAMENTS_DIR = tournaments_directory
+        augmentation = UtilsTM.Literals.Augmentation.AUG_NONE
+        history = UtilsTM.Literals.History.HISTORY_NONE
+        history_size = 0
+
+        UtilsDataset.PLY_1 = UtilsDataset._load_winner_pred_dataset("6x6-1ply-simple", augmentation, history, history_size)
+        UtilsDataset.PLY_2 = UtilsDataset._load_winner_pred_dataset("6x6-2ply-simple", augmentation, history, history_size)
+        UtilsDataset.PLY_3 = UtilsDataset._load_winner_pred_dataset("6x6-3ply-simple" , augmentation, history, history_size)
+        UtilsDataset.PLY_4 = UtilsDataset._load_winner_pred_dataset("6x6-4ply-simple-incomplete", augmentation, history, history_size)
+        UtilsDataset.PLY_4 = UtilsDataset.PLY_4.limit_rows(UtilsDataset.PLY_3.num_rows)
+
+        UtilsDataset.COMBINED = UtilsDataset.PLY_1 + UtilsDataset.PLY_2 + UtilsDataset.PLY_3 + UtilsDataset.PLY_4
+        UtilsDataset.COMBINED.name = '6x6-combined'
+
+    @staticmethod
+    def _load_winner_pred_dataset(tournament_name: str,
+                                 augmentation: UtilsTM.Literals.Augmentation,
+                                 history_type: UtilsTM.Literals.History,
+                                 history_size: int) -> Dataset:
         try:
 
             datasetX = []
             datasetY = []
 
+            dataset_path: Path = UtilsDataset._TOURNAMENTS_DIR / tournament_name / "dataset.csv"
             with open(dataset_path, mode='r', newline='') as dataset_file:
                 reader = csv.reader(dataset_file)
 
@@ -844,7 +972,7 @@ class UtilsTM:
                     datasetY.append(winner)
 
             assert (len(datasetX) == len(datasetY))
-            return np.array(datasetX), np.array(datasetY)
+            return UtilsDataset.Dataset(np.array(datasetX), np.array(datasetY), tournament_name)
 
         except (FileNotFoundError, NotADirectoryError) as e:
             print(e, file=sys.stderr)
@@ -961,13 +1089,12 @@ class UtilsPlot:
         plt.savefig(filepath, dpi=300, bbox_inches='tight')  # Change filename and dpi as needed
         plt.close()  # Close the plot to free resources
 
+    @staticmethod
+    def _plot_all_search_pattern_variations(templates_dir: Path):
+        UtilsHex.SearchPattern.add_from_templates_directory(templates_dir)
 
-if __name__ == "__main__":
-    templates_path = Path("../templates")
-    UtilsHex.SearchPattern.add_from_templates_directory(templates_path)
-
-    for pattern_name in UtilsHex.SearchPattern.get_pattern_names():
-        plots_path = Path(f"exploration/plots/templates/{pattern_name}")
-        plots_path.mkdir(parents=True, exist_ok=True)
-        for variation in UtilsHex.SearchPattern.get_pattern_variations(pattern_name):
-            UtilsPlot.plot_search_pattern(variation, plots_path / f"{variation}.png")
+        for pattern_name in UtilsHex.SearchPattern.get_pattern_names():
+            plots_path = Path(f"exploration/plots/templates/{pattern_name}")
+            plots_path.mkdir(parents=True, exist_ok=True)
+            for variation in UtilsHex.SearchPattern.get_pattern_variations(pattern_name):
+                UtilsPlot.plot_search_pattern(variation, plots_path / f"{variation}.png")

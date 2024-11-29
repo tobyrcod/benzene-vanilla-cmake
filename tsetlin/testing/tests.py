@@ -1,8 +1,10 @@
 import random
 import time
 import itertools
+from pathlib import Path
 
-from utils import Helpers, UtilsHex, UtilsTM
+from tsetlin.utils import Helpers, UtilsDataset, UtilsHex, UtilsTM, UtilsTournament
+
 
 class Tests:
 
@@ -483,6 +485,30 @@ class Tests:
                 Tests.UtilsTM.Literals.History.test()
                 Tests.UtilsTM.Literals.Augmentation.test()
 
+    class UtilsDataset:
+
+        @staticmethod
+        def test():
+            tournament_directory = Path("../tournaments")
+
+            def test_data_group_by_game():
+
+                pairs = [(UtilsDataset.PLY_1, "6x6-1ply-simple"),
+                         (UtilsDataset.PLY_2, "6x6-2ply-simple"),
+                         (UtilsDataset.PLY_3, "6x6-3ply-simple"),
+                         (UtilsDataset.PLY_4, "6x6-4ply-simple-incomplete")]
+
+                # Loader the tournament results file and check some basic game facts
+                for dataset, tournament_name in pairs:
+                    assert dataset.name == tournament_name
+                    games, boardsize = UtilsTournament.load_tournament_games(tournament_directory / tournament_name)
+                    assert len(games) == len(dataset.X_game) == len(dataset.Y_game)             # We have the correct number of games and results
+                    assert all(dataset.Y_game[i] == games[i][0] for i in range(len(games)))     # The winner of each game is correct
+                    assert all(len(dataset.X_game[i]) == len(games[i][1]) + 1 for i in
+                               range(len(games)))                                               # The length of each game is correct
+
+            UtilsDataset.load_raw_datasets(tournament_directory)
+            test_data_group_by_game()
 
 if __name__ == "__main__":
 
@@ -491,6 +517,8 @@ if __name__ == "__main__":
     print(f"STARTING TESTS: {pretty_start_time}")
 
     # START TESTS
+
+    Tests.UtilsDataset.test()
 
     Tests.UtilsHex.Coordinates.test()
 

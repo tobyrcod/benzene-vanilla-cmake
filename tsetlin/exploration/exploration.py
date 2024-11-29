@@ -4,57 +4,26 @@ import random
 import numpy as np
 import matplotlib.pyplot as plt
 
-from tsetlin.utils import UtilsTM, UtilsTournament, UtilsHex, UtilsPlot
+from tsetlin.utils import UtilsTM, UtilsTournament, UtilsHex, UtilsPlot, UtilsDataset
 from pathlib import Path
 from collections import Counter
 
-tournaments_path = Path("../tournaments")
-tournament_name = "6x6-4ply-simple-incomplete"
-tournament_path = tournaments_path / tournament_name
+tournaments_dir = Path("../tournaments")
 plots_path = Path("plots")
 templates_path = Path("../../templates")
 
-def get_games_to_explore():
-    dataset_path = tournament_path / "dataset.csv"
+UtilsDataset.load_raw_datasets(tournaments_dir)
+DATASET: UtilsDataset.Dataset = UtilsDataset.COMBINED
+DATASET = DATASET.oversample()
 
-
-    # Load the winner prediction dataset into game states (X) and results (Y)
-    X, Y = UtilsTM.load_winner_pred_dataset(
-        dataset_path=dataset_path,
-        augmentation=UtilsTM.Literals.Augmentation.AUG_NONE,
-        history_type=UtilsTM.Literals.History.HISTORY_NONE,
-        history_size=0
-    )
-
-    # Split the dataset into each game
-    X_game = []
-    Y_game = []
-    for i in range(len(X)):
-        # If we have reached a new empty board
-        if not any(X[i]):
-            # Start a new game
-            X_game.append([])
-            Y_game.append(int(Y[i]))
-        # Append this game state to the current game
-        X_game[-1].append(X[i])
-
-
-    # Loader the tournament results file and check some basic game facts
-    games, boardsize = UtilsTournament.load_tournament_games(tournament_path)
-    assert len(games) == len(X_game) == len(Y_game)                                 #  We have the correct number of games and results
-    assert all(Y_game[i] == games[i][0] for i in range(len(games)))                 #  The winner of each game is correct
-    assert all(len(X_game[i]) == len(games[i][1]) + 1 for i in range(len(games)))   #  The length of each game is correct
-
-    return X_game, Y_game
-
-X_games, Y_games = get_games_to_explore()
-
-def player_win_rates():
-    title = f"Player Win Rates in {tournament_name} Mohex Selfplay"
+def player_win_rates(by_state: bool = True):
+    title = f"Player Win Rates in {DATASET.name} Mohex Selfplay"
+    if by_state:
+        title += " States"
     title_color = 'black'
     bg_colour = 'lightblue'
 
-    win_counts = Counter(Y_games)
+    win_counts = Counter(DATASET.Y if by_state else DATASET.Y_game)
     wedge_labels = [0, 1]
     wedge_values = [win_counts[i] for i in wedge_labels]
     wedge_colors = ['white', 'black']
@@ -93,12 +62,12 @@ def player_win_rates():
 
     # Save the plot to a file
     win_rates_path = plots_path / "win_rates"
-    filepath = win_rates_path / f"{tournament_name}_winrate.png"
+    filepath = win_rates_path / f"{DATASET.name}_winrate.png"
     plt.savefig(filepath, dpi=300)  # Change filename and dpi as needed
     plt.close()  # Close the plot to free resources
 
 def game_lengths():
-    game_length = [len(game) for game in X_games]
+    game_length = [len(game) for game in DATASET.X_game]
     length_counts = Counter(game_length)
 
     bar_lengths = list(range(min(game_length), max(game_length)+1))
@@ -116,7 +85,7 @@ def game_lengths():
     # Add labels and title
     ax.set_xlabel("Game Length", fontsize=12, fontweight="bold")
     ax.set_ylabel("# of Games", fontsize=12, fontweight="bold")
-    ax.set_title(f"Game Lengths in {tournament_name} Mohex Selfplay", fontsize=14, fontweight="bold")
+    ax.set_title(f"Game Lengths in {DATASET.name} Mohex Selfplay", fontsize=14, fontweight="bold")
     ax.grid(True, linestyle='--', alpha=0.5)
 
     # Add value labels on top of the bars
@@ -133,7 +102,7 @@ def game_lengths():
 
     # Save the plot to a file
     game_lengths_path = plots_path / "game_lengths"
-    filepath = game_lengths_path / f"{tournament_name}_games_length.png"
+    filepath = game_lengths_path / f"{DATASET.name}_games_length.png"
     plt.savefig(filepath, dpi=300)  # Change filename and dpi as needed
     plt.close()  # Close the plot to free resources
 
@@ -167,5 +136,3 @@ def templates_search():
 
 if __name__ == "__main__":
     player_win_rates()
-    game_lengths()
-
