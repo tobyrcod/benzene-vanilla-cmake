@@ -1,3 +1,4 @@
+import pickle
 from utils import UtilsTM, UtilsDataset
 from pathlib import Path
 from PyTsetlinMachineCUDA.tm import MultiClassTsetlinMachine
@@ -33,7 +34,7 @@ tm = MultiClassTsetlinMachine(
 # Define which dataset we want to use
 UtilsDataset.load_raw_datasets(Path("tournaments"))
 DATASET: UtilsDataset.Dataset = UtilsDataset.BASELINE
-DATASET = DATASET.undersample()
+# DATASET = DATASET.undersample()
 
 # Train Test Split
 X_train, X_test, Y_train, Y_test = train_test_split(DATASET.X, DATASET.Y,
@@ -59,3 +60,7 @@ for i in range(tm_epochs):
     acc_train = 100 * (tm.predict(X_train) == Y_train).mean()
     acc_test = 100 * (tm.predict(X_test) == Y_test).mean()
     print(f"Epoch: {i+1}, Acc Train: {acc_train:.4f}, Acc Test: {acc_test:.4f}")
+
+# Save the TM
+with open(f'{DATASET.name}_model.pkl', 'wb') as f:
+    pickle.dump(tm, f)
