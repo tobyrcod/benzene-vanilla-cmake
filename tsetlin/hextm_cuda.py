@@ -4,6 +4,9 @@ from PyTsetlinMachineCUDA.tm import MultiClassTsetlinMachine
 from sklearn.model_selection import train_test_split
 
 # TODO: Use TMU?? to hopefully combine the benefits of regular TM with CUDA
+# TODO: hyperparam tune
+# TODO: kfold
+# TODO: accuracy per class
 
 # Define parameter settings
 # from winner prediction paper: Logic-based AI for Interpretable Board Game Winner Prediction with Tsetlin Machine
@@ -29,7 +32,7 @@ tm = MultiClassTsetlinMachine(
 
 # Define which dataset we want to use
 UtilsDataset.load_raw_datasets(Path("tournaments"))
-DATASET: UtilsDataset.Dataset = UtilsDataset.COMBINED
+DATASET: UtilsDataset.Dataset = UtilsDataset.BASELINE
 DATASET = DATASET.undersample()
 
 # Train Test Split

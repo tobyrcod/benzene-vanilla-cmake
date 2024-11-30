@@ -1,7 +1,7 @@
 from tsetlin.utils import UtilsTournament
 from pathlib import Path
 
-from_tournament_path = Path("6x6-4ply-simple-incomplete")
+from_tournament_path = Path("6x6-3ply-simple")
 to_dataset_path = from_tournament_path / "dataset.csv"
 
 # Loader the tournament results file

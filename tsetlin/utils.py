@@ -14,6 +14,7 @@ from pysgf import SGF, SGFNode
 from typing import Any, Dict, List, Tuple
 from imblearn.under_sampling import RandomUnderSampler, TomekLinks, EditedNearestNeighbours
 from imblearn.over_sampling import RandomOverSampler
+from collections import Counter
 
 # TODO: document every method with """ """
 # TODO: actually instantiate & use the types
@@ -550,7 +551,7 @@ class UtilsTournament:
                     game_moves = game_moves[:-1]
 
                     # Save the game
-                    game_winner = 1 if game_winner == "B+" else 0                                       # 1 if black wins, 0 if white wins (black loses)
+                    game_winner = 0 if game_winner == "B+" else 1                                       # 1 if black wins, 0 if white wins (black loses)
                     games.append((game_winner, game_moves))
 
             return games, game_boardsize
@@ -802,14 +803,19 @@ class UtilsDataset:
         Winner Prediction Dataset
         """
 
-        def __init__(self, X, Y, name: str):
+        def __init__(self, X, Y, name: str, complete: bool = True):
+            self.name = name
+            self.complete = complete    # Are full games used in this dataset, or are we pulling states randomly?
+
             self.X = X
             self.Y = Y
-            self.name = name
+            self.win_counts_by_state = Counter(self.Y)
 
-            X_game, Y_game = self._group_by_game()
-            self.X_game = X_game
-            self.Y_game = Y_game
+            if complete:
+                X_game, Y_game = self._group_by_game()
+                self.X_game = X_game
+                self.Y_game = Y_game
+                self.win_counts_by_game = Counter(self.Y_game)
 
         @property
         def shape(self):
@@ -823,33 +829,69 @@ class UtilsDataset:
         def num_cols(self):
             return self.shape[1]
 
-        def limit_rows(self, max_rows: int) -> "UtilsDataset.Dataset":
-            if self.X.shape[0] <= max_rows:
+        def reduce_player_counts(self, black: int, white: int):
+            if self.win_counts_by_state[0] < black:
+                print('Black already has less than this many entries')
+                return
+            if self.win_counts_by_state[1] < white:
+                print('White already has less than this many entries')
+                return
+
+            sampling_strategy = {0: black, 1: white}
+            return self._undersample_random(sampling_strategy)
+
+        def reduce_majority_frac(self, frac: float) -> "UtilsDataset.Dataset":
+            """
+            Undersample the dataset by reducing the majority class until we have N total rows
+            :param N: The number of total rows after under sampling
+            :return: A Dataset object with the resulting under sampled distribution
+            """
+
+            majority_winner, majority_count = map(int, max(self.win_counts_by_state.items(), key=lambda x: x[1]))
+            minority_winner, minority_count = map(int, min(self.win_counts_by_state.items(), key=lambda x: x[1]))
+            total_count = minority_count + majority_count
+            assert total_count == self.num_rows
+
+            original_majority_frac = majority_count / total_count
+            if frac < 0.5:
+                print("New percentage is too low and would require us to make the majority class a minority")
                 return None
-            X = self.X[:max_rows, :]
-            Y = self.Y[:max_rows]
-            return UtilsDataset.Dataset(X, Y, f"{self.name}_limit{max_rows}")
+            if frac > original_majority_frac:
+                print("New percentage is too high, would need increase_majority_percentage instead")
+                return None
+
+            sampling_strategy = {minority_winner: minority_count, majority_winner: int(minority_count * frac / (1-frac))}
+            return self._undersample_random(sampling_strategy)
 
         def undersample(self) -> "UtilsDataset.Dataset":
+            """
+            Undersample the dataset to balance the class distribution
+            :param N: The minimum number of total rows to keep. Allows you to remove most of the higher class but not all the way to 50/50
+            :return: A Dataset object with the resulting under sampled distribution
+            """
+
             return self._undersample_random()
 
         def _undersample_tomeklinks(self) -> "UtilsDataset.Dataset":
             # NOTE: takes too long
             tomek = TomekLinks(n_jobs=16)
             X_undersampled, Y_undersampled = tomek.fit_resample(self.X, self.Y)
-            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, f"{self.name}_under-tomek")
+            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, f"{self.name}_under-tomek", False)
 
         def _undersample_nearest_neighbours(self) -> "UtilsDataset.Dataset":
             # NOTE: takes too long
             # TODO: try to run (and tomek) on collab/ncc and save it once
             enn = EditedNearestNeighbours(n_jobs=2)
             X_undersampled, Y_undersampled = enn.fit_resample(self.X, self.Y)
-            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, f"{self.name}_under-knn")
+            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, f"{self.name}_under-knn", False)
 
-        def _undersample_random(self) -> "UtilsDataset.Dataset":
-            rus = RandomUnderSampler(random_state=42)
+        def _undersample_random(self, sampling_strategy=None) -> "UtilsDataset.Dataset":
+            if not sampling_strategy:
+                sampling_strategy = "auto"
+
+            rus = RandomUnderSampler(random_state=42, sampling_strategy=sampling_strategy)
             X_undersampled, Y_undersampled = rus.fit_resample(self.X, self.Y)
-            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, f"{self.name}_under-rand")
+            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, f"{self.name}_under-rand", False)
 
         def oversample(self) -> "UtilsDataset.Dataset":
             return self._oversample_random()
@@ -857,7 +899,7 @@ class UtilsDataset:
         def _oversample_random(self) -> "UtilsDataset.Dataset":
             ros = RandomOverSampler(random_state=42)
             X_oversampled, Y_oversampled = ros.fit_resample(self.X, self.Y)
-            return UtilsDataset.Dataset(X_oversampled, Y_oversampled, f"{self.name}_over-rand")
+            return UtilsDataset.Dataset(X_oversampled, Y_oversampled, f"{self.name}_over-rand", False)
 
         def __add__(self, other):
             if not isinstance(other, UtilsDataset.Dataset):
@@ -877,6 +919,10 @@ class UtilsDataset:
             return f"Dataset: {str(self)}"
 
         def _group_by_game(self):
+            # We cannot reconstruct game information from incomplete datasets
+            if not self.complete:
+                return None, None
+
             # Split the dataset into each game
             X_game = []
             Y_game = []
@@ -891,13 +937,15 @@ class UtilsDataset:
 
             return X_game, Y_game
 
+        def _copy(self):
+            return UtilsDataset.Dataset(self.X.copy(), self.Y.copy(), self.name)
 
     _TOURNAMENTS_DIR = None
     PLY_1 = None
     PLY_2 = None
     PLY_3 = None
     PLY_4 = None
-    COMBINED = None
+    BASELINE = None
 
     @staticmethod
     def load_raw_datasets(tournaments_directory: Path):
@@ -915,10 +963,20 @@ class UtilsDataset:
         UtilsDataset.PLY_2 = UtilsDataset._load_winner_pred_dataset("6x6-2ply-simple", augmentation, history, history_size)
         UtilsDataset.PLY_3 = UtilsDataset._load_winner_pred_dataset("6x6-3ply-simple" , augmentation, history, history_size)
         UtilsDataset.PLY_4 = UtilsDataset._load_winner_pred_dataset("6x6-4ply-simple-incomplete", augmentation, history, history_size)
-        UtilsDataset.PLY_4 = UtilsDataset.PLY_4.limit_rows(UtilsDataset.PLY_3.num_rows)
 
-        UtilsDataset.COMBINED = UtilsDataset.PLY_1 + UtilsDataset.PLY_2 + UtilsDataset.PLY_3 + UtilsDataset.PLY_4
-        UtilsDataset.COMBINED.name = '6x6-combined'
+        # Define a new baseline dataset to match the distribution of the original paper
+        baseline_black = 175968
+        baseline_white = 111826
+        UtilsDataset.BASELINE = UtilsDataset.PLY_1 + UtilsDataset.PLY_2 + UtilsDataset.PLY_3 + UtilsDataset.PLY_4
+        """
+        baseline_total = baseline_black + baseline_white
+        baseline_majority_frac = baseline_black / baseline_total
+        UtilsDataset.BASELINE = UtilsDataset.BASELINE.reduce_majority_frac(baseline_majority_frac)
+        UtilsDataset.BASELINE.name = '6x6-baseline_dist'
+        """
+        UtilsDataset.BASELINE = UtilsDataset.BASELINE.reduce_player_counts(baseline_black, baseline_white)
+        UtilsDataset.BASELINE.name = '6x6-baseline_exact'
+
 
     @staticmethod
     def _load_winner_pred_dataset(tournament_name: str,

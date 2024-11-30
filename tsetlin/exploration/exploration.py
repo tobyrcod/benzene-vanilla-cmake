@@ -13,8 +13,7 @@ plots_path = Path("plots")
 templates_path = Path("../../templates")
 
 UtilsDataset.load_raw_datasets(tournaments_dir)
-DATASET: UtilsDataset.Dataset = UtilsDataset.COMBINED
-DATASET = DATASET.oversample()
+DATASET: UtilsDataset.Dataset = UtilsDataset.BASELINE
 
 def player_win_rates(by_state: bool = True):
     title = f"Player Win Rates in {DATASET.name} Mohex Selfplay"
@@ -23,11 +22,13 @@ def player_win_rates(by_state: bool = True):
     title_color = 'black'
     bg_colour = 'lightblue'
 
-    win_counts = Counter(DATASET.Y if by_state else DATASET.Y_game)
+    if not DATASET.complete:
+        by_state = True
+    win_counts = DATASET.win_counts_by_state if by_state else DATASET.win_counts_by_game
     wedge_labels = [0, 1]
     wedge_values = [win_counts[i] for i in wedge_labels]
-    wedge_colors = ['white', 'black']
-    wedge_text_color = ['black', 'white']
+    wedge_colors = ['black', 'white']
+    wedge_text_color = ['white', 'black']
 
     # Custom function to display both count and percentage
     # NOTE: 'pct' stands for 'percentage of total' of the pie chart
@@ -66,6 +67,7 @@ def player_win_rates(by_state: bool = True):
     plt.savefig(filepath, dpi=300)  # Change filename and dpi as needed
     plt.close()  # Close the plot to free resources
 
+# TODO: make lengths, one for game and one for state determined by DATASET.complete
 def game_lengths():
     game_length = [len(game) for game in DATASET.X_game]
     length_counts = Counter(game_length)
@@ -106,6 +108,7 @@ def game_lengths():
     plt.savefig(filepath, dpi=300)  # Change filename and dpi as needed
     plt.close()  # Close the plot to free resources
 
+# TODO: move to utils probably, along side heatmap stuff
 def templates_search():
     templates_path = Path("../../templates")
     UtilsHex.SearchPattern.add_from_templates_directory(templates_path)
@@ -136,3 +139,4 @@ def templates_search():
 
 if __name__ == "__main__":
     player_win_rates()
+    print(DATASET.win_counts_by_state)

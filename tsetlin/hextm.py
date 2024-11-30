@@ -31,7 +31,7 @@ tm = MultiClassTsetlinMachine(
 
 # Define which dataset we want to use
 UtilsDataset.load_raw_datasets(Path("tournaments"))
-DATASET: UtilsDataset.Dataset = UtilsDataset.COMBINED
+DATASET: UtilsDataset.Dataset = UtilsDataset.BASELINE
 DATASET = DATASET.undersample()
 
 # Train Test Split
