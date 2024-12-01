@@ -856,17 +856,16 @@ class UtilsDataset:
 
             self.X = X
             self.Y = Y
-            self.win_counts_by_state = Counter(self.Y)
-
-            X_move, Y_move = self._group_by_move()
-            self.X_move = X_move
-            self.Y_move = Y_move
+            self.state_win_counts = Counter(self.Y)
+            self.state_num_pieces_counts = Counter([sum(state) for state in self.X])
 
             if complete:
+                # TODO: remove and impute from states instead (what we need only as technically not games)
+                #  when complete we can claim its valid even if we still use state method
                 X_game, Y_game = self._group_by_game()
                 self.X_game = X_game
                 self.Y_game = Y_game
-                self.win_counts_by_game = Counter(self.Y_game)
+                self.game_win_counts = Counter(self.Y_game)
 
         def __add__(self, other):
             if not isinstance(other, UtilsDataset.Dataset):
@@ -885,7 +884,6 @@ class UtilsDataset:
         def __repr__(self):
             return f"Dataset: {str(self)}"
 
-
         @property
         def shape(self):
             return self.X.shape
@@ -899,10 +897,10 @@ class UtilsDataset:
             return self.shape[1]
 
         def reduce_player_counts(self, black: int, white: int):
-            if self.win_counts_by_state[0] < black:
+            if self.state_win_counts[0] < black:
                 print('Black already has less than this many entries')
                 return
-            if self.win_counts_by_state[1] < white:
+            if self.state_win_counts[1] < white:
                 print('White already has less than this many entries')
                 return
 
@@ -916,8 +914,8 @@ class UtilsDataset:
             :return: A Dataset object with the resulting under sampled distribution
             """
 
-            majority_winner, majority_count = map(int, max(self.win_counts_by_state.items(), key=lambda x: x[1]))
-            minority_winner, minority_count = map(int, min(self.win_counts_by_state.items(), key=lambda x: x[1]))
+            majority_winner, majority_count = map(int, max(self.state_win_counts.items(), key=lambda x: x[1]))
+            minority_winner, minority_count = map(int, min(self.state_win_counts.items(), key=lambda x: x[1]))
             total_count = minority_count + majority_count
             assert total_count == self.num_rows
 
@@ -970,10 +968,7 @@ class UtilsDataset:
             X_oversampled, Y_oversampled = ros.fit_resample(self.X, self.Y)
             return UtilsDataset.Dataset(X_oversampled, Y_oversampled, f"{self.name}_over-rand", False)
 
-        def _group_by_move(self):
-            # TODO
-            return None, None
-
+        # TODO: replace with using states and not really games but calculating what we actually need
         def _group_by_game(self):
             # We cannot reconstruct game information from incomplete datasets (yet?)
             if not self.complete:
@@ -997,11 +992,11 @@ class UtilsDataset:
             return UtilsDataset.Dataset(self.X.copy(), self.Y.copy(), self.name)
 
     TOURNAMENTS_DIR = Path("tournaments")
-    PLY_1 = None
-    PLY_2 = None
-    PLY_3 = None
-    PLY_4 = None
-    BASELINE = None
+    PLY_1: "UtilsDataset.Dataset" = None
+    PLY_2: "UtilsDataset.Dataset" = None
+    PLY_3: "UtilsDataset.Dataset" = None
+    PLY_4: "UtilsDataset.Dataset" = None
+    BASELINE: "UtilsDataset.Dataset" = None
 
     @staticmethod
     def load_raw_datasets():
@@ -1234,7 +1229,7 @@ class UtilsPlot:
         title_color = 'black'
         bg_colour = 'lightblue'
 
-        win_counts = dataset.win_counts_by_state if by_state else dataset.win_counts_by_game
+        win_counts = dataset.state_win_counts if by_state else dataset.game_win_counts
         wedge_labels = [0, 1]
         wedge_values = [win_counts[i] for i in wedge_labels]
         wedge_colors = ['black', 'white']
@@ -1330,4 +1325,7 @@ class UtilsPlot:
                 UtilsPlot.plot_search_pattern(variation)
 
 
+print("Loading Search Patterns from Templates...")
 UtilsHex.SearchPattern.add_from_templates_directory(Path("../templates"))
+print("Loading Datasets from file...")
+UtilsDataset.load_raw_datasets()
