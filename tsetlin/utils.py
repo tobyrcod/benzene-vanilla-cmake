@@ -19,7 +19,9 @@ from collections import Counter
 # TODO: document every method with """ """
 # TODO: actually instantiate & use the types
 # TODO: make literals a type to carry around their augmentation for easy undo
-# TODO: use numpy for hex_grid (current indexing in '_search_hex_grid' is AWFUL)
+# TODO: use numpy for hex_grid (current indexing in '_search_hex_grid' is... great)
+# TODO: FIX AWFUL PATHING STUFF GOING ON...
+# TODO: make all the classes going around frozen?
 
 class Helpers:
 
@@ -262,6 +264,30 @@ class UtilsHex:
 
     class SearchPattern:
 
+        class Match:
+
+            def __init__(self, search_pattern: "UtilsHex.SearchPattern", hex_grid: List[List[int]], player: int, x: int, y: int):
+                """
+                This match represents a search patten found in a hex grid for a player at a position
+                :param hex_grid: The hex grid we found the search pattern in
+                :param search_pattern: The search pattern we found
+                :param player: The player that played the search pattern
+                :param x: The x position on the hex grid where the match occurs
+                :param y: The y position on the hex grid where the match occurs
+                """
+
+                self.hex_grid = hex_grid
+                self.search_pattern = search_pattern
+                self.player = player
+                self.x = x
+                self.y = y
+                self.boardsize = len(hex_grid)
+
+            def __str__(self):
+                player_name = "black" if self.player == 0 else "white"
+                position = UtilsHex.Coordinates.coord_to_position(self.x, self.y)
+                return f"{self.boardsize}x{self.boardsize}_{self.search_pattern}_at_{position}_for_{player_name}"
+
         def __init__(self, base_name: str,
                      include_offsets,
                      exclude_offsets,
@@ -339,10 +365,7 @@ class UtilsHex:
         def add_from_templates_directory(directory_path: Path):
             templates = UtilsHex.Template._load_from_directory(directory_path)
             search_patterns = list(map(UtilsHex.SearchPattern._create_from_template, templates))
-            UtilsHex.SearchPattern._add_search_patterns(search_patterns)
 
-        @staticmethod
-        def _add_search_patterns(search_patterns: List["UtilsHex.SearchPattern"]):
             for search_pattern in search_patterns:
                 UtilsHex.SearchPattern._add_search_pattern(search_pattern)
 
@@ -413,8 +436,11 @@ class UtilsHex:
 
             return seen_variations
 
+        # TODO: finish dependency matrix and plot it
+        # TODO: search all in random boards with same num pieces distribution as dataset same number of times as rows
+
         @staticmethod
-        def search_literals(search_pattern: "UtilsHex.SearchPattern", literals: List[int], boardsize: int) -> Tuple[int, str]:
+        def search_literals(search_pattern: "UtilsHex.SearchPattern", literals: List[int], boardsize: int) -> List["UtilsHex.SearchPattern.Match"]:
             """
             Search through a set of literals to try and find a pattern
             :param search_pattern: coordinates that must contain a piece of the players color, and coordinates that must NOT contain any piece
@@ -429,13 +455,29 @@ class UtilsHex:
             # And search the hex grid
             return UtilsHex.SearchPattern._search_hex_grid(search_pattern, hex_grid)
 
+        # TODO: use this
         @staticmethod
-        def _search_hex_grid(search_pattern: "UtilsHex.SearchPattern", hex_grid: List[List[int]]) -> Tuple[int, str]:
+        def search_search_pattern(search_pattern_looking_for: "UtilsHex.SearchPattern", search_pattern_looking_in: "UtilsHex.SearchPattern") -> List["UtilsHex.SearchPattern.Match"]:
+            """
+            Search through one search pattern to find instances of another. Used to find dependencies between them
+            :param search_pattern_looking_for: coordinates that must contain a piece of the players color, and coordinates that must NOT contain any piece
+            :param search_pattern_looking_in: coordinates representing the space to search through
+            :return: the player the pattern matches for and the position of the match
+            """
+
+            # Convert the looking in pattern to a hex grid
+            hex_grid = UtilsHex.HexGrid.from_search_pattern(search_pattern_looking_in)
+
+            # And search the hex grid
+            return UtilsHex.SearchPattern._search_hex_grid(search_pattern_looking_for, hex_grid)
+
+        @staticmethod
+        def _search_hex_grid(search_pattern: "UtilsHex.SearchPattern", hex_grid: List[List[int]]) -> List["UtilsHex.SearchPattern.Match"]:
             """
             Search through a hex grid to try and find a pattern
             :param search_pattern: coordinates that must contain a piece of the players color, and coordinates that must NOT contain any piece
             :param hex_grid: 2d grid board state to search through
-            :return: the player the pattern matches for and the position of the match
+            :return: the full search pattern match information
             """
 
             def match_pattern_at_start_coord(start_x, start_y) -> int:
@@ -479,17 +521,22 @@ class UtilsHex:
                 # We fully match this pattern for the player in the start position
                 return player
 
+            # Make a new empty list to store all matches
+            matches = []
+
             # Every literal position is a potential start position for the pattern
             boardsize = len(hex_grid)
             for start_y in range(boardsize):
                 for start_x in range(boardsize):
                     match_player = match_pattern_at_start_coord(start_x, start_y)
-                    if match_player != -1:
-                        match_position = UtilsHex.Coordinates.coord_to_position(start_x, start_y)
-                        return match_player, match_position
+                    if match_player == -1:
+                        continue
+
+                    match = UtilsHex.SearchPattern.Match(search_pattern, hex_grid, match_player, start_x, start_y)
+                    matches.append(match)
 
             # No starting positions match this search pattern
-            return None
+            return matches
 
 
 class UtilsTournament:
@@ -794,14 +841,14 @@ class UtilsTM:
             return new_literals
 
 
-
-
 class UtilsDataset:
 
     class Dataset:
         """
         Winner Prediction Dataset
         """
+
+        # TODO: are the literals augmented / only apply all the searches and everything else when unaugmented (assumption right now)
 
         def __init__(self, X, Y, name: str, complete: bool = True):
             self.name = name
@@ -811,11 +858,33 @@ class UtilsDataset:
             self.Y = Y
             self.win_counts_by_state = Counter(self.Y)
 
+            X_move, Y_move = self._group_by_move()
+            self.X_move = X_move
+            self.Y_move = Y_move
+
             if complete:
                 X_game, Y_game = self._group_by_game()
                 self.X_game = X_game
                 self.Y_game = Y_game
                 self.win_counts_by_game = Counter(self.Y_game)
+
+        def __add__(self, other):
+            if not isinstance(other, UtilsDataset.Dataset):
+                raise TypeError
+
+            X1, X2 = self.X, other.X
+            Y1, Y2 = self.Y, other.Y
+
+            X = np.vstack((X1, X2))
+            Y = np.hstack((Y1, Y2))
+            return UtilsDataset.Dataset(X, Y, f"({self.name} + {other.name})")
+
+        def __str__(self):
+            return f"{self.name}: {len(self.X)}"
+
+        def __repr__(self):
+            return f"Dataset: {str(self)}"
+
 
         @property
         def shape(self):
@@ -901,25 +970,12 @@ class UtilsDataset:
             X_oversampled, Y_oversampled = ros.fit_resample(self.X, self.Y)
             return UtilsDataset.Dataset(X_oversampled, Y_oversampled, f"{self.name}_over-rand", False)
 
-        def __add__(self, other):
-            if not isinstance(other, UtilsDataset.Dataset):
-                raise TypeError
-
-            X1, X2 = self.X, other.X
-            Y1, Y2 = self.Y, other.Y
-
-            X = np.vstack((X1, X2))
-            Y = np.hstack((Y1, Y2))
-            return UtilsDataset.Dataset(X, Y, f"({self.name} + {other.name})")
-
-        def __str__(self):
-            return f"{self.name}: {len(self.X)}"
-
-        def __repr__(self):
-            return f"Dataset: {str(self)}"
+        def _group_by_move(self):
+            # TODO
+            return None, None
 
         def _group_by_game(self):
-            # We cannot reconstruct game information from incomplete datasets
+            # We cannot reconstruct game information from incomplete datasets (yet?)
             if not self.complete:
                 return None, None
 
@@ -940,7 +996,7 @@ class UtilsDataset:
         def _copy(self):
             return UtilsDataset.Dataset(self.X.copy(), self.Y.copy(), self.name)
 
-    _TOURNAMENTS_DIR = None
+    TOURNAMENTS_DIR = Path("tournaments")
     PLY_1 = None
     PLY_2 = None
     PLY_3 = None
@@ -948,13 +1004,12 @@ class UtilsDataset:
     BASELINE = None
 
     @staticmethod
-    def load_raw_datasets(tournaments_directory: Path):
+    def load_raw_datasets():
         """
         Load some hardcoded datasets
         :return:
         """
 
-        UtilsDataset._TOURNAMENTS_DIR = tournaments_directory
         augmentation = UtilsTM.Literals.Augmentation.AUG_NONE
         history = UtilsTM.Literals.History.HISTORY_NONE
         history_size = 0
@@ -988,7 +1043,7 @@ class UtilsDataset:
             datasetX = []
             datasetY = []
 
-            dataset_path: Path = UtilsDataset._TOURNAMENTS_DIR / tournament_name / "dataset.csv"
+            dataset_path: Path = UtilsDataset.TOURNAMENTS_DIR / tournament_name / "dataset.csv"
             with open(dataset_path, mode='r', newline='') as dataset_file:
                 reader = csv.reader(dataset_file)
 
@@ -1038,10 +1093,21 @@ class UtilsDataset:
 
 class UtilsPlot:
 
-    HEX_PLOT_TEXT = True
+    PLOTS_DIR = Path("plots")
+    PLOT_GAME_LENGTH_DIR = PLOTS_DIR / "game_lengths"
+    PLOT_TEMPLATES_DIR = PLOTS_DIR / "templates"
+    PLOT_WIN_RATES_DIR = PLOTS_DIR / "win_rates"
 
     @staticmethod
-    def _plot_hex_grid(hex_grid: List[List[int]], filepath: Path):
+    def save_plot(plt: matplotlib.pyplot.plot, filepath: Path, bbox_inches=None):
+        filepath.parent.mkdir(parents=True, exist_ok=True)
+        plt.savefig(filepath, dpi=300, bbox_inches=bbox_inches)
+        plt.close()
+
+    ### HEX
+
+    @staticmethod
+    def _plot_hex_grid(hex_grid: List[List[int]], filepath: Path, inc_text: bool):
         # Plot a Hexagonal Grid
         # - logic from: https://www.redblobgames.com/grids/hexagons/
 
@@ -1082,13 +1148,13 @@ class UtilsPlot:
                     ax.add_patch(piece)
 
                 # Write the hex position
-                if UtilsPlot.HEX_PLOT_TEXT:
+                if inc_text:
                     hex_pos_text = UtilsHex.Coordinates.coord_to_position(x, y)
                     hex_pos_text_color = grid_color if player == -1 else piece_colors[1 - player]
                     ax.text(*position, hex_pos_text, ha='center', va='center', size=7, color=hex_pos_text_color)
 
         # Plot the axis labels for hex
-        if UtilsPlot.HEX_PLOT_TEXT:
+        if inc_text:
             text_offset = hex_radius * 1.4
             for i in range(boardsize):
                 # Along the bottom
@@ -1121,7 +1187,7 @@ class UtilsPlot:
         plt.axis('off')
 
         # Save the plot
-        UtilsPlot.save_plot(plt, filepath)
+        UtilsPlot.save_plot(plt, filepath, 'tight')
 
     @staticmethod
     def plot_literals(literals: List[int], boardsize: int, filepath: Path):
@@ -1129,30 +1195,139 @@ class UtilsPlot:
         hex_grid = UtilsHex.HexGrid.from_literals(literals, boardsize)
 
         # And plot the hex grid
-        UtilsPlot.HEX_PLOT_TEXT = True
-        UtilsPlot._plot_hex_grid(hex_grid, filepath)
+        UtilsPlot._plot_hex_grid(hex_grid, filepath, True)
 
     @staticmethod
-    def plot_search_pattern(search_pattern: UtilsHex.SearchPattern, filepath: Path):
+    def plot_search_pattern(search_pattern: UtilsHex.SearchPattern):
         # Convert the search pattern to a hex grid
         hex_grid = UtilsHex.HexGrid.from_search_pattern(search_pattern)
 
         # And plot the hex grid
-        UtilsPlot.HEX_PLOT_TEXT = False
-        UtilsPlot._plot_hex_grid(hex_grid, filepath)
+        plots_dir = UtilsPlot.PLOT_TEMPLATES_DIR / search_pattern.base_name
+        filepath = plots_dir / f"{search_pattern}.png"
+        UtilsPlot._plot_hex_grid(hex_grid, filepath, False)
 
     @staticmethod
-    def save_plot(plt: matplotlib.pyplot.plot, filepath: Path):
+    def plot_search_pattern_match(match: UtilsHex.SearchPattern.Match):
+        template_name = match.search_pattern.base_name
+        template_search_dir = UtilsPlot.PLOT_TEMPLATES_DIR / template_name / "searches"
+        template_search_dir.mkdir(parents=True, exist_ok=True)
+
+        filepath = template_search_dir / f"{str(match)}.png"
+        UtilsPlot._plot_hex_grid(match.hex_grid, filepath, True)
+
+    ### DATASET
+
+    # TODO: more exploration, heatmaps for all/initial/final moves by win/player,
+
+    @staticmethod
+    def plot_dataset_win_rates(dataset: UtilsDataset.Dataset, by_state: bool):
+        if not dataset.complete:
+            by_state = True
+
+        title = f"Player Win Rates in {dataset.name} Mohex Selfplay"
+        if by_state:
+            title += " States"
+        else:
+            title += " Games"
+
+        title_color = 'black'
+        bg_colour = 'lightblue'
+
+        win_counts = dataset.win_counts_by_state if by_state else dataset.win_counts_by_game
+        wedge_labels = [0, 1]
+        wedge_values = [win_counts[i] for i in wedge_labels]
+        wedge_colors = ['black', 'white']
+        wedge_text_color = ['white', 'black']
+
+        # Custom function to display both count and percentage
+        # NOTE: 'pct' stands for 'percentage of total' of the pie chart
+        def pct_with_counts(pct, counts):
+            count = int(round(pct / 100.0 * sum(counts)))
+            return f"{pct:.1f}%\n({count})"
+
+        fig, ax = plt.subplots()
+        wedges, texts, autotexts = ax.pie(
+            x=wedge_values,
+            labels=None,
+            autopct=lambda pct: pct_with_counts(pct, wedge_values),
+            colors=wedge_colors,
+            startangle=0
+        )
+
+        plt.title(title, color=title_color)
+        fig.patch.set_facecolor(bg_colour)
+
+        for i, text in enumerate(texts):
+            text.set_color(wedge_text_color[i])
+
+        for i, autotext in enumerate(autotexts):
+            autotext.set_color(wedge_text_color[i])
+
+        # Make the plot look better
+        plt.axis("equal")
+        plt.tight_layout()
+
+        # Add a legend (key)
+        # ax.legend(wedges, wedge_labels, title="Legend"s, loc="upper right", fontsize=12, bbox_to_anchor=(1, 1))
+
         # Save the plot to a file
-        plt.savefig(filepath, dpi=300, bbox_inches='tight')  # Change filename and dpi as needed
+        sub_directory = "state" if by_state else "game"
+        filepath = UtilsPlot.PLOT_WIN_RATES_DIR / sub_directory / f"{dataset.name}_winrate_{sub_directory}.png"
+        UtilsPlot.save_plot(plt, filepath)
+
+    @staticmethod
+    def plot_dataset_game_lengths(dataset: UtilsDataset.Dataset):
+        if not dataset.complete:
+            # TODO: can plot state's number of pieces/turn instead
+            print("This dataset doesn't contain complete games, so we cannot plot the lengths of those games")
+            return
+
+        game_length = [len(game) for game in dataset.X_game]
+        length_counts = Counter(game_length)
+
+        bar_lengths = list(range(min(game_length), max(game_length) + 1))
+        bar_counts = [length_counts[length] for length in bar_lengths]
+        bar_colors = ["white", "black"] if bar_lengths[0] % 2 == 0 else ["black", "white"]
+        bar_width = 0.5
+
+        # Add value labels on top of the bars
+        fig, ax = plt.subplots(figsize=(8, 6))
+
+        # Create the bar chart
+        bars = ax.bar(bar_lengths, bar_counts, color=bar_colors, width=bar_width)
+        ax.set_facecolor("lightblue")
+
+        # Add labels and title
+        ax.set_xlabel("Game Length", fontsize=12, fontweight="bold")
+        ax.set_ylabel("# of Games", fontsize=12, fontweight="bold")
+        ax.set_title(f"Game Lengths in {dataset.name} Mohex Selfplay", fontsize=14, fontweight="bold")
+        ax.grid(True, linestyle='--', alpha=0.5)
+
+        # Add value labels on top of the bars
+        for bar in bars:
+            yval = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width() / 2, yval + 0.5, str(yval), ha='center', fontsize=10, color='black')
+
+        # Add value labels on top of the bars
+        ax.tick_params(axis='x', labelsize=12)
+        ax.tick_params(axis='y', labelsize=12)
+
+        # Make the plot look nicer
+        plt.tight_layout()
+
+        # Save the plot to a file
+        filepath = UtilsPlot.PLOT_GAME_LENGTH_DIR / f"{dataset.name}_games_length.png"
+        plt.savefig(filepath, dpi=300)  # Change filename and dpi as needed
         plt.close()  # Close the plot to free resources
 
-    @staticmethod
-    def _plot_all_search_pattern_variations(templates_dir: Path):
-        UtilsHex.SearchPattern.add_from_templates_directory(templates_dir)
+    ### RANDOM ONE-TIME METHODS
 
+    @staticmethod
+    def _plot_all_search_pattern_variations():
         for pattern_name in UtilsHex.SearchPattern.get_pattern_names():
-            plots_path = Path(f"exploration/plots/templates/{pattern_name}")
-            plots_path.mkdir(parents=True, exist_ok=True)
             for variation in UtilsHex.SearchPattern.get_pattern_variations(pattern_name):
-                UtilsPlot.plot_search_pattern(variation, plots_path / f"{variation}.png")
+                UtilsPlot.plot_search_pattern(variation)
+
+
+UtilsHex.SearchPattern.add_from_templates_directory(Path("../templates"))

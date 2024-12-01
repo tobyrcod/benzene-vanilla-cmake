@@ -507,7 +507,7 @@ class Tests:
                     assert all(len(dataset.X_game[i]) == len(games[i][1]) + 1 for i in
                                range(len(games)))                                               # The length of each game is correct
 
-            UtilsDataset.load_raw_datasets(tournament_directory)
+            UtilsDataset.load_raw_datasets()
             test_data_group_by_game()
 
 if __name__ == "__main__":

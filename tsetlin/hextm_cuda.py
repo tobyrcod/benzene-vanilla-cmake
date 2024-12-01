@@ -32,7 +32,7 @@ tm = MultiClassTsetlinMachine(
 
 
 # Define which dataset we want to use
-UtilsDataset.load_raw_datasets(Path("tournaments"))
+UtilsDataset.load_raw_datasets()
 DATASET: UtilsDataset.Dataset = UtilsDataset.BASELINE
 # DATASET = DATASET.undersample()
 
