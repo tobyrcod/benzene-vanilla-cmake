@@ -296,6 +296,11 @@ class UtilsHex:
             self.base_name: str = base_name
             self.variation_name: str = variation_name
 
+            full_name: str = self.base_name
+            if self.variation_name:
+                full_name += f"_{self.variation_name}"
+            self.full_name = full_name
+
             # Offsets centered at (0, 0) that define this pattern
             # NOTE: for now it's possible for the same pattern to be different if (0, 0) centered on a different piece
             self.include_offsets = include_offsets
@@ -328,10 +333,7 @@ class UtilsHex:
             return self.uid == other.uid
 
         def __str__(self):
-            string = self.base_name
-            if self.variation_name:
-                string += f"_{self.variation_name}"
-            return string
+            return self.full_name
 
         def __repr__(self):
             return f"Search Pattern: {str(self)}"
@@ -850,12 +852,14 @@ class UtilsDataset:
 
         # TODO: are the literals augmented / only apply all the searches and everything else when unaugmented (assumption right now)
 
-        def __init__(self, X, Y, name: str, complete: bool = True):
+        def __init__(self, X, Y, boardsize: int, name: str, complete: bool = True):
+            self.X = X
+            self.Y = Y
+
+            self.boardsize = boardsize
             self.name = name
             self.complete = complete    # Are full games used in this dataset, or are we pulling states randomly?
 
-            self.X = X
-            self.Y = Y
             self.state_win_counts = Counter(self.Y)
             self.state_num_pieces_counts = Counter([sum(state) for state in self.X])
 
@@ -870,13 +874,15 @@ class UtilsDataset:
         def __add__(self, other):
             if not isinstance(other, UtilsDataset.Dataset):
                 raise TypeError
+            if self.boardsize != other.boardsize:
+                raise ValueError
 
             X1, X2 = self.X, other.X
             Y1, Y2 = self.Y, other.Y
 
             X = np.vstack((X1, X2))
             Y = np.hstack((Y1, Y2))
-            return UtilsDataset.Dataset(X, Y, f"({self.name} + {other.name})")
+            return UtilsDataset.Dataset(X, Y, self.boardsize, f"({self.name} + {other.name})")
 
         def __str__(self):
             return f"{self.name}: {len(self.X)}"
@@ -943,14 +949,14 @@ class UtilsDataset:
             # NOTE: takes too long
             tomek = TomekLinks(n_jobs=16)
             X_undersampled, Y_undersampled = tomek.fit_resample(self.X, self.Y)
-            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, f"{self.name}_under-tomek", False)
+            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, self.boardsize,f"{self.name}_under-tomek", False)
 
         def _undersample_nearest_neighbours(self) -> "UtilsDataset.Dataset":
             # NOTE: takes too long
             # TODO: try to run (and tomek) on collab/ncc and save it once
             enn = EditedNearestNeighbours(n_jobs=2)
             X_undersampled, Y_undersampled = enn.fit_resample(self.X, self.Y)
-            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, f"{self.name}_under-knn", False)
+            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, self.boardsize, f"{self.name}_under-knn", False)
 
         def _undersample_random(self, sampling_strategy=None) -> "UtilsDataset.Dataset":
             if not sampling_strategy:
@@ -958,7 +964,7 @@ class UtilsDataset:
 
             rus = RandomUnderSampler(random_state=42, sampling_strategy=sampling_strategy)
             X_undersampled, Y_undersampled = rus.fit_resample(self.X, self.Y)
-            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, f"{self.name}_under-rand", False)
+            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, self.boardsize,f"{self.name}_under-rand", False)
 
         def oversample(self) -> "UtilsDataset.Dataset":
             return self._oversample_random()
@@ -966,7 +972,7 @@ class UtilsDataset:
         def _oversample_random(self) -> "UtilsDataset.Dataset":
             ros = RandomOverSampler(random_state=42)
             X_oversampled, Y_oversampled = ros.fit_resample(self.X, self.Y)
-            return UtilsDataset.Dataset(X_oversampled, Y_oversampled, f"{self.name}_over-rand", False)
+            return UtilsDataset.Dataset(X_oversampled, Y_oversampled, self.boardsize, f"{self.name}_over-rand", False)
 
         # TODO: replace with using states and not really games but calculating what we actually need
         def _group_by_game(self):
@@ -989,7 +995,7 @@ class UtilsDataset:
             return X_game, Y_game
 
         def _copy(self):
-            return UtilsDataset.Dataset(self.X.copy(), self.Y.copy(), self.name)
+            return UtilsDataset.Dataset(self.X.copy(), self.Y.copy(), self.boardsize, self.name, self.complete)
 
     TOURNAMENTS_DIR = Path("tournaments")
     PLY_1: "UtilsDataset.Dataset" = None
@@ -1080,7 +1086,7 @@ class UtilsDataset:
                     datasetY.append(winner)
 
             assert (len(datasetX) == len(datasetY))
-            return UtilsDataset.Dataset(np.array(datasetX), np.array(datasetY), tournament_name)
+            return UtilsDataset.Dataset(np.array(datasetX), np.array(datasetY), boardsize, tournament_name)
 
         except (FileNotFoundError, NotADirectoryError) as e:
             print(e, file=sys.stderr)
