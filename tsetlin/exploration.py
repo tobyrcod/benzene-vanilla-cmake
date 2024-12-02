@@ -39,7 +39,7 @@ def calculate_background_template_occurrences(ds_states: UtilsDataset.Dataset):
 
     boardsize = ds_states.boardsize
     start_board = 0
-    num_boards = 1_000_000
+    num_boards = 10_000_000
 
     possible_num_pieces = list(ds_states.state_num_pieces_counts.keys())
     num_pieces_distribution = [count / ds_states.num_rows for count in ds_states.state_num_pieces_counts.values()]
@@ -47,7 +47,7 @@ def calculate_background_template_occurrences(ds_states: UtilsDataset.Dataset):
 
     file_dir: Path = UtilsPlot.PLOT_TEMPLATES_DIR
     filepath: Path = file_dir / f"{ds_states.name}_dist_random_template_matches.csv"
-    csv_headers = ['Board#', 'MatchBaseName', 'MatchVarName', 'MatchX', 'MatchY']
+    csv_headers = ['Board#', 'NumPieces', 'MatchBaseName', 'MatchVarName', 'MatchX', 'MatchY']
 
     # If this match dataset already exist, we need to correctly add to it
     if os.path.exists(filepath):
@@ -93,9 +93,8 @@ def calculate_background_template_occurrences(ds_states: UtilsDataset.Dataset):
                     for match in matches:
                         base_name = match.search_pattern.base_name
                         var_name = match.search_pattern.variation_name
-                        csv_writer.writerow([board, base_name, var_name, match.x, match.y])
+                        csv_writer.writerow([board, num_pieces, base_name, var_name, match.x, match.y])
         csv_writer.writerow(['# Finished'])
-
 
 dataset = UtilsDataset.BASELINE
 calculate_background_template_occurrences(dataset)
