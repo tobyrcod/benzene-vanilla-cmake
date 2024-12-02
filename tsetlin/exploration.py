@@ -54,6 +54,8 @@ def calculate_background_template_occurrences(ds_states: UtilsDataset.Dataset):
         with open(filepath, mode='r', newline='') as ds_match:
             csv_reader = csv.reader(ds_match)
 
+            curr_dataset_name = next(csv_reader)[1]
+            assert curr_dataset_name == ds_states.name
             curr_boardsize = int(next(csv_reader)[1])
             assert curr_boardsize == boardsize
             curr_num_boards = int(next(csv_reader)[1])
@@ -74,6 +76,7 @@ def calculate_background_template_occurrences(ds_states: UtilsDataset.Dataset):
     else:
         with open(filepath, mode='w', newline='') as ds_match:
             csv_writer = csv.writer(ds_match)
+            csv_writer.writerow(['dataset', ds_states.name])
             csv_writer.writerow(['boardsize', boardsize])
             csv_writer.writerow(['num_boards', num_boards])
             csv_writer.writerow(csv_headers)
