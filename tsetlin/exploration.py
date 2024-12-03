@@ -126,6 +126,65 @@ def calculate_template_matches_in_random(ds_dist: UtilsDataset.Dataset):
                         csv_writer.writerow([board, num_pieces, match.player, base_name, var_name, match.coord[0], match.coord[1]])
         csv_writer.writerow(['# Finished'])
 
+def calculate_template_matches_in_dataset(ds_states: UtilsDataset.Dataset):
+    boardsize = ds_states.boardsize
+    start_board = 0
+    num_boards = ds_states.num_rows
+
+    file_dir: Path = UtilsPlot.PLOT_TEMPLATES_DIR
+    filepath: Path = file_dir / f"{ds_states.name}_template_matches.csv"
+    csv_headers = ['Board#', 'NumPieces', 'MatchPlayer', 'MatchBaseName', 'MatchVarName', 'MatchX', 'MatchY']
+
+    # If this match dataset already exist, we need to correctly add to it
+    if os.path.exists(filepath):
+        with open(filepath, mode='r', newline='') as ds_match:
+            csv_reader = csv.reader(ds_match)
+
+            curr_dataset_name = next(csv_reader)[1]
+            assert curr_dataset_name == ds_states.name
+            curr_boardsize = int(next(csv_reader)[1])
+            assert curr_boardsize == boardsize
+            curr_num_boards = int(next(csv_reader)[1])
+            assert curr_num_boards == num_boards
+            headers = next(csv_reader)
+
+            last_row = None
+            for match in csv_reader:
+                last_row = match
+            if last_row == ['# Finished']:
+                print('This search is already finished!')
+                return
+            last_board = int(last_row[headers.index('Board#')])
+            start_board = last_board + 1
+            print(f'Resuming existing search from board {start_board}...')
+
+    # If this match dataset doesn't already exist, we need to make it
+    else:
+        with open(filepath, mode='w', newline='') as ds_match:
+            csv_writer = csv.writer(ds_match)
+            csv_writer.writerow(['dataset', ds_states.name])
+            csv_writer.writerow(['boardsize', boardsize])
+            csv_writer.writerow(['num_boards', num_boards])
+            csv_writer.writerow(csv_headers)
+
+    # Continue finding matches in each row of the dataset until we are done
+    with open(filepath, mode='a', newline='') as ds_match:
+        csv_writer = csv.writer(ds_match)
+        for board in range(start_board, num_boards):
+            print(f"Board: {board}, Progress: {100 * board / num_boards:.3f}%")
+
+            literals = ds_states.X[board]
+            num_pieces = sum(literals)
+            for template_name in UtilsHex.SearchPattern.get_pattern_names():
+                variations = UtilsHex.SearchPattern.get_pattern_variations(template_name)
+                for search_pattern in variations:
+                    matches = UtilsHex.SearchPattern.search_literals(search_pattern, literals, boardsize)
+                    for match in matches:
+                        base_name = match.search_pattern.base_name
+                        var_name = match.search_pattern.variation_name
+                        csv_writer.writerow([board, num_pieces, match.player, base_name, var_name, match.coord[0], match.coord[1]])
+        csv_writer.writerow(['# Finished'])
+
 def load_background_template_occurrences(ds_states: UtilsDataset.Dataset):
     file_dir: Path = UtilsPlot.PLOT_TEMPLATES_DIR
     filepath: Path = file_dir / f"{ds_states.name}_dist_random_template_matches.csv"
@@ -212,5 +271,3 @@ calculate_template_matches_in_dataset(dataset)
 def analyse_matches(matches):
     occurrence_counts = Counter(match['MatchBaseName'] for match in matches)
     print(occurrence_counts)
-
-analyse_matches(matches)
