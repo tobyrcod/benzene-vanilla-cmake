@@ -207,7 +207,7 @@ def load_background_template_occurrences(ds_states: UtilsDataset.Dataset):
     return matches
 
 dataset = UtilsDataset.BASELINE
-calculate_template_matches_in_random(dataset)
+calculate_template_matches_in_dataset(dataset)
 
 def analyse_matches(matches):
     occurrence_counts = Counter(match['MatchBaseName'] for match in matches)
