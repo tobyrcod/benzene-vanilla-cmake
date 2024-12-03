@@ -33,6 +33,10 @@ class Helpers:
     def chunk_list(l, chunk_size):
         return [l[i:i + chunk_size] for i in range(0, len(l), chunk_size)]
 
+    @staticmethod
+    def defaultdict_to_dict(dd):
+        return {key: dict(value) for key, value in dd.items()}
+
 
 class UtilsHex:
 
@@ -157,7 +161,7 @@ class UtilsHex:
     # BOARD REPRESENTATION      DESCRIPTION                                                         USAGE
     # -------------------------------------------------------------------------------------------------------------------------------------------
     # Entire Board:
-    # Hex Grid                  2D: 0 for black, 1 for white, -1 for nothing                        Simple Base for plotting and searching in
+    # Hex Grid                  2D: a grid of ints                                                  Simple Base for plotting and searching in
     # Literals                  1D: all black pieces followed by all white pieces                   Tsetlin Machine
     #
     # Independent of a board:
@@ -165,6 +169,12 @@ class UtilsHex:
     # Search Patterns           coordinate offsets to have or not have a piece                      Searching for
 
     class HexGrid:
+
+        # Grid Value Meanings:
+        # 0 for black,
+        # 1 for white,
+        # 2 for a search pattern exclusion coord (nothing but visually white) - HACKY AF
+        # -1 for nothing,
 
         @staticmethod
         def from_literals(literals: List[int], boardsize: int) -> List[List[int]]:
@@ -189,9 +199,19 @@ class UtilsHex:
             for include_coord in search_pattern.include_coords:
                 hex_grid[include_coord[1]][include_coord[0]] = 0
             for exclude_coords in search_pattern.exclude_coords:
-                hex_grid[exclude_coords[1]][exclude_coords[0]] = 1
+                hex_grid[exclude_coords[1]][exclude_coords[0]] = 2
 
             return hex_grid
+
+        @staticmethod
+        def print_hex_grid(hex_grid: List[List[int]]):
+            for i, row in enumerate(hex_grid):
+                string = i * 2 * " "
+                for cell in row:
+                    # if cell == 2: cell = 1  # HACK explained in "UtilsHex.HexGrid" - 0 is black, 1 or 2 is visually white
+                    string += str(cell).ljust(2, str(cell)[-1]) + " " * 2
+                print(string)
+            print()
 
     class Template:
 
@@ -279,14 +299,16 @@ class UtilsHex:
                 self.hex_grid = hex_grid
                 self.search_pattern = search_pattern
                 self.player = player
-                self.x = x
-                self.y = y
+                self.coord = np.array([x, y])
                 self.boardsize = len(hex_grid)
 
             def __str__(self):
                 player_name = "black" if self.player == 0 else "white"
                 position = UtilsHex.Coordinates.coord_to_position(self.x, self.y)
                 return f"{self.boardsize}x{self.boardsize}_{self.search_pattern}_at_{position}_for_{player_name}"
+
+            def __repr__(self):
+                return f"Match: {str(self)}"
 
         def __init__(self, base_name: str,
                      include_offsets,
@@ -302,7 +324,7 @@ class UtilsHex:
             self.full_name = full_name
 
             # Offsets centered at (0, 0) that define this pattern
-            # NOTE: for now it's possible for the same pattern to be different if (0, 0) centered on a different piece
+            assert all(n == 0 for n in include_offsets[0])
             self.include_offsets = include_offsets
             self.exclude_offsets = exclude_offsets
 
@@ -366,7 +388,7 @@ class UtilsHex:
         @staticmethod
         def add_from_templates_directory(directory_path: Path):
             templates = UtilsHex.Template._load_from_directory(directory_path)
-            search_patterns = list(map(UtilsHex.SearchPattern._create_from_template, templates))
+            search_patterns = map(UtilsHex.SearchPattern._create_from_template, templates)
 
             for search_pattern in search_patterns:
                 UtilsHex.SearchPattern._add_search_pattern(search_pattern)
@@ -459,28 +481,39 @@ class UtilsHex:
 
         # TODO: use this
         @staticmethod
-        def search_search_pattern(search_pattern_looking_for: "UtilsHex.SearchPattern", search_pattern_looking_in: "UtilsHex.SearchPattern") -> List["UtilsHex.SearchPattern.Match"]:
+        def search_search_pattern(looking_for: "UtilsHex.SearchPattern", looking_in: "UtilsHex.SearchPattern") -> List["UtilsHex.SearchPattern.Match"]:
             """
             Search through one search pattern to find instances of another. Used to find dependencies between them
-            :param search_pattern_looking_for: coordinates that must contain a piece of the players color, and coordinates that must NOT contain any piece
-            :param search_pattern_looking_in: coordinates representing the space to search through
+            :param looking_for: coordinates that must contain a piece of the players color, and coordinates that must NOT contain any piece
+            :param looking_in: coordinates representing the space to search through
             :return: the player the pattern matches for and the position of the match
             """
+            if looking_in.induced_boardsize < looking_for.induced_boardsize:
+                # We are trying to find something in a place that's too small to even fit it, so don't bother trying
+                return []
 
             # Convert the looking in pattern to a hex grid
-            hex_grid = UtilsHex.HexGrid.from_search_pattern(search_pattern_looking_in)
+            hex_grid = UtilsHex.HexGrid.from_search_pattern(looking_in)
 
             # And search the hex grid
-            return UtilsHex.SearchPattern._search_hex_grid(search_pattern_looking_for, hex_grid)
+            # exclude_match needs to be 2 (not -1) as we don't just want it to be empty, we need the looking_in pattern to also care that it's empty
+            return UtilsHex.SearchPattern._search_hex_grid(looking_for, hex_grid, allowed_players=[0], exclude_match=2)
 
         @staticmethod
-        def _search_hex_grid(search_pattern: "UtilsHex.SearchPattern", hex_grid: List[List[int]]) -> List["UtilsHex.SearchPattern.Match"]:
+        def _search_hex_grid(search_pattern: "UtilsHex.SearchPattern", hex_grid: List[List[int]], allowed_players=None, exclude_match: int=-1) -> List["UtilsHex.SearchPattern.Match"]:
             """
             Search through a hex grid to try and find a pattern
             :param search_pattern: coordinates that must contain a piece of the players color, and coordinates that must NOT contain any piece
             :param hex_grid: 2d grid board state to search through
             :return: the full search pattern match information
             """
+
+            # TODO: allow matches with one intrusion?
+            #  right now we will lose templates that we have successfully played as they have been intruded
+
+            # By default, we are allowed to find a match for either player
+            if allowed_players is None:
+                allowed_players = [0, 1]
 
             def match_pattern_at_start_coord(start_x, start_y) -> int:
                 """
@@ -489,9 +522,9 @@ class UtilsHex:
                 :return: integer representing the player for which the pattern matched
                 """
 
-                # Check we have a piece at the starting position
+                # Check we have an allowed piece at the starting position
                 player = hex_grid[start_y][start_x]
-                if player == -1:
+                if player not in allowed_players:
                     return -1
 
                 # We have a player piece in the start position,
@@ -516,8 +549,10 @@ class UtilsHex:
                         # We don't care and can just ignore it
                         continue
 
-                    # Check that NEITHER player has a piece in the position
-                    if hex_grid[exclude_coord[1]][exclude_coord[0]] != -1:
+                    # Check that the value in the exclude position is what it needs to be:
+                    # exclude_match: -1 - DEFAULT: NEITHER player has a piece in the position, and the grid doesn't care
+                    # exclude_match: 2  - NEITHER player has a piece in the position, but the grid cares
+                    if hex_grid[exclude_coord[1]][exclude_coord[0]] != exclude_match:
                         return -1
 
                 # We fully match this pattern for the player in the start position
@@ -1144,6 +1179,7 @@ class UtilsPlot:
                 # Plot any piece
                 player = hex_grid[y][x]
                 if player != -1:
+                    player = 1 if player in [1, 2] else 0  # AWFUL HACK explained in "UtilsHex.HexGrid" - 0 is black, 1 or 2 is visually white
                     piece = Circle(position, radius=hex_radius * 0.6,
                                    edgecolor=grid_color, facecolor=piece_colors[player])
                     ax.add_patch(piece)
@@ -1199,22 +1235,23 @@ class UtilsPlot:
         UtilsPlot._plot_hex_grid(hex_grid, filepath, True)
 
     @staticmethod
-    def plot_search_pattern(search_pattern: UtilsHex.SearchPattern):
+    def plot_search_pattern(search_pattern: UtilsHex.SearchPattern, filepath: Path=None):
         # Convert the search pattern to a hex grid
         hex_grid = UtilsHex.HexGrid.from_search_pattern(search_pattern)
 
         # And plot the hex grid
-        plots_dir = UtilsPlot.PLOT_TEMPLATES_DIR / search_pattern.base_name
-        filepath = plots_dir / f"{search_pattern}.png"
+        if not filepath:
+            plots_dir = UtilsPlot.PLOT_TEMPLATES_DIR / search_pattern.base_name
+            filepath = plots_dir / f"{search_pattern}.png"
         UtilsPlot._plot_hex_grid(hex_grid, filepath, False)
 
     @staticmethod
-    def plot_search_pattern_match(match: UtilsHex.SearchPattern.Match):
-        template_name = match.search_pattern.base_name
-        template_search_dir = UtilsPlot.PLOT_TEMPLATES_DIR / template_name / "searches"
-        template_search_dir.mkdir(parents=True, exist_ok=True)
-
-        filepath = template_search_dir / f"{str(match)}.png"
+    def plot_search_pattern_match(match: UtilsHex.SearchPattern.Match, filepath: Path=None):
+        if not filepath:
+            template_name = match.search_pattern.base_name
+            template_search_dir = UtilsPlot.PLOT_TEMPLATES_DIR / template_name / "searches"
+            template_search_dir.mkdir(parents=True, exist_ok=True)
+            filepath = template_search_dir / f"{str(match)}.png"
         UtilsPlot._plot_hex_grid(match.hex_grid, filepath, True)
 
     ### DATASET
