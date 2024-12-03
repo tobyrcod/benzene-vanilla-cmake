@@ -74,7 +74,7 @@ def calculate_template_matches_in_random(ds_dist: UtilsDataset.Dataset):
 
     file_dir: Path = UtilsPlot.PLOT_TEMPLATES_DIR
     filepath: Path = file_dir / f"{ds_dist.name}_dist_random_template_matches.csv"
-    csv_headers = ['Board#', 'NumPieces', 'MatchBaseName', 'MatchVarName', 'MatchX', 'MatchY']
+    csv_headers = ['Board#', 'NumPieces', 'MatchPlayer', 'MatchBaseName', 'MatchVarName', 'MatchX', 'MatchY']
 
     # If this match dataset already exist, we need to correctly add to it
     if os.path.exists(filepath):
@@ -123,7 +123,7 @@ def calculate_template_matches_in_random(ds_dist: UtilsDataset.Dataset):
                     for match in matches:
                         base_name = match.search_pattern.base_name
                         var_name = match.search_pattern.variation_name
-                        csv_writer.writerow([board, num_pieces, base_name, var_name, match.x, match.y])
+                        csv_writer.writerow([board, num_pieces, match.player, base_name, var_name, match.coord[0], match.coord[1]])
         csv_writer.writerow(['# Finished'])
 
 def load_background_template_occurrences(ds_states: UtilsDataset.Dataset):
@@ -207,7 +207,7 @@ def load_background_template_occurrences(ds_states: UtilsDataset.Dataset):
     return matches
 
 dataset = UtilsDataset.BASELINE
-matches = load_background_template_occurrences(dataset)
+calculate_template_matches_in_random(dataset)
 
 def analyse_matches(matches):
     occurrence_counts = Counter(match['MatchBaseName'] for match in matches)
