@@ -59,7 +59,9 @@ def calculate_intertemplate_matchings() -> Dict[str, Dict[str, List[np.array]]]:
     matchings = Helpers.defaultdict_to_dict(matchings)
     return matchings
 
-# TODO: combine shared logic in random and dataset versions
+# TODO: think about fact that random boards have no continuity but dataset states do (actually from played games)
+#  so they have some extra dependence on each other. May need to actually generate random games instead of random states
+# TODO: combine shared logic in random and dataset versions?
 
 def calculate_template_matches_in_random(ds_dist: UtilsDataset.Dataset):
     boardsize = ds_dist.boardsize
