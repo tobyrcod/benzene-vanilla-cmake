@@ -331,4 +331,4 @@ def analyse():
     print(match_white_and_white_win_occurrences)
     print(match_black_and_white_win_occurrences)
 
-analyse()
+find_random_match_in_random_board()

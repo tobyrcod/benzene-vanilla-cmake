@@ -11,7 +11,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from matplotlib.patches import RegularPolygon, Circle
 from pysgf import SGF, SGFNode
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Callable
 from imblearn.under_sampling import RandomUnderSampler, TomekLinks, EditedNearestNeighbours
 from imblearn.over_sampling import RandomOverSampler
 from collections import Counter
@@ -173,7 +173,6 @@ class UtilsHex:
         # Grid Value Meanings:
         # 0 for black,
         # 1 for white,
-        # 2 for a search pattern exclusion coord (nothing but visually white) - HACKY AF
         # -1 for nothing,
 
         @staticmethod
@@ -198,8 +197,6 @@ class UtilsHex:
             hex_grid = [[-1 for x in range(boardsize)] for y in range(boardsize)]
             for include_coord in search_pattern.include_coords:
                 hex_grid[include_coord[1]][include_coord[0]] = 0
-            for exclude_coords in search_pattern.exclude_coords:
-                hex_grid[exclude_coords[1]][exclude_coords[0]] = 2
 
             return hex_grid
 
@@ -208,7 +205,6 @@ class UtilsHex:
             for i, row in enumerate(hex_grid):
                 string = i * 2 * " "
                 for cell in row:
-                    # if cell == 2: cell = 1  # HACK explained in "UtilsHex.HexGrid" - 0 is black, 1 or 2 is visually white
                     string += str(cell).ljust(2, str(cell)[-1]) + " " * 2
                 print(string)
             print()
@@ -284,6 +280,8 @@ class UtilsHex:
 
     class SearchPattern:
 
+        # TODO: Add the parallelogram template
+
         class Match:
 
             def __init__(self, search_pattern: "UtilsHex.SearchPattern", hex_grid: List[List[int]], player: int, x: int, y: int):
@@ -304,7 +302,7 @@ class UtilsHex:
 
             def __str__(self):
                 player_name = "black" if self.player == 0 else "white"
-                position = UtilsHex.Coordinates.coord_to_position(self.x, self.y)
+                position = UtilsHex.Coordinates.coord_to_position(self.coord[0], self.coord[1])
                 return f"{self.boardsize}x{self.boardsize}_{self.search_pattern}_at_{position}_for_{player_name}"
 
             def __repr__(self):
@@ -377,6 +375,48 @@ class UtilsHex:
             "S": lambda v: np.array([v[1], v[0]]),
         }
 
+        # ----------------------------------------
+        # PUBLIC INTERFACE
+        # ----------------------------------------
+
+        # Create the patterns we want
+
+        @staticmethod
+        def initialise():
+            """
+            Add each of the templates manually defined as search patterns.
+            So Far: Bridge, Crescent, Span, Trapezoid, Wheel
+            :return:
+            """
+
+            def add_from_templates_directory(directory_path: Path):
+                def create_from_template(template: "UtilsHex.Template") -> "UtilsHex.SearchPattern":
+                    # First, convert from hex positions to coordinates
+                    template_coords = np.array(
+                        list(map(UtilsHex.Coordinates.position_to_coord, template.template_positions)))
+                    intrusion_coords = np.array(
+                        list(map(UtilsHex.Coordinates.position_to_coord, template.intrusion_positions)))
+
+                    # Second, recenter the template by the top-left most template position
+                    # This is to make the coordinates independent of where they appear on the original sgf grid
+                    center = np.copy(template_coords[0])
+                    template_offsets = template_coords - center
+                    intrusion_offsets = intrusion_coords - center
+
+                    return UtilsHex.SearchPattern(template.name, template_offsets, intrusion_offsets)
+
+                templates = UtilsHex.Template._load_from_directory(directory_path)
+                search_patterns = map(create_from_template, templates)
+
+                for search_pattern in search_patterns:
+                    UtilsHex.SearchPattern._add_search_pattern(search_pattern)
+
+            print("Loading Search Patterns from Templates...")
+            add_from_templates_directory(Path("../templates"))
+            print('Complete!')
+
+        # Getting the patterns that exist
+
         @staticmethod
         def get_pattern_names() -> List[str]:
             return list(UtilsHex.SearchPattern._DATASET.keys())
@@ -385,83 +425,7 @@ class UtilsHex:
         def get_pattern_variations(base_name: str) -> List["UtilsHex.SearchPattern"]:
             return UtilsHex.SearchPattern._DATASET.get(base_name, [])
 
-        @staticmethod
-        def add_from_templates_directory(directory_path: Path):
-            templates = UtilsHex.Template._load_from_directory(directory_path)
-            search_patterns = map(UtilsHex.SearchPattern._create_from_template, templates)
-
-            for search_pattern in search_patterns:
-                UtilsHex.SearchPattern._add_search_pattern(search_pattern)
-
-        @staticmethod
-        def _add_search_pattern(search_pattern: "UtilsHex.SearchPattern"):
-            variations = UtilsHex.SearchPattern._create_pattern_variations(search_pattern)
-            UtilsHex.SearchPattern._DATASET[search_pattern.base_name] = variations
-
-        @staticmethod
-        def _create_from_template(template: "UtilsHex.Template") -> "UtilsHex.SearchPattern":
-            # First, convert from hex positions to coordinates
-            template_coords = np.array(list(map(UtilsHex.Coordinates.position_to_coord, template.template_positions)))
-            intrusion_coords = np.array(list(map(UtilsHex.Coordinates.position_to_coord, template.intrusion_positions)))
-
-            # Second, recenter the template by the top-left most template position
-            # This is to make the coordinates independent of where they appear on the original sgf grid
-            center = np.copy(template_coords[0])
-            template_offsets = template_coords - center
-            intrusion_offsets = intrusion_coords - center
-
-            return UtilsHex.SearchPattern(template.name, template_offsets, intrusion_offsets)
-
-        @staticmethod
-        def _create_pattern_variations(search_pattern: "UtilsHex.SearchPattern") -> List["UtilsHex.SearchPattern"]:
-            # Algorithms described by Red Blob Games:
-            # - https://www.redblobgames.com/grids/hexagons/#rotation
-            # Help simplifying converting between coordinate systems from ChatGPT
-
-            seen_variations = [search_pattern]
-
-            # Each rotation goes 60 degrees further than the previous
-            # So we construct [60, 120, 180, 240, 300] degree rotations
-            seen_so_far_variations = seen_variations.copy()
-            for variant in seen_so_far_variations:
-                for rot_angle, rot_func in UtilsHex.SearchPattern._ROT_FUNCS.items():
-                    rotated_include_offsets = np.apply_along_axis(rot_func, axis=1, arr=variant.include_offsets)
-                    rotated_exclude_offsets = np.apply_along_axis(rot_func, axis=1, arr=variant.exclude_offsets)
-
-                    rotated_pattern = UtilsHex.SearchPattern(
-                        search_pattern.base_name,
-                        rotated_include_offsets,
-                        rotated_exclude_offsets,
-                        variation_name=f"rot{rot_angle}"
-                    )
-
-                    # If we have seen this rotated position before, we are just repeating work
-                    if rotated_pattern in seen_variations:
-                        break
-                    seen_variations.append(rotated_pattern)
-
-            # We can now also flip any of the rotation variants to make even more variant options
-            seen_so_far_variations = seen_variations.copy()
-            for variant in seen_so_far_variations:
-                for flip_name, flip_func in UtilsHex.SearchPattern._FLIP_FUNCS.items():
-                    flipped_include_offsets = np.apply_along_axis(flip_func, axis=1, arr=variant.include_offsets)
-                    flipped_exclude_offsets = np.apply_along_axis(flip_func, axis=1, arr=variant.exclude_offsets)
-
-                    flipped_pattern = UtilsHex.SearchPattern(
-                        search_pattern.base_name,
-                        flipped_include_offsets,
-                        flipped_exclude_offsets,
-                        variation_name=f"{variant.variation_name}flip{flip_name}"
-                    )
-
-                    # If we have seen this pattern before, ignore it
-                    if flipped_pattern not in seen_variations:
-                        seen_variations.append(flipped_pattern)
-
-            return seen_variations
-
-        # TODO: finish dependency matrix and plot it
-        # TODO: search all in random boards with same num pieces distribution as dataset same number of times as rows
+        # Searching for a pattern
 
         @staticmethod
         def search_literals(search_pattern: "UtilsHex.SearchPattern", literals: List[int], boardsize: int) -> List["UtilsHex.SearchPattern.Match"]:
@@ -479,7 +443,6 @@ class UtilsHex:
             # And search the hex grid
             return UtilsHex.SearchPattern._search_hex_grid(search_pattern, hex_grid)
 
-        # TODO: use this
         @staticmethod
         def search_search_pattern(looking_for: "UtilsHex.SearchPattern", looking_in: "UtilsHex.SearchPattern") -> List["UtilsHex.SearchPattern.Match"]:
             """
@@ -496,26 +459,79 @@ class UtilsHex:
             hex_grid = UtilsHex.HexGrid.from_search_pattern(looking_in)
 
             # And search the hex grid
-            # exclude_match needs to be 2 (not -1) as we don't just want it to be empty, we need the looking_in pattern to also care that it's empty
-            return UtilsHex.SearchPattern._search_hex_grid(looking_for, hex_grid, allowed_players=[0], exclude_match=2)
+            return UtilsHex.SearchPattern._search_hex_grid(looking_for, hex_grid, allowed_players=[0])
+
+        # ----------------------------------------
+        # PRIVATE INTERFACE
+        # ----------------------------------------
 
         @staticmethod
-        def _search_hex_grid(search_pattern: "UtilsHex.SearchPattern", hex_grid: List[List[int]], allowed_players=None, exclude_match: int=-1) -> List["UtilsHex.SearchPattern.Match"]:
+        def _add_search_pattern(search_pattern: "UtilsHex.SearchPattern"):
+            def create_pattern_variations() -> List["UtilsHex.SearchPattern"]:
+                # Algorithms described by Red Blob Games:
+                # - https://www.redblobgames.com/grids/hexagons/#rotation
+                # Help simplifying converting between coordinate systems from ChatGPT
+
+                seen_variations = [search_pattern]
+
+                # Each rotation goes 60 degrees further than the previous
+                # So we construct [60, 120, 180, 240, 300] degree rotations
+                seen_so_far_variations = seen_variations.copy()
+                for variant in seen_so_far_variations:
+                    for rot_angle, rot_func in UtilsHex.SearchPattern._ROT_FUNCS.items():
+                        rotated_include_offsets = np.apply_along_axis(rot_func, axis=1, arr=variant.include_offsets)
+                        rotated_exclude_offsets = np.apply_along_axis(rot_func, axis=1, arr=variant.exclude_offsets)
+
+                        rotated_pattern = UtilsHex.SearchPattern(
+                            search_pattern.base_name,
+                            rotated_include_offsets,
+                            rotated_exclude_offsets,
+                            variation_name=f"rot{rot_angle}"
+                        )
+
+                        # If we have seen this rotated position before, we are just repeating work
+                        if rotated_pattern in seen_variations:
+                            break
+                        seen_variations.append(rotated_pattern)
+
+                # We can now also flip any of the rotation variants to make even more variant options
+                seen_so_far_variations = seen_variations.copy()
+                for variant in seen_so_far_variations:
+                    for flip_name, flip_func in UtilsHex.SearchPattern._FLIP_FUNCS.items():
+                        flipped_include_offsets = np.apply_along_axis(flip_func, axis=1, arr=variant.include_offsets)
+                        flipped_exclude_offsets = np.apply_along_axis(flip_func, axis=1, arr=variant.exclude_offsets)
+
+                        flipped_pattern = UtilsHex.SearchPattern(
+                            search_pattern.base_name,
+                            flipped_include_offsets,
+                            flipped_exclude_offsets,
+                            variation_name=f"{variant.variation_name}flip{flip_name}"
+                        )
+
+                        # If we have seen this pattern before, ignore it
+                        if flipped_pattern not in seen_variations:
+                            seen_variations.append(flipped_pattern)
+
+                return seen_variations
+
+            variations = create_pattern_variations()
+            UtilsHex.SearchPattern._DATASET[search_pattern.base_name] = variations
+
+        @staticmethod
+        def _search_hex_grid(search_pattern: "UtilsHex.SearchPattern", hex_grid: List[List[int]], allowed_players:List[int]=None) -> List["UtilsHex.SearchPattern.Match"]:
             """
             Search through a hex grid to try and find a pattern
             :param search_pattern: coordinates that must contain a piece of the players color, and coordinates that must NOT contain any piece
             :param hex_grid: 2d grid board state to search through
+            :param allowed_players: list of players we are looking for matches for
             :return: the full search pattern match information
             """
-
-            # TODO: allow matches with one intrusion?
-            #  right now we will lose templates that we have successfully played as they have been intruded
 
             # By default, we are allowed to find a match for either player
             if allowed_players is None:
                 allowed_players = [0, 1]
 
-            def match_pattern_at_start_coord(start_x, start_y) -> int:
+            def match_pattern_at_start_coord(start_x, start_y) -> "UtilsHex.SearchPattern.Match":
                 """
                 :param start_x: the x coordinate to start the pattern at
                 :param start_y: the y coordinate to start the pattern at
@@ -525,7 +541,7 @@ class UtilsHex:
                 # Check we have an allowed piece at the starting position
                 player = hex_grid[start_y][start_x]
                 if player not in allowed_players:
-                    return -1
+                    return None
 
                 # We have a player piece in the start position,
                 # So we check for player pieces in all the positions of this pattern
@@ -534,11 +550,11 @@ class UtilsHex:
                     # Check that the position we want to include is on the board from this start position
                     include_coord = start_coord + include_offset
                     if not UtilsHex.Coordinates.is_coord_on_board(*include_coord, boardsize):
-                        return -1
+                        return None
 
                     # Check the position has a player piece
                     if hex_grid[include_coord[1]][include_coord[0]] != player:
-                        return -1
+                        return None
 
                 # We have a piece of the right player in every position of the pattern
                 # So now we need to ensure we DON'T have any pieces (of either player) in the exclude positions
@@ -547,32 +563,25 @@ class UtilsHex:
                     exclude_coord = start_coord + exclude_offset
                     if not UtilsHex.Coordinates.is_coord_on_board(*exclude_coord, boardsize):
                         # We don't care and can just ignore it
-                        continue
+                        # TODO: THIS IS ACTUALLY FINE, BUT WE NEED TO INTRODUCE EDGE TEMPLATES FOR IT TO WORK
+                        #  so ignore them for now, but come back later
+                        return None
 
-                    # Check that the value in the exclude position is what it needs to be:
-                    # exclude_match: -1 - DEFAULT: NEITHER player has a piece in the position, and the grid doesn't care
-                    # exclude_match: 2  - NEITHER player has a piece in the position, but the grid cares
-                    if hex_grid[exclude_coord[1]][exclude_coord[0]] != exclude_match:
-                        return -1
+                    # Check that the value in the exclude position is what it needs to be
+                    if hex_grid[exclude_coord[1]][exclude_coord[0]] != -1:
+                        return None
 
                 # We fully match this pattern for the player in the start position
-                return player
+                return UtilsHex.SearchPattern.Match(hex_grid, player, search_pattern, start_x, start_y)
 
-            # Make a new empty list to store all matches
+            # Every board position is a potential start position for the pattern
             matches = []
-
-            # Every literal position is a potential start position for the pattern
             boardsize = len(hex_grid)
             for start_y in range(boardsize):
                 for start_x in range(boardsize):
-                    match_player = match_pattern_at_start_coord(start_x, start_y)
-                    if match_player == -1:
-                        continue
+                    if match:=match_pattern_at_start_coord(start_x, start_y):
+                        matches.append(match)
 
-                    match = UtilsHex.SearchPattern.Match(search_pattern, hex_grid, match_player, start_x, start_y)
-                    matches.append(match)
-
-            # No starting positions match this search pattern
             return matches
 
 
@@ -1143,9 +1152,13 @@ class UtilsPlot:
     ### HEX
 
     @staticmethod
-    def _plot_hex_grid(hex_grid: List[List[int]], filepath: Path, inc_text: bool):
+    def _plot_hex_grid(hex_grid: List[List[int]], filepath: Path, show_axis: bool=False, coord_text_func: Callable[[int, int], str]=None):
         # Plot a Hexagonal Grid
         # - logic from: https://www.redblobgames.com/grids/hexagons/
+
+        # By default, the coord text is its position
+        if not coord_text_func:
+            coord_text_func = lambda x, y: UtilsHex.Coordinates.coord_to_position(x, y)
 
         # Define the grid colors
         cell_color = 'lightyellow'
@@ -1179,19 +1192,19 @@ class UtilsPlot:
                 # Plot any piece
                 player = hex_grid[y][x]
                 if player != -1:
-                    player = 1 if player in [1, 2] else 0  # AWFUL HACK explained in "UtilsHex.HexGrid" - 0 is black, 1 or 2 is visually white
                     piece = Circle(position, radius=hex_radius * 0.6,
                                    edgecolor=grid_color, facecolor=piece_colors[player])
                     ax.add_patch(piece)
 
                 # Write the hex position
-                if inc_text:
-                    hex_pos_text = UtilsHex.Coordinates.coord_to_position(x, y)
-                    hex_pos_text_color = grid_color if player == -1 else piece_colors[1 - player]
-                    ax.text(*position, hex_pos_text, ha='center', va='center', size=7, color=hex_pos_text_color)
+
+                coord_text = coord_text_func(x, y)
+                if coord_text:
+                    coord_text_color = grid_color if player == -1 else piece_colors[1 - player]
+                    ax.text(*position, coord_text, ha='center', va='center', size=7, color=coord_text_color)
 
         # Plot the axis labels for hex
-        if inc_text:
+        if show_axis:
             text_offset = hex_radius * 1.4
             for i in range(boardsize):
                 # Along the bottom
@@ -1243,13 +1256,19 @@ class UtilsPlot:
         if not filepath:
             plots_dir = UtilsPlot.PLOT_TEMPLATES_DIR / search_pattern.base_name
             filepath = plots_dir / f"{search_pattern}.png"
-        UtilsPlot._plot_hex_grid(hex_grid, filepath, False)
+
+        def coord_text_func(x, y):
+            is_coord = np.all(search_pattern.exclude_coords == [x, y], axis=1)
+            if not np.any(is_coord):
+                return ""
+            return str(np.argmax(is_coord))
+
+        UtilsPlot._plot_hex_grid(hex_grid, filepath, False, coord_text_func)
 
     @staticmethod
     def plot_search_pattern_match(match: UtilsHex.SearchPattern.Match, filepath: Path=None):
         if not filepath:
-            template_name = match.search_pattern.base_name
-            template_search_dir = UtilsPlot.PLOT_TEMPLATES_DIR / template_name / "searches"
+            template_search_dir = UtilsPlot.PLOT_TEMPLATES_DIR / match.search_pattern.base_name / "searches"
             template_search_dir.mkdir(parents=True, exist_ok=True)
             filepath = template_search_dir / f"{str(match)}.png"
         UtilsPlot._plot_hex_grid(match.hex_grid, filepath, True)
@@ -1368,7 +1387,7 @@ class UtilsPlot:
                 UtilsPlot.plot_search_pattern(variation)
 
 
-print("Loading Search Patterns from Templates...")
-UtilsHex.SearchPattern.add_from_templates_directory(Path("../templates"))
-print("Loading Datasets from file...")
-UtilsDataset.load_raw_datasets()
+UtilsHex.SearchPattern.initialise()
+
+# print("Loading Datasets from file...")
+# UtilsDataset.load_raw_datasets()
