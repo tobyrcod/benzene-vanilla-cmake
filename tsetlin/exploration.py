@@ -3,7 +3,7 @@ import itertools
 import os.path
 import random
 from collections import defaultdict, Counter
-from typing import Dict, List
+from typing import Dict, List, Tuple
 
 import numpy as np
 from pathlib import Path
@@ -185,15 +185,12 @@ def calculate_template_matches_in_dataset(ds_states: UtilsDataset.Dataset):
                         csv_writer.writerow([board, num_pieces, match.player, base_name, var_name, match.coord[0], match.coord[1]])
         csv_writer.writerow(['# Finished'])
 
-def load_background_template_occurrences(ds_states: UtilsDataset.Dataset):
-    file_dir: Path = UtilsPlot.PLOT_TEMPLATES_DIR
-    filepath: Path = file_dir / f"{ds_states.name}_dist_random_template_matches.csv"
-
+def _load_template_matches(filepath: Path) -> Tuple[int, List]:
     if not os.path.exists(filepath):
-        print(f'No Match Dataset found for the State Dataset: {ds_states}')
-        return
+        return -1, []
 
     intertemplate_matchings = calculate_intertemplate_matchings()
+    num_boards = -1
     matches = []
 
     def process_board_matches(board_matches):
@@ -263,11 +260,75 @@ def load_background_template_occurrences(ds_states: UtilsDataset.Dataset):
         # Process the final board
         process_board_matches(current_board_matches)
 
-    return matches
+    return num_boards, matches
 
-dataset = UtilsDataset.BASELINE
-calculate_template_matches_in_random(dataset)
+def load_template_matches_in_random(ds_dist: UtilsDataset.Dataset) -> Tuple[int, List]:
+    file_dir: Path = UtilsPlot.PLOT_TEMPLATES_DIR
+    filepath: Path = file_dir / f"{ds_dist.name}_dist_random_template_matches.csv"
 
-def analyse_matches(matches):
-    occurrence_counts = Counter(match['MatchBaseName'] for match in matches)
-    print(occurrence_counts)
+    return _load_template_matches(filepath)
+
+def load_template_matches_in_dataset(ds_states: UtilsDataset.Dataset) -> Tuple[int, List]:
+    file_dir: Path = UtilsPlot.PLOT_TEMPLATES_DIR
+    filepath: Path = file_dir / f"{ds_states.name}_template_matches.csv"
+
+    return _load_template_matches(filepath)
+
+# ANALYSIS
+
+def analyse():
+    # TODO: check distribution of moves is the same between both
+    # TODO: plot distribution of templates at all in both
+    # TODO: plot found templates in percentage of games (at all, and then per win/lose)
+
+    dataset = UtilsDataset.PLY_4
+    num_random, matches_random = load_template_matches_in_random(dataset)
+    num_dataset, matches_dataset = load_template_matches_in_dataset(dataset)
+
+    random_occurrences = Counter(match['MatchBaseName'] for match in matches_random)
+    random_frac = {key: value / num_random for key, value in random_occurrences.items()}
+    # print(random_frac, num_random)
+
+    dataset_occurrences = Counter(match['MatchBaseName'] for match in matches_dataset)
+    dataset_frac = {key: value / num_dataset for key, value in dataset_occurrences.items()}
+    # print(dataset_frac, num_dataset)
+
+    # Split dataset by winner/looser and matches by black/white and see changes
+
+    # Get the matches grouped by who they matched for
+    matches_black = [match for match in matches_dataset if match['MatchPlayer'] == 0]
+    matches_white = [match for match in matches_dataset if match['MatchPlayer'] == 1]
+    print(len(matches_black), len(matches_white), len(matches_black) / len(matches_dataset))
+    assert len(matches_black) + len(matches_white) == len(matches_dataset)
+
+    # Get the matches grouped by which player wins
+    matches_black_win = [match for match in matches_dataset if dataset.Y[match['Board#']] == 0]
+    matches_white_win = [match for match in matches_dataset if dataset.Y[match['Board#']] == 1]
+    print(len(matches_black_win), len(matches_white_win), len(matches_black_win) / len(matches_dataset))
+    assert len(matches_black_win) + len(matches_white_win) == len(matches_dataset)
+
+    # Exploring Black Wins
+    matches_black_and_black_win = [match for match in matches_black_win if match['MatchPlayer'] == 0]
+    matches_white_and_black_win = [match for match in matches_black_win if match['MatchPlayer'] == 1]
+    print(len(matches_black_and_black_win), len(matches_white_and_black_win), len(matches_black_and_black_win) / len(matches_black_win))
+    assert len(matches_black_and_black_win) + len(matches_white_and_black_win) == len(matches_black_win)
+
+    # Exploring White Wins
+    matches_black_and_white_win = [match for match in matches_white_win if match['MatchPlayer'] == 0]
+    matches_white_and_white_win = [match for match in matches_white_win if match['MatchPlayer'] == 1]
+    print(len(matches_black_and_white_win), len(matches_white_and_white_win), len(matches_black_and_white_win) / len(matches_white_win))
+    assert len(matches_black_and_white_win) + len(matches_white_and_white_win) == len(matches_white_win)
+
+    match_black_and_black_win_occurrences = Counter(match['MatchBaseName'] for match in matches_black_and_black_win)
+    match_white_and_black_win_occurrences = Counter(match['MatchBaseName'] for match in matches_white_and_black_win)
+
+    match_black_and_white_win_occurrences = Counter(match['MatchBaseName'] for match in matches_black_and_white_win)
+    match_white_and_white_win_occurrences = Counter(match['MatchBaseName'] for match in matches_white_and_white_win)
+
+    print(match_black_and_black_win_occurrences)
+    print(match_white_and_black_win_occurrences)
+
+    print(match_white_and_white_win_occurrences)
+    print(match_black_and_white_win_occurrences)
+
+analyse()
