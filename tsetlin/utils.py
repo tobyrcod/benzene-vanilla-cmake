@@ -3,6 +3,7 @@ import os
 import random
 import sys
 import csv
+from linecache import cache
 
 import matplotlib.pyplot
 import numpy as np
@@ -11,7 +12,7 @@ from pathlib import Path
 from matplotlib import pyplot as plt
 from matplotlib.patches import RegularPolygon, Circle
 from pysgf import SGF, SGFNode
-from typing import Any, Dict, List, Tuple, Callable
+from typing import Any, Dict, List, Tuple, Callable, Set
 from imblearn.under_sampling import RandomUnderSampler, TomekLinks, EditedNearestNeighbours
 from imblearn.over_sampling import RandomOverSampler
 from collections import Counter
@@ -195,7 +196,7 @@ class UtilsHex:
 
             boardsize = search_pattern.induced_boardsize
             hex_grid = [[-1 for x in range(boardsize)] for y in range(boardsize)]
-            for include_coord in search_pattern.include_coords:
+            for include_coord in search_pattern.induced_include_coords:
                 hex_grid[include_coord[1]][include_coord[0]] = 0
 
             return hex_grid
@@ -284,7 +285,13 @@ class UtilsHex:
 
         class Match:
 
-            def __init__(self, search_pattern: "UtilsHex.SearchPattern", hex_grid: List[List[int]], player: int, x: int, y: int):
+            class MatchType(Enum):
+                LOST            = 1     # Pattern matches with intrusions, but we failed to defend them correctly
+                EMPTY           = 2     # Pattern matches with no intrusions
+                INCONCLUSIVE    = 3     # Pattern matches with intrusions, but not enough to know anything
+                WON             = 4     # Pattern matches with intrusions, but we defended them correctly
+
+            def __init__(self, hex_grid: List[List[int]], player: int, match_type: "UtilsHex.SearchPattern.Match.MatchType", search_pattern: "UtilsHex.SearchPattern", x: int, y: int):
                 """
                 This match represents a search patten found in a hex grid for a player at a position
                 :param hex_grid: The hex grid we found the search pattern in
@@ -297,13 +304,14 @@ class UtilsHex:
                 self.hex_grid = hex_grid
                 self.search_pattern = search_pattern
                 self.player = player
+                self.match_type = match_type
                 self.coord = np.array([x, y])
                 self.boardsize = len(hex_grid)
 
             def __str__(self):
                 player_name = "black" if self.player == 0 else "white"
                 position = UtilsHex.Coordinates.coord_to_position(self.coord[0], self.coord[1])
-                return f"{self.boardsize}x{self.boardsize}_{self.search_pattern}_at_{position}_for_{player_name}"
+                return f"{self.boardsize}x{self.boardsize}_{self.match_type.name.lower()}_{self.search_pattern}_at_{position}_for_{player_name}"
 
             def __repr__(self):
                 return f"Match: {str(self)}"
@@ -335,17 +343,17 @@ class UtilsHex:
             # Make all the offsets positive by subtracting the smallest value in each dimension
             # This then gives us coordinates that will fit on a standard positive indexed grid
             standardise_func = lambda v: v-min_offsets
-            self.include_coords = np.apply_along_axis(standardise_func, axis=1, arr=include_offsets)
-            self.exclude_coords = np.apply_along_axis(standardise_func, axis=1, arr=exclude_offsets)
+            self.induced_include_coords = np.apply_along_axis(standardise_func, axis=1, arr=include_offsets)
+            self.induced_exclude_coords = np.apply_along_axis(standardise_func, axis=1, arr=exclude_offsets)
 
             # Create a unique id string to identify if search patterns are the same
-            include_indices = [str(UtilsHex.Coordinates.coord_to_index(v[0], v[1], self.induced_boardsize))
-                               for v in self.include_coords]
-            exclude_indices = [str(UtilsHex.Coordinates.coord_to_index(v[0], v[1], self.induced_boardsize))
-                               for v in self.exclude_coords]
-            include_indices.sort()
-            exclude_indices.sort()
-            self.uid = f"{','.join(include_indices)}-{','.join(exclude_indices)}"
+            induced_include_indices = [str(UtilsHex.Coordinates.coord_to_index(v[0], v[1], self.induced_boardsize))
+                               for v in self.induced_include_coords]
+            induced_exclude_indices = [str(UtilsHex.Coordinates.coord_to_index(v[0], v[1], self.induced_boardsize))
+                               for v in self.induced_exclude_coords]
+            induced_include_indices.sort()
+            induced_exclude_indices.sort()
+            self.uid = f"{','.join(induced_include_indices)}-{','.join(induced_exclude_indices)}"
 
         def __eq__(self, other: "UtilsHex.SearchPattern"):
             if not isinstance(other, UtilsHex.SearchPattern):
@@ -413,7 +421,7 @@ class UtilsHex:
 
             print("Loading Search Patterns from Templates...")
             add_from_templates_directory(Path("../templates"))
-            print('Complete!')
+            print(UtilsHex.SearchPattern.get_pattern_names())
 
         # Getting the patterns that exist
 
@@ -459,7 +467,249 @@ class UtilsHex:
             hex_grid = UtilsHex.HexGrid.from_search_pattern(looking_in)
 
             # And search the hex grid
-            return UtilsHex.SearchPattern._search_hex_grid(looking_for, hex_grid, allowed_players=[0])
+            return UtilsHex.SearchPattern._search_hex_grid(looking_for, hex_grid, allowed_players={0})
+
+        @staticmethod
+        def get_match_type_from_search_pattern_rules(base_name: str, player: int, exclude_players: List[int]) -> "UtilsHex.SearchPattern.Match.MatchType":
+            # TODO: may be able to just test if its possible to become fully connected
+            #  via only the exclude positions with some pathfinding search?
+            #  and ignore all the individual rules... yes that would work... But maybe we lose some useful insights?
+            #  IDEA: if we follow the perfect path of the template we still check that manually,
+            #  but the rest is then automated connectivity path search
+            # TODO: maybe add (LOSING, WINNING) cases to split INCONCLUSIVE
+            #  for if we are following the forced path of the template
+            #  or only won because we got lucky and the opponent made the wrong move
+            # TODO: maybe change some of the WON to also WON_IMPERFECT
+            #  as sure it is connected, but it doesnt follow the template play you should have done for this template
+
+            # In the plot of each template we can see 0-n labelling each of the intrusion positions.
+            # We can use who is in each of these, param: exclude_players, to work out the match type
+
+            # There are some checks we can do independent of which search_pattern we are:
+            # 1. Regardless of search pattern, we need the right amount of players
+            base_pattern = UtilsHex.SearchPattern.get_pattern_variations(base_name)[0]
+            assert len(exclude_players) == len(base_pattern.exclude_offsets)
+
+            # 2. Regardless of the search pattern, if everything is -1 then we are empty
+            if all(exclude_player == -1 for exclude_player in exclude_players):
+                return UtilsHex.SearchPattern.Match.MatchType.EMPTY
+
+            # Now we can perform the checks for each pattern
+            other_player = 1 - player
+
+            if base_name == 'bridge':
+                # GOAL: to form full connectivity from one side of the bridge to the other
+
+                # We can achieve this by looking at the pieces in the gap of the bridge
+                counter = Counter(exclude_players)
+                # TODO: for example, if we have both the bridge cells, this is a definitive waste of a piece
+                #  as we can win with just 1, so this case should be a different kind of win (or even a loss?)
+                # If you have at least 1 of the exclude positions, you win
+                if counter[player] >= 1:
+                    return UtilsHex.SearchPattern.Match.MatchType.WON
+                # If both exclude positions are the opponents, you lose
+                if counter[other_player] == 2:
+                    return UtilsHex.SearchPattern.Match.MatchType.LOST
+                # There must be at least one empty position
+                assert counter[-1] >= 1
+                # We are still able to win by playing in the empty cell, and haven't lost yet
+                return UtilsHex.SearchPattern.Match.MatchType.INCONCLUSIVE
+
+            if base_name == 'wheel':
+                # GOAL: to fully connect all 3 of the wheel cells
+
+                # If you have the center, you win
+                if exclude_players[2] == player:
+                    return UtilsHex.SearchPattern.Match.MatchType.WON
+                # If no one has the center...
+                if exclude_players[2] == -1:
+                    # we are at worst inconclusive (as you could get the center later)
+                    at_worst = UtilsHex.SearchPattern.Match.MatchType.INCONCLUSIVE
+                    # We now search again assuming the opponent has the center
+                    # to see if we could win any other way
+                    new_exclude_players = exclude_players[:]
+                    new_exclude_players[2] = other_player
+                    second_attempt = UtilsHex.SearchPattern.get_match_type_from_search_pattern_rules(
+                        base_name, player, new_exclude_players)
+                    return max(at_worst, second_attempt, key=lambda mt: mt.value)
+                # The opponent has the center
+                assert exclude_players[2] == other_player
+                # So we need to consider the outside ring
+                outer_counter = Counter([exclude_players[i] for i in [0, 1, 3]])
+                # If we have 2 or more outer pieces, we win
+                if outer_counter[player] >= 2:
+                    return UtilsHex.SearchPattern.Match.MatchType.WON
+                # If the opponent has 2 or more outer pieces (and the center), we lose
+                if outer_counter[other_player] >= 2:
+                    return UtilsHex.SearchPattern.Match.MatchType.LOST
+                # Both players have at most 1 outer piece, so we must wait for more play
+                assert outer_counter[player] <= 1 and outer_counter[other_player] <= 1
+                return UtilsHex.SearchPattern.Match.MatchType.INCONCLUSIVE
+
+            if base_name == 'crescent':
+                # GOAL: to form full connectivity from one side of the crescent to the other
+
+                # If we have the bottom piece, we win
+                if exclude_players[3] == player:
+                    return UtilsHex.SearchPattern.Match.MatchType.WON
+                # If no one has the bottom piece...
+                if exclude_players[3] == -1:
+                    # we are at worst inconclusive (as you could get the bottom later)
+                    at_worst = UtilsHex.SearchPattern.Match.MatchType.INCONCLUSIVE
+                    # We now search again assuming the opponent has the bottom
+                    # to see if we could win any other way
+                    new_exclude_players = exclude_players[:]
+                    new_exclude_players[3] = other_player
+                    second_attempt = UtilsHex.SearchPattern.get_match_type_from_search_pattern_rules(
+                        base_name, player, new_exclude_players)
+                    return max(at_worst, second_attempt, key=lambda mt: mt.value)
+                # The opponent has the bottom piece
+                assert exclude_players[3] == other_player
+                # so we need to consider the upper triangle
+                # If we have been cut off, we lose
+                if exclude_players[2] == other_player:
+                    return UtilsHex.SearchPattern.Match.MatchType.LOST
+                # If we could be cut off in the future, we are inconclusive
+                if exclude_players[2] == -1:
+                    return UtilsHex.SearchPattern.Match.MatchType.INCONCLUSIVE
+                # We have the piece we could have been cut off with
+                assert exclude_players[2] == player
+                # So now we can analyse the final 2 cells
+                counter = Counter([exclude_players[i] for i in [0, 1]])
+                # If we have either of these cells, we have formed a full connection
+                if player in counter:
+                    return UtilsHex.SearchPattern.Match.MatchType.WON
+                # If either is empty, we still have the potential to form a full connection
+                if -1 in counter:
+                    return UtilsHex.SearchPattern.Match.MatchType.INCONCLUSIVE
+                # They are both the opponents pieces
+                assert counter[other_player] == 2
+                return UtilsHex.SearchPattern.Match.MatchType.LOST
+
+            if base_name == 'trapezoid':
+                # GOAL: to fully connect the top and bottom sides of the trapezoid
+
+                # trapezoid is broken into 2 pairs, (0, 1) and (2, 3),
+                # s.t. if white has one in a pair, we take the other, and win!
+                pair_1 = [exclude_players[i] for i in [0, 1]]
+                counter_1 = Counter(pair_1)
+                pair_2 = [exclude_players[i] for i in [2, 3]]
+                counter_2 = Counter(pair_2)
+                # If we have at least one in each pair, we win (by construction)
+                if counter_1[player] >= 1 and counter_2[player] >= 1:
+                    return UtilsHex.SearchPattern.Match.MatchType.WON
+                # If we have both of pair 2, we win:
+                if counter_2[player] == 2:
+                    return UtilsHex.SearchPattern.Match.MatchType.WON
+                # We have (0, 0), (0, 1), (1, 0) or (2, 0) in (pair1, pair2)
+                assert (counter_1[player], counter_2[player]) in [(0, 0), (0, 1), (1, 0), (2, 0)]
+                # If opponent has any 3 cells, we are cut off and lose
+                if counter_1[other_player] + counter_2[other_player] >= 3:
+                    return UtilsHex.SearchPattern.Match.MatchType.LOST
+                # The opponent has at most 2 cells
+                assert counter_1[other_player] + counter_2[other_player] <= 2
+                # If those 2 are in pair 2, we are cut off and lose
+                if counter_2[other_player] == 2:
+                    return UtilsHex.SearchPattern.Match.MatchType.LOST
+                # If those 2 are in pair 1,
+                if counter_1[other_player] == 2:
+                    # We have (0, 0) or (0, 1) only, neither of which is enough
+                    return UtilsHex.SearchPattern.Match.MatchType.INCONCLUSIVE
+                # The opponent has at most one piece in each pair
+                assert counter_1[other_player] <= 1 and counter_2[other_player] <= 1
+                # Or put another way, they have (0, 0), (0, 1), (1, 0), (1, 1) in (pair1, pair2)
+                assert (counter_1[other_player], counter_2[other_player]) in [(0, 0), (0, 1), (1, 0), (1, 1)]
+                # In all these remaining combinations, we don't know enough
+                return UtilsHex.SearchPattern.Match.MatchType.INCONCLUSIVE
+
+            if base_name == 'span':
+                # GOAL: to form full connectivity from one side of the span to the other
+
+                # If we have the bottom piece, we win
+                if exclude_players[5] == player:
+                    return UtilsHex.SearchPattern.Match.MatchType.WON
+                # If no one has the bottom piece...
+                if exclude_players[5] == -1:
+                    # we are at worst inconclusive (as you could get the bottom later)
+                    at_worst = UtilsHex.SearchPattern.Match.MatchType.INCONCLUSIVE
+                    # We now search again assuming the opponent has the bottom piece
+                    # to see if we could win any other way
+                    new_exclude_players = exclude_players[:]
+                    new_exclude_players[5] = other_player
+                    second_attempt = UtilsHex.SearchPattern.get_match_type_from_search_pattern_rules(
+                        base_name, player, new_exclude_players)
+                    return max(at_worst, second_attempt, key=lambda mt: mt.value)
+                # The opponent has the bottom piece
+                assert exclude_players[5] == other_player
+                # So we need to consider the triangle [0, 1, 2, 3, 4]
+                # If the rest of the triangle is empty,
+                if all(exclude_players[i] == -1 for i in [0, 1, 2, 3, 4]) == 5:
+                    # we don't know what might happen there
+                    return UtilsHex.SearchPattern.Match.MatchType.INCONCLUSIVE
+                # If we have the double bridge potential piece (1)
+                if exclude_players[1] == player:
+                    # We have the double bridge cell, so let's check them!
+                    # NOTE: Check the pattern plots to see where the mappings come from
+                    # The left bridge is rot60
+                    bridge_left_players = [exclude_players[0], exclude_players[3]]
+                    result_bridge_left = UtilsHex.SearchPattern.get_match_type_from_search_pattern_rules(
+                        'bridge', player, bridge_left_players)
+                    # The right bridge is the base bridge
+                    bridge_right_players = [exclude_players[2], exclude_players[4]]
+                    result_bridge_right = UtilsHex.SearchPattern.get_match_type_from_search_pattern_rules(
+                        'bridge', player, bridge_right_players)
+                    # We win this template if we won both of the bridges
+                    if result_bridge_left == UtilsHex.SearchPattern.Match.MatchType.WON and \
+                            result_bridge_right == UtilsHex.SearchPattern.Match.MatchType.WON:
+                        return UtilsHex.SearchPattern.Match.MatchType.WON
+                    # We lose if we lose either bridge
+                    if result_bridge_left == UtilsHex.SearchPattern.Match.MatchType.LOST or \
+                            result_bridge_right == UtilsHex.SearchPattern.Match.MatchType.LOST:
+                        return UtilsHex.SearchPattern.Match.MatchType.LOST
+                    # At least one bridge is inconclusive or empty
+                    options = {UtilsHex.SearchPattern.Match.MatchType.EMPTY,
+                               UtilsHex.SearchPattern.Match.MatchType.INCONCLUSIVE}
+                    assert result_bridge_left in options or result_bridge_right in options
+                    # which makes this span inconclusive
+                    return UtilsHex.SearchPattern.Match.MatchType.INCONCLUSIVE
+                # If the opponent has the double bridge piece
+                if exclude_players[1] == other_player:
+                    # The opponent has a bridge between the double bridge pos and the bottom
+                    # Get the results of that bridge
+                    # NOTE: Check the pattern plots to see where the mappings come from
+                    # The opponent bridge is rot120
+                    opponent_bridge_players = [exclude_players[3], exclude_players[4]]
+                    opponents_bridge_type = UtilsHex.SearchPattern.get_match_type_from_search_pattern_rules(
+                        'bridge', other_player, opponent_bridge_players)
+                    # If they win this bridge, we lose
+                    if opponents_bridge_type == UtilsHex.SearchPattern.Match.MatchType.WON:
+                        return UtilsHex.SearchPattern.Match.MatchType.LOST
+                    # If they lost this bridge, we win
+                    if opponents_bridge_type == UtilsHex.SearchPattern.Match.MatchType.LOST:
+                        # TODO: this is a broken template win, we win but NOT THE RIGHT WAY (NOT FORCED / GOT LUCKY)
+                        return UtilsHex.SearchPattern.Match.MatchType.WON
+                    # If this bridge is empty or inconclusive, the span is inconclusive
+                    return UtilsHex.SearchPattern.Match.MatchType.INCONCLUSIVE
+                # The double bridge position is empty
+                assert exclude_players[1] == -1
+                # If we have both of the middle row, we have won
+                if all(exclude_players[i] == player for i in [3, 4]):
+                    return UtilsHex.SearchPattern.Match.MatchType.WON
+                # We don't have the middle row,
+                # so it is not possible for us to win without the double bridge position
+                # We can imagine what the result would be if we DID have the double bridge position
+                new_exclude_players = exclude_players[:]
+                new_exclude_players[1] = player
+                second_attempt = UtilsHex.SearchPattern.get_match_type_from_search_pattern_rules(
+                    'span', player, new_exclude_players)
+                # If we COULDN'T win, we have definitely lost
+                if second_attempt == UtilsHex.SearchPattern.Match.MatchType.LOST:
+                    return UtilsHex.SearchPattern.Match.MatchType.LOST
+                # We have a chance at not loosing, so we could take it
+                return UtilsHex.SearchPattern.Match.MatchType.INCONCLUSIVE
+
+            # We must have provided an invalid base_name
+            return UtilsHex.SearchPattern.Match.MatchType.LOST
 
         # ----------------------------------------
         # PRIVATE INTERFACE
@@ -518,7 +768,7 @@ class UtilsHex:
             UtilsHex.SearchPattern._DATASET[search_pattern.base_name] = variations
 
         @staticmethod
-        def _search_hex_grid(search_pattern: "UtilsHex.SearchPattern", hex_grid: List[List[int]], allowed_players:List[int]=None) -> List["UtilsHex.SearchPattern.Match"]:
+        def _search_hex_grid(search_pattern: "UtilsHex.SearchPattern", hex_grid: List[List[int]], allowed_players: Set[int]=None) -> List["UtilsHex.SearchPattern.Match"]:
             """
             Search through a hex grid to try and find a pattern
             :param search_pattern: coordinates that must contain a piece of the players color, and coordinates that must NOT contain any piece
@@ -529,9 +779,9 @@ class UtilsHex:
 
             # By default, we are allowed to find a match for either player
             if allowed_players is None:
-                allowed_players = [0, 1]
+                allowed_players = {0, 1}
 
-            def match_pattern_at_start_coord(start_x, start_y) -> "UtilsHex.SearchPattern.Match":
+            def match_pattern_at_start_coord(start_x, start_y) -> UtilsHex.SearchPattern.Match:
                 """
                 :param start_x: the x coordinate to start the pattern at
                 :param start_y: the y coordinate to start the pattern at
@@ -556,23 +806,29 @@ class UtilsHex:
                     if hex_grid[include_coord[1]][include_coord[0]] != player:
                         return None
 
-                # We have a piece of the right player in every position of the pattern
-                # So now we need to ensure we DON'T have any pieces (of either player) in the exclude positions
+                # We have a piece of the right player in every include position of the pattern
+                # This means we definitely have a match!
+                # Now we need to classify if this is an EMPTY, INCONCLUSIVE, WON, or LOST match
+
+                # We do this by checking which player is in each exclude_position
+                exclude_players = []
                 for exclude_offset in search_pattern.exclude_offsets:
                     # If the position we want to exclude is off the board from this start position
                     exclude_coord = start_coord + exclude_offset
                     if not UtilsHex.Coordinates.is_coord_on_board(*exclude_coord, boardsize):
-                        # We don't care and can just ignore it
+                        # We can't apply the rules of the template correctly, so we ignore it
                         # TODO: THIS IS ACTUALLY FINE, BUT WE NEED TO INTRODUCE EDGE TEMPLATES FOR IT TO WORK
                         #  so ignore them for now, but come back later
                         return None
 
-                    # Check that the value in the exclude position is what it needs to be
-                    if hex_grid[exclude_coord[1]][exclude_coord[0]] != -1:
-                        return None
+                    # If it is on the board, we get the player in this position
+                    exclude_players.append(hex_grid[exclude_coord[1]][exclude_coord[0]])
 
-                # We fully match this pattern for the player in the start position
-                return UtilsHex.SearchPattern.Match(hex_grid, player, search_pattern, start_x, start_y)
+                # And then we ask the search_pattern what this combination of players means
+                match_type = UtilsHex.SearchPattern.get_match_type_from_search_pattern_rules(
+                    search_pattern.base_name, player, exclude_players)
+
+                return UtilsHex.SearchPattern.Match(hex_grid, player, match_type, search_pattern, start_x, start_y)
 
             # Every board position is a potential start position for the pattern
             matches = []
@@ -1248,21 +1504,39 @@ class UtilsPlot:
         UtilsPlot._plot_hex_grid(hex_grid, filepath, True)
 
     @staticmethod
-    def plot_search_pattern(search_pattern: UtilsHex.SearchPattern, filepath: Path=None):
+    def plot_search_pattern(search_pattern: UtilsHex.SearchPattern, exclude_players: List[int]=None, filepath: Path=None):
         # Convert the search pattern to a hex grid
         hex_grid = UtilsHex.HexGrid.from_search_pattern(search_pattern)
 
-        # And plot the hex grid
+        # Add anything additional to the grid we want to
+        if exclude_players:
+            assert len(exclude_players) == len(search_pattern.induced_exclude_coords)
+            for exclude_player, exclude_coord in zip(exclude_players, search_pattern.induced_exclude_coords):
+                hex_grid[exclude_coord[1]][exclude_coord[0]] = exclude_player
+
+        # Set a default filepath if none is given
         if not filepath:
-            plots_dir = UtilsPlot.PLOT_TEMPLATES_DIR / search_pattern.base_name
-            filepath = plots_dir / f"{search_pattern}.png"
+            if exclude_players:
+                match_type = UtilsHex.SearchPattern.get_match_type_from_search_pattern_rules(
+                    search_pattern.base_name, 0, exclude_players)
+                plots_dir = UtilsPlot.PLOT_TEMPLATES_DIR / search_pattern.base_name / "match_types" / match_type.name.lower()
+                filepath = plots_dir / f"{search_pattern}_is_{match_type.name.lower()}_for_[{','.join(map(str, exclude_players))}]"
+            else:
+                plots_dir = UtilsPlot.PLOT_TEMPLATES_DIR / search_pattern.base_name
+                filepath = plots_dir / f"{search_pattern}.png"
 
         def coord_text_func(x, y):
-            is_coord = np.all(search_pattern.exclude_coords == [x, y], axis=1)
-            if not np.any(is_coord):
-                return ""
-            return str(np.argmax(is_coord))
+            is_include_coord = np.all(search_pattern.induced_include_coords == [x, y], axis=1)
+            if np.any(is_include_coord):
+                return str(np.argmax(is_include_coord))
 
+            is_exclude_coord = np.all(search_pattern.induced_exclude_coords == [x, y], axis=1)
+            if np.any(is_exclude_coord):
+                return str(np.argmax(is_exclude_coord))
+
+            return ""
+
+        # And plot the hex grid
         UtilsPlot._plot_hex_grid(hex_grid, filepath, False, coord_text_func)
 
     @staticmethod
@@ -1386,8 +1660,38 @@ class UtilsPlot:
             for variation in UtilsHex.SearchPattern.get_pattern_variations(pattern_name):
                 UtilsPlot.plot_search_pattern(variation)
 
+    @staticmethod
+    def _plot_all_search_pattern_match_types(base_name: str):
+        # Go through every possible exclude players for template and plot the match type
+        base_pattern = UtilsHex.SearchPattern.get_pattern_variations(base_name)[0]
+
+        num_exclude_players = len(base_pattern.exclude_offsets)
+        for i, exclude_players in enumerate(itertools.product([-1, 0, 1], repeat=num_exclude_players)):
+            # There are too many to look at all the combinations
+            # So here's what we do:
+            # Any trivial wins are just checked to be correct
+            # We then plot everything that isn't trivial
+            print(i)
+
+            match_type = UtilsHex.SearchPattern.get_match_type_from_search_pattern_rules(
+                base_name, 0, list(exclude_players))
+
+            if all(exclude_player == -1 for exclude_player in exclude_players):
+                assert match_type == UtilsHex.SearchPattern.Match.MatchType.EMPTY
+                continue
+
+            if base_name == 'span':
+                if exclude_players[5] == 0:
+                    assert match_type == UtilsHex.SearchPattern.Match.MatchType.WON
+                    continue
+                if exclude_players[5] == -1:
+                    assert match_type != UtilsHex.SearchPattern.Match.MatchType.LOST
+
+            UtilsPlot.plot_search_pattern(base_pattern, exclude_players=list(exclude_players))
 
 UtilsHex.SearchPattern.initialise()
+# UtilsPlot._plot_all_search_pattern_variations()
+# UtilsPlot._plot_all_search_pattern_match_types('crescent')
 
 # print("Loading Datasets from file...")
 # UtilsDataset.load_raw_datasets()

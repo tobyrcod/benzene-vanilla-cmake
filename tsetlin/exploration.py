@@ -16,24 +16,28 @@ def find_random_match_in_random_board():
     boardsize = random.choice(boardsizes)
 
     # Randomly select a pattern
-    template_names = UtilsHex.SearchPattern.get_pattern_names()
+    template_names = ['wheel'] # UtilsHex.SearchPattern.get_pattern_names()
     template_name = random.choice(template_names)
 
     # Randomly select a variation of this pattern
     variations = UtilsHex.SearchPattern.get_pattern_variations(template_name)
-    search_pattern = random.choice(variations)
+    search_pattern = variations[0] # random.choice(variations)
+
+    # Randomly select a match type
+    match_type = random.choice(list(UtilsHex.SearchPattern.Match.MatchType))
 
     i = 0
     matches = None
     while not matches:
         literals = UtilsTM.Literals.make_random_board(boardsize)
         matches = UtilsHex.SearchPattern.search_literals(search_pattern, literals, boardsize)
+        matches = [match for match in matches if match.match_type == match_type]
         i += 1
 
     # For now, just plot the first match and ignore the rest
     match = matches[0]
     UtilsPlot.plot_search_pattern_match(match)
-    print(search_pattern, match)
+    print(match)
 
 def calculate_intertemplate_matchings() -> Dict[str, Dict[str, List[np.array]]]:
     # See which templates can be found entirely inside other templates (probably always just bridges...)
@@ -42,7 +46,7 @@ def calculate_intertemplate_matchings() -> Dict[str, Dict[str, List[np.array]]]:
     matchings = defaultdict(lambda: defaultdict(list))
 
     def check_for_in_pair(looking_for: UtilsHex.SearchPattern, looking_in: UtilsHex.SearchPattern):
-        local_origin = looking_in.include_coords[0]
+        local_origin = looking_in.induced_include_coords[0]
         matches = UtilsHex.SearchPattern.search_search_pattern(looking_for, looking_in)
         for match in matches:
             local_match_position = match.coord - local_origin
@@ -74,7 +78,7 @@ def calculate_template_matches_in_random(ds_dist: UtilsDataset.Dataset):
 
     file_dir: Path = UtilsPlot.PLOT_TEMPLATES_DIR
     filepath: Path = file_dir / f"{ds_dist.name}_dist_random_template_matches.csv"
-    csv_headers = ['Board#', 'NumPieces', 'MatchPlayer', 'MatchBaseName', 'MatchVarName', 'MatchX', 'MatchY']
+    csv_headers = ['Board#', 'NumPieces', 'MatchPlayer', 'MatchType', 'MatchBaseName', 'MatchVarName', 'MatchX', 'MatchY']
 
     # If this match dataset already exist, we need to correctly add to it
     if os.path.exists(filepath):
@@ -123,7 +127,7 @@ def calculate_template_matches_in_random(ds_dist: UtilsDataset.Dataset):
                     for match in matches:
                         base_name = match.search_pattern.base_name
                         var_name = match.search_pattern.variation_name
-                        csv_writer.writerow([board, num_pieces, match.player, base_name, var_name, match.coord[0], match.coord[1]])
+                        csv_writer.writerow([board, num_pieces, match.player, match.type, base_name, var_name, match.coord[0], match.coord[1]])
         csv_writer.writerow(['# Finished'])
 
 def calculate_template_matches_in_dataset(ds_states: UtilsDataset.Dataset):
@@ -133,7 +137,7 @@ def calculate_template_matches_in_dataset(ds_states: UtilsDataset.Dataset):
 
     file_dir: Path = UtilsPlot.PLOT_TEMPLATES_DIR
     filepath: Path = file_dir / f"{ds_states.name}_template_matches.csv"
-    csv_headers = ['Board#', 'NumPieces', 'MatchPlayer', 'MatchBaseName', 'MatchVarName', 'MatchX', 'MatchY']
+    csv_headers = ['Board#', 'NumPieces', 'MatchPlayer', 'MatchType', 'MatchBaseName', 'MatchVarName', 'MatchX', 'MatchY']
 
     # If this match dataset already exist, we need to correctly add to it
     if os.path.exists(filepath):
@@ -182,7 +186,7 @@ def calculate_template_matches_in_dataset(ds_states: UtilsDataset.Dataset):
                     for match in matches:
                         base_name = match.search_pattern.base_name
                         var_name = match.search_pattern.variation_name
-                        csv_writer.writerow([board, num_pieces, match.player, base_name, var_name, match.coord[0], match.coord[1]])
+                        csv_writer.writerow([board, num_pieces, match.player, match.type, base_name, var_name, match.coord[0], match.coord[1]])
         csv_writer.writerow(['# Finished'])
 
 def _load_template_matches(filepath: Path) -> Tuple[int, List]:
@@ -198,7 +202,12 @@ def _load_template_matches(filepath: Path) -> Tuple[int, List]:
         # First we find where we would remove any match if it existed
         potential_remove_matches = defaultdict(set)
         for match in board_matches:
-            # TODO: use fullname in intertemplate without need for this computing the full name
+
+            # TODO: maybe try with and without this to see what we should do
+            # If this match is LOST, then we don't mind if we keep those dependent on it
+            if match['MatchType'] == UtilsHex.SearchPattern.Match.MatchType.LOST:
+                continue
+
             full_name = match['MatchBaseName']
             if match['MatchVarName']:
                 full_name += f"_{match['MatchVarName']}"
