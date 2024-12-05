@@ -186,7 +186,7 @@ def calculate_template_matches_in_dataset(ds_states: UtilsDataset.Dataset):
                     for match in matches:
                         base_name = match.search_pattern.base_name
                         var_name = match.search_pattern.variation_name
-                        csv_writer.writerow([board, num_pieces, match.player, match.type, base_name, var_name, match.coord[0], match.coord[1]])
+                        csv_writer.writerow([board, num_pieces, match.player, match.match_type, base_name, var_name, match.coord[0], match.coord[1]])
         csv_writer.writerow(['# Finished'])
 
 def _load_template_matches(filepath: Path) -> Tuple[int, List]:
@@ -257,6 +257,7 @@ def _load_template_matches(filepath: Path) -> Tuple[int, List]:
             if line == ['# Finished']:
                 break
             match = dict(zip(headers, [int(x) if x.isdigit() else x for x in line]))
+            match['MatchType'] = UtilsHex.SearchPattern.Match.MatchType[match['MatchType'].split('.')[-1]]
             board = match['Board#']
             if board != current_board:
                 # We have reached the end of the current board
@@ -290,17 +291,20 @@ def analyse():
     # TODO: plot distribution of templates at all in both
     # TODO: plot found templates in percentage of games (at all, and then per win/lose)
 
-    dataset = UtilsDataset.PLY_4
-    num_random, matches_random = load_template_matches_in_random(dataset)
+    dataset = UtilsDataset.BASELINE
+    # num_random, matches_random = load_template_matches_in_random(dataset)
     num_dataset, matches_dataset = load_template_matches_in_dataset(dataset)
 
-    random_occurrences = Counter(match['MatchBaseName'] for match in matches_random)
-    random_frac = {key: value / num_random for key, value in random_occurrences.items()}
+    # random_occurrences = Counter(match['MatchBaseName'] for match in matches_random)
+    # random_frac = {key: value / num_random for key, value in random_occurrences.items()}
     # print(random_frac, num_random)
 
     dataset_occurrences = Counter(match['MatchBaseName'] for match in matches_dataset)
-    dataset_frac = {key: value / num_dataset for key, value in dataset_occurrences.items()}
-    # print(dataset_frac, num_dataset)
+    print(num_dataset, dataset_occurrences)
+    matches_dataset = [match for match in matches_dataset if
+                       match['MatchType'] == UtilsHex.SearchPattern.Match.MatchType.WON]
+    dataset_occurrences = Counter(match['MatchBaseName'] for match in matches_dataset)
+    print(num_dataset, dataset_occurrences)
 
     # Split dataset by winner/looser and matches by black/white and see changes
 
@@ -317,15 +321,17 @@ def analyse():
     assert len(matches_black_win) + len(matches_white_win) == len(matches_dataset)
 
     # Exploring Black Wins
+    print('Black Wins')
     matches_black_and_black_win = [match for match in matches_black_win if match['MatchPlayer'] == 0]
     matches_white_and_black_win = [match for match in matches_black_win if match['MatchPlayer'] == 1]
     print(len(matches_black_and_black_win), len(matches_white_and_black_win), len(matches_black_and_black_win) / len(matches_black_win))
     assert len(matches_black_and_black_win) + len(matches_white_and_black_win) == len(matches_black_win)
 
     # Exploring White Wins
+    print('White Wins')
     matches_black_and_white_win = [match for match in matches_white_win if match['MatchPlayer'] == 0]
     matches_white_and_white_win = [match for match in matches_white_win if match['MatchPlayer'] == 1]
-    print(len(matches_black_and_white_win), len(matches_white_and_white_win), len(matches_black_and_white_win) / len(matches_white_win))
+    print(len(matches_black_and_white_win), len(matches_white_and_white_win), len(matches_white_and_white_win) / len(matches_white_win))
     assert len(matches_black_and_white_win) + len(matches_white_and_white_win) == len(matches_white_win)
 
     match_black_and_black_win_occurrences = Counter(match['MatchBaseName'] for match in matches_black_and_black_win)
@@ -334,10 +340,12 @@ def analyse():
     match_black_and_white_win_occurrences = Counter(match['MatchBaseName'] for match in matches_black_and_white_win)
     match_white_and_white_win_occurrences = Counter(match['MatchBaseName'] for match in matches_white_and_white_win)
 
+    print('Black Wins')
     print(match_black_and_black_win_occurrences)
     print(match_white_and_black_win_occurrences)
 
+    print('White Wins')
     print(match_white_and_white_win_occurrences)
     print(match_black_and_white_win_occurrences)
 
-find_random_match_in_random_board()
+analyse()

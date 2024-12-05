@@ -1311,6 +1311,8 @@ class UtilsDataset:
         :return:
         """
 
+        print("Loading Datasets from file...")
+
         augmentation = UtilsTM.Literals.Augmentation.AUG_NONE
         history = UtilsTM.Literals.History.HISTORY_NONE
         history_size = 0
@@ -1693,5 +1695,4 @@ UtilsHex.SearchPattern.initialise()
 # UtilsPlot._plot_all_search_pattern_variations()
 # UtilsPlot._plot_all_search_pattern_match_types('crescent')
 
-# print("Loading Datasets from file...")
-# UtilsDataset.load_raw_datasets()
+UtilsDataset.load_raw_datasets()
