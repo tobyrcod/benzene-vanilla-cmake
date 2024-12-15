@@ -1,21 +1,41 @@
-87521 config: MoHex v2.0.CMake Oct 24 2024.
-87521 config: ============ InitializeSystem ============
-87521 config: BenzeneProgram::InitRandom()
-87521 config: Seed = 663177
-36a21 info: Prior Patterns:
-36a21 info: Global:
-36a21 info: Size            = 565 32648 
-36a21 info: TableEntries    = 65932 65910
-36a21 info: MirrorsAdded    = 0 0
-36a21 info: PrunableCount   = 30593 30629
-36a21 info: LargestGamma    = 5820.77
-36a21 info: SmallestGamma   = 6.6e-05
-36a21 info: Local:
-36a21 info: Size            = 550 5318 
-36a21 info: TableEntries    = 11602 11588
-36a21 info: MirrorsAdded    = 0 0
-36a21 info: PrunableCount   = 3659 3667
-36a21 info: LargestGamma    = 11281.8
-36a21 info: SmallestGamma   = 0.026235
-36a21 info: Playout Patterns:
-36a21 info: Global:
+0b111 config: MoHex v2.0.CMake Oct 24 2024.
+0b111 config: ============ InitializeSystem ============
+0b111 config: BenzeneProgram::InitRandom()
+0b111 config: Seed = 1275976f151 info: Prior Patterns:
+6f151 info: Global:
+60b111 info: Size            = 565 32648 
+0b111 info: TableEntries    = 65932 65910
+0b111 info: MirrorsAdded    = 0 0
+0b111 info: PrunableCount   = 30593 30629
+0b111 info: LargestGamma    = 5820.77
+0b111 info: SmallestGamma   = 6.6e-05
+0b111 info: Local:6f151 info: Size            = 550 5318 
+6f151 info: TableEntries    = 11602 11588
+6f151 info: MirrorsAdded    = 0 0
+6f151 info: PrunableCount   = 3659 3667
+6f151 info: LargestGamma    = 11281.8
+6f151 info: SmallestGamma   = 0.026235
+6f151 info: Playout Patterns:
+6f151 info: Global:
+6f151 info: Size            = 565 32648 
+6f151 info: TableEntries    = 70329 70329
+6f151 info: MirrorsAdded    = 4397 4419
+6f151 info: PrunableCount   = 30593 30629
+6f151 info: LargestGamma    = 5820.77
+6f151 info: SmallestGamma   = 6.6e-05
+6f151 info: Local:
+6f151 info: Size            = 550 5318 
+6f151 info: TableEntries    = 11602 11588
+6f151 info: MirrorsAdded    = 0 0
+6f151 info: PrunableCount   = 3659 3667
+6f151 info: LargestGamma    = 11281.8
+6f151 info: SmallestGamma   = 0.026235
+6f151 config: IcePatternSet: reading from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/ice-patterns.txt'.
+6f151 config: IcePatternSet: parsed 708 patterns.
+
+0b111 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+0b111 config: VCS:: parsed 2 patterns.
+0b111 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+0b111 config: VCS:: parsed 2 patterns.
+0b111 config: IcePatternSet: reading from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/ice-patterns.txt'.
+0b111 config: IcePatternSet: parsed 708 patterns.
