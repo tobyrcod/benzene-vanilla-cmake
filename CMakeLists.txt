@@ -1,8 +1,31 @@
 cmake_minimum_required(VERSION 3.5)
 project(benzene-cmake)
 
+# Print debug information about conda environment
+message(STATUS "CONDA_PREFIX: $ENV{CONDA_PREFIX}")
+message(STATUS "DB_LIBRARY found at: ${DB_LIBRARY}")
+
+# Be more explicit about finding Berkeley DB
+find_path(DB_INCLUDE_DIR db.h
+    HINTS
+    $ENV{CONDA_PREFIX}/include
+    $ENV{CONDA_PREFIX}/include/db
+    NO_DEFAULT_PATH
+)
+
+if(NOT DB_INCLUDE_DIR)
+    message(FATAL_ERROR "Cannot find db.h in conda environment")
+else()
+    message(STATUS "Found db.h at: ${DB_INCLUDE_DIR}")
+endif()
+
+if(NOT DB_LIBRARY)
+    message(FATAL_ERROR "Cannot find db library")
+else()
+    message(STATUS "Found db library at: ${DB_LIBRARY}")
+endif()
+
 find_package(Boost COMPONENTS thread system filesystem program_options date_time)
-find_library(DB_LIBRARY db HINTS $ENV{CONDA_PREFIX}/lib)
 
 set(CMAKE_CXX_STANDARD 11)
 set(pkgdatadir ${CMAKE_CURRENT_SOURCE_DIR}/share)
@@ -20,15 +43,6 @@ if (${APPLE})
 endif()
 
 add_subdirectory(src)
-
-# Specify include directories
-include_directories($ENV{CONDA_PREFIX}/include)
-include_directories($ENV{CONDA_PREFIX}/include/db)
-
-# Specify library directories
-link_directories($ENV{CONDA_PREFIX}/lib)
-link_directories($ENV{CONDA_PREFIX}/include)
-link_directories($ENV{CONDA_PREFIX}/include/db)
 
 #include_directories(/usr/local/Cellar/boost/1.64.0_1/include/)
 include_directories(${top_srcdir}/src/hex)
