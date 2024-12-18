@@ -1,31 +1,34 @@
 cmake_minimum_required(VERSION 3.5)
 project(benzene-cmake)
 
-# Print debug information about conda environment
-message(STATUS "CONDA_PREFIX: $ENV{CONDA_PREFIX}")
-message(STATUS "DB_LIBRARY found at: ${DB_LIBRARY}")
+# Get Conda environment path
+set(CONDA_PREFIX $ENV{CONDA_PREFIX})
 
-# Be more explicit about finding Berkeley DB
+# Debug output
+message(STATUS "CONDA_PREFIX: ${CONDA_PREFIX}")
+
+# Find Berkeley DB
 find_path(DB_INCLUDE_DIR db.h
-    HINTS
-    $ENV{CONDA_PREFIX}/include
-    $ENV{CONDA_PREFIX}/include/db
+    PATHS
+    ${CONDA_PREFIX}/include
+    ${CONDA_PREFIX}/include/db
     NO_DEFAULT_PATH
+    REQUIRED
 )
 
-if(NOT DB_INCLUDE_DIR)
-    message(FATAL_ERROR "Cannot find db.h in conda environment")
-else()
-    message(STATUS "Found db.h at: ${DB_INCLUDE_DIR}")
-endif()
+find_library(DB_LIBRARY
+    NAMES db libdb db-6.2 libdb-6.2
+    PATHS ${CONDA_PREFIX}/lib
+    NO_DEFAULT_PATH
+    REQUIRED
+)
 
-if(NOT DB_LIBRARY)
-    message(FATAL_ERROR "Cannot find db library")
-else()
-    message(STATUS "Found db library at: ${DB_LIBRARY}")
-endif()
-
+message(STATUS "Found db.h at: ${DB_INCLUDE_DIR}")
+message(STATUS "Found db library at: ${DB_LIBRARY}")
 find_package(Boost COMPONENTS thread system filesystem program_options date_time)
+
+# Add DB include directory to include paths
+include_directories(${DB_INCLUDE_DIR})
 
 set(CMAKE_CXX_STANDARD 11)
 set(pkgdatadir ${CMAKE_CURRENT_SOURCE_DIR}/share)
@@ -58,6 +61,9 @@ include_directories(${top_srcdir}/src/mohex)
 include_directories(${top_srcdir}/src/smartgame)
 include_directories(${top_srcdir}/src/gtpengine)
 include_directories(${Boost_INCLUDE_DIRS})
+include_directories(${CONDA_PREFIX}/include)
+
+link_directories(${CONDA_PREFIX}/lib)
 
 set(SOURCE_FILES
         doc/pages/mainpage.cpp
