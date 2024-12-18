@@ -30,6 +30,13 @@ find_package(Boost COMPONENTS thread system filesystem program_options date_time
 # Add DB include directory to include paths
 include_directories(${DB_INCLUDE_DIR})
 
+# Add link directories explicitly
+link_directories(${CONDA_PREFIX}/lib)
+
+# Set the runtime library path for executables
+set(CMAKE_INSTALL_RPATH "${CONDA_PREFIX}/lib")
+set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+
 set(CMAKE_CXX_STANDARD 11)
 set(pkgdatadir ${CMAKE_CURRENT_SOURCE_DIR}/share)
 set(top_srcdir ${CMAKE_CURRENT_SOURCE_DIR})
@@ -39,11 +46,14 @@ add_definitions(-DABS_TOP_SRCDIR="${top_srcdir}"
         )
 
 set(CMAKE_CXX_FLAGS "-std=c++11 -O3 -Wconversion -Wextra")
-if (${APPLE}) 
+if (${APPLE})
     message("using -stdlib=libc++")
     set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ -O3 -Wconversion -Wextra")
     set(CMAKE_EXE_LINKER_FLAGS "-stdlib=libc++")
 endif()
+
+# Export DB_LIBRARY to make it available in subdirectories
+set(DB_LIBRARY ${DB_LIBRARY} CACHE INTERNAL "Berkeley DB library")
 
 add_subdirectory(src)
 
