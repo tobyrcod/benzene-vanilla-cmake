@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.5)
 project(benzene-cmake)
 
 find_package(Boost COMPONENTS thread system filesystem program_options date_time)
+find_library(DB_LIBRARY db HINTS $ENV{CONDA_PREFIX}/lib)
 
 set(CMAKE_CXX_STANDARD 11)
 set(pkgdatadir ${CMAKE_CURRENT_SOURCE_DIR}/share)
@@ -26,6 +27,8 @@ include_directories($ENV{CONDA_PREFIX}/include/db)
 
 # Specify library directories
 link_directories($ENV{CONDA_PREFIX}/lib)
+link_directories($ENV{CONDA_PREFIX}/include)
+link_directories($ENV{CONDA_PREFIX}/include/db)
 
 #include_directories(/usr/local/Cellar/boost/1.64.0_1/include/)
 include_directories(${top_srcdir}/src/hex)
