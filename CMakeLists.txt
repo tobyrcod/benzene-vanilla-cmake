@@ -3,11 +3,6 @@ project(benzene-cmake)
 
 find_package(Boost COMPONENTS thread system filesystem program_options date_time)
 
-# Find BerkeleyDB
-find_package(BerkeleyDB REQUIRED)
-find_library(DB_LIBRARY db HINTS $ENV{CONDA_PREFIX}/lib)
-include_directories(${BERKELEYDB_INCLUDE_DIRS})
-
 set(CMAKE_CXX_STANDARD 11)
 set(pkgdatadir ${CMAKE_CURRENT_SOURCE_DIR}/share)
 set(top_srcdir ${CMAKE_CURRENT_SOURCE_DIR})
@@ -25,8 +20,11 @@ endif()
 
 add_subdirectory(src)
 
+# Specify include directories
 include_directories($ENV{CONDA_PREFIX}/include)
 include_directories($ENV{CONDA_PREFIX}/include/db)
+
+# Specify library directories
 link_directories($ENV{CONDA_PREFIX}/lib)
 
 #include_directories(/usr/local/Cellar/boost/1.64.0_1/include/)
