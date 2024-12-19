@@ -49,11 +49,12 @@ run_tournament()
     # Distinguish between the instances if doing self-play so that the 
     # logfiles are not clobbered.
     if [ $NAME1 == $NAME2 ]; then
+        DIRECTORY="jobs/${OPENINGS##*/}-$NAME1-selfplay"
         NAME1=$NAME1"-a"
         NAME2=$NAME2"-b"
+    else
+      DIRECTORY="jobs/${OPENINGS##*/}-$NAME1-vs-$NAME2"
     fi
-
-    DIRECTORY="jobs/"$SIZE"x"$SIZE"-"$NAME1"-vs-"$NAME2
 
     mkdir -p $DIRECTORY
 
