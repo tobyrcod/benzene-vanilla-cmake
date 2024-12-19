@@ -11,7 +11,9 @@ LETTERS = [chr(ord('a')+i-1) for i in NUMBERS]
 TILES = [f"{l}{n}" for l in LETTERS for n in NUMBERS]
 
 OPENINGS = list(itertools.combinations(TILES, PLY))
-random.shuffle(OPENINGS)
+if RANDOM_ORDER:
+    random.shuffle(OPENINGS)
+
 with open(FILE_NAME, "w") as file:
     for x in OPENINGS:
         file.write(" ".join(x) + "\n")
