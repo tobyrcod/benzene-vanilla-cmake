@@ -1,6 +1,6 @@
 param_game allow_swap 0
-param_mohex max_memory 2000000000
-param_mohex num_threads 1
+param_mohex max_memory 8000000000
+param_mohex num_threads 8
 param_mohex max_time 10
 param_mohex max_games 999999999
 param_mohex knowledge_threshold 400
