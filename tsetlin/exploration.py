@@ -286,12 +286,11 @@ def load_template_matches_in_dataset(ds_states: UtilsDataset.Dataset) -> Tuple[i
 
 # ANALYSIS
 
-def analyse():
+def analyse_dataset_matches(dataset: UtilsDataset.Dataset):
     # TODO: check distribution of moves is the same between both
     # TODO: plot distribution of templates at all in both
     # TODO: plot found templates in percentage of games (at all, and then per win/lose)
 
-    dataset = UtilsDataset.BASELINE
     # num_random, matches_random = load_template_matches_in_random(dataset)
     num_dataset, matches_dataset = load_template_matches_in_dataset(dataset)
 
@@ -348,4 +347,8 @@ def analyse():
     print(match_white_and_white_win_occurrences)
     print(match_black_and_white_win_occurrences)
 
-analyse()
+
+if __name__ == '__main__':
+    # calculate_template_matches_in_dataset(UtilsDataset.BASELINE)
+
+    analyse_dataset_matches(UtilsDataset.BASELINE)
