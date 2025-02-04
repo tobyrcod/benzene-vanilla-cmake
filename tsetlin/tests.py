@@ -489,7 +489,7 @@ class Tests:
 
         @staticmethod
         def test():
-            tournament_directory = Path("../tournaments")
+            tournament_directory = Path("tournaments")
 
             def test_data_group_by_game():
 
