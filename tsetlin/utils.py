@@ -1,8 +1,10 @@
 import itertools
+import math
 import os
 import random
 import sys
 import csv
+import json
 from linecache import cache
 
 import matplotlib.pyplot
@@ -171,10 +173,14 @@ class UtilsHex:
 
     class HexGrid:
 
+        # All under assumption of NO AUGMENTATIONS when plotting!
+        # TODO: see what happens when you try to plot augmented literals
+
         # Grid Value Meanings:
-        # 0 for black,
-        # 1 for white,
+        # 0 for black, 2 for NOT black
+        # 1 for white, 3 for NOT white
         # -1 for nothing,
+        # (negated, color) can be recovered from divmod(value, 2)
 
         @staticmethod
         def from_literals(literals: List[int], boardsize: int) -> List[List[int]]:
@@ -188,6 +194,52 @@ class UtilsHex:
                     hex_grid[y][x] = player
 
             return hex_grid
+
+        @staticmethod
+        def from_clause(clause: List[int], boardsize: int) -> List[List[int]]:
+            hex_grid = [[-1 for x in range(boardsize)] for y in range(boardsize)]
+            literals_per_player = boardsize ** 2
+            for y in range(boardsize):
+                for x in range(boardsize):
+                    i = UtilsHex.Coordinates.coord_to_index(x, y, boardsize)
+                    # The key difference to literals here is that the clause can take negated values
+                    # e.g. Instead of just saying white here or black here, we can say NOT white or NOT black here
+                    #  (equivalent to empty or black, empty or white respectively)
+                    # We somehow need to handle this in a way that is still interpretable:
+                    # Option 1: Ignore all the negated literals
+                    """ 
+                    player = 0 if clause[i] == 1 else 1 if clause[literals_per_player+i] == 1 else -1 
+                    """
+                    # Option 2: Turn all the negated literals into a piece for the other player
+                    """
+                    player = -1
+                    if clause[i] == 1:
+                        player = 0
+                    elif clause[i] == -1:
+                        player = 1
+                    elif clause[literals_per_player+i] == 1:
+                        player = 1
+                    elif clause[literals_per_player+i] == -1:
+                        player = 0
+                    """
+                    # Option 3: Handle this when we search for templates instead,
+                    #  and here we just introduce new hex grid values for negated literals
+                    #"""
+                    player = -1
+                    if clause[i] == 1:
+                        player = 0
+                    elif clause[i] == -1:
+                        player = 2
+                    elif clause[literals_per_player+i] == 1:
+                        player = 1
+                    elif clause[literals_per_player+i] == -1:
+                        player = 3
+                    #"""
+
+                    hex_grid[y][x] = player
+
+            return hex_grid
+
 
         @staticmethod
         def from_search_pattern(search_pattern: "UtilsHex.SearchPattern") -> List[List[int]]:
@@ -1142,6 +1194,81 @@ class UtilsTM:
             new_literals[move] = 1
             return new_literals
 
+    class Model:
+
+        # ASSUMPTION: No literal augmentations are applied - clauses would be a different form if they are.
+
+        @staticmethod
+        def _clean_raw_clause(raw_clause: List[str], boardsize: int) -> List[int]:
+            polarity_char_to_polarity = {
+                ' ': 1,
+                '!': -1
+            }
+
+            clause = UtilsTM.Literals.make_empty_board(boardsize)
+
+            # Raw clauses currently look like this:
+            # e.g. [' x1', ' x56', '!x25']
+            for raw_literal in raw_clause:
+                # We can get the information we need from each literal by getting whats on either side of the 'x'
+                # e.g. [' ', '25']
+                [polarity_char, index_str] = raw_literal.split('x')
+                polarity = polarity_char_to_polarity.get(polarity_char, 0)
+                assert polarity
+                assert index_str.isdigit()
+                index = int(index_str)
+
+                # And finally, we just put this in the clause.
+                # Here the difference between the literals and clauses lists being that clauses can have a negative literal!
+                clause[index] = polarity
+
+            return clause
+
+        @staticmethod
+        def _load_clauses_file(clause_file_path: Path, boardsize: int):
+            if not clause_file_path.exists():
+                raise FileNotFoundError(clause_file_path)
+
+            with open(clause_file_path, "r", encoding="utf-8") as json_file:
+                # Clauses currently look like this:
+                # e.g. [' x1', ' x56', '!x25']
+                raw_clauses = json.load(json_file)
+
+            # They need to be represented in an easier to interpret intermediate 'cleaned clause' list format
+            # e.g. [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            clauses = [UtilsTM.Model._clean_raw_clause(raw_clause, boardsize) for raw_clause in raw_clauses]
+            return clauses
+
+        @staticmethod
+        def load_trained_model_clauses(model_path: Path, boardsize: int):
+            # NOTE: These trained clauses are extracted from the model on Google Colab (due to needing CUDA)
+
+            if not model_path.exists():
+                raise FileNotFoundError(model_path)
+
+            model_name = model_path.stem
+            model_clauses_dir = model_path.parent / model_name.replace('_model', "_clauses", 1)
+            if not model_clauses_dir.exists():
+                raise NotADirectoryError(model_clauses_dir)
+
+            negative_black_clauses_path = model_clauses_dir / ("negative_black_clauses" + ".json")
+            negative_white_clauses_path = model_clauses_dir / ("negative_white_clauses" + ".json")
+            positive_black_clauses_path = model_clauses_dir / ("positive_black_clauses" + ".json")
+            positive_white_clauses_path = model_clauses_dir / ("positive_white_clauses" + ".json")
+            if not negative_black_clauses_path.exists() or \
+                not negative_white_clauses_path.exists() or \
+                not positive_black_clauses_path.exists() or \
+                not positive_white_clauses_path.exists():
+                raise FileNotFoundError()
+
+            negative_black_clauses = UtilsTM.Model._load_clauses_file(negative_black_clauses_path, boardsize)
+            negative_white_clauses = UtilsTM.Model._load_clauses_file(negative_white_clauses_path, boardsize)
+            positive_black_clauses = UtilsTM.Model._load_clauses_file(positive_black_clauses_path, boardsize)
+            positive_white_clauses = UtilsTM.Model._load_clauses_file(positive_white_clauses_path, boardsize)
+
+            return negative_black_clauses, negative_white_clauses, positive_black_clauses, positive_white_clauses
+
+
 
 class UtilsDataset:
 
@@ -1447,15 +1574,32 @@ class UtilsPlot:
                                          orientation=0, edgecolor=grid_color, facecolor=cell_color)
                 ax.add_patch(hexagon)
 
-                # Plot any piece
-                player = hex_grid[y][x]
+                # Determine what type of piece is in this position
+                negated, player = -1, hex_grid[y][x]
                 if player != -1:
-                    piece = Circle(position, radius=hex_radius * 0.6,
+                    negated, player = divmod(player, 2)
+
+                # Plot any piece
+                if player != -1:
+                    piece_radius = hex_radius * 0.6
+                    piece = Circle(position, radius=piece_radius,
                                    edgecolor=grid_color, facecolor=piece_colors[player])
                     ax.add_patch(piece)
 
-                # Write the hex position
+                    # Add a red cross if this piece is negated
+                    if negated == 1:
+                        # The cross is made up of a red outline, and a red strike line
+                        outline = Circle(position, radius=piece_radius,
+                                       edgecolor='red', facecolor='none', linewidth=3)
+                        ax.add_patch(outline)
 
+                        strike_start_x = position[0] + piece_radius * math.cos(math.radians(135))
+                        strike_start_y = position[1] + piece_radius * math.sin(math.radians(135))
+                        strike_end_x = position[0] + piece_radius * math.cos(math.radians(315))
+                        strike_end_y = position[1] + piece_radius * math.sin(math.radians(315))
+                        ax.plot([strike_start_x, strike_end_x], [strike_start_y, strike_end_y], color='red', linewidth=3)
+
+                # Write the hex position
                 coord_text = coord_text_func(x, y)
                 if coord_text:
                     coord_text_color = grid_color if player == -1 else piece_colors[1 - player]
@@ -1506,6 +1650,19 @@ class UtilsPlot:
         UtilsPlot._plot_hex_grid(hex_grid, filepath, True)
 
     @staticmethod
+    def plot_clause(clause: List[int], boardsize: int, filepath: Path):
+        # Convert the literals to a hex grid
+        hex_grid = UtilsHex.HexGrid.from_clause(clause, boardsize)
+
+        # For ease of debugging, we want to plot the 1d index not the hex coord
+        #  as this matches the clause file
+        def coord_text_func(x: int, y: int) -> str:
+            return "b{}/w{}".format(a:=UtilsHex.Coordinates.coord_to_index(x, y, boardsize), a+boardsize**2)
+
+        # And plot the hex grid
+        UtilsPlot._plot_hex_grid(hex_grid, filepath, True, coord_text_func=coord_text_func)
+
+    @staticmethod
     def plot_search_pattern(search_pattern: UtilsHex.SearchPattern, exclude_players: List[int]=None, filepath: Path=None):
         # Convert the search pattern to a hex grid
         hex_grid = UtilsHex.HexGrid.from_search_pattern(search_pattern)
@@ -1527,7 +1684,7 @@ class UtilsPlot:
                 plots_dir = UtilsPlot.PLOT_TEMPLATES_DIR / search_pattern.base_name
                 filepath = plots_dir / f"{search_pattern}.png"
 
-        def coord_text_func(x, y):
+        def coord_text_func(x: int, y: int) -> str:
             is_include_coord = np.all(search_pattern.induced_include_coords == [x, y], axis=1)
             if np.any(is_include_coord):
                 return str(np.argmax(is_include_coord))
@@ -1539,7 +1696,7 @@ class UtilsPlot:
             return ""
 
         # And plot the hex grid
-        UtilsPlot._plot_hex_grid(hex_grid, filepath, False, coord_text_func)
+        UtilsPlot._plot_hex_grid(hex_grid, filepath, False, coord_text_func=coord_text_func)
 
     @staticmethod
     def plot_search_pattern_match(match: UtilsHex.SearchPattern.Match, filepath: Path=None):
@@ -1691,8 +1848,17 @@ class UtilsPlot:
 
             UtilsPlot.plot_search_pattern(base_pattern, exclude_players=list(exclude_players))
 
-UtilsHex.SearchPattern.initialise()
-# UtilsPlot._plot_all_search_pattern_variations()
-# UtilsPlot._plot_all_search_pattern_match_types('crescent')
+if __name__ == '__main__':
+    # UtilsHex.SearchPattern.initialise()
+    # UtilsDataset.load_raw_datasets()
 
-UtilsDataset.load_raw_datasets()
+    # UtilsPlot._plot_all_search_pattern_variations()
+    # UtilsPlot._plot_all_search_pattern_match_types('crescent')
+
+    nb, nw, pb, pw = UtilsTM.Model.load_trained_model_clauses(Path("models/6x6-baseline_exact_model.pkl"), 6)
+    UtilsPlot.plot_clause(nb[1], 6, Path("models/6x6-baseline_exact_clauses/test_clause_plot.png"))
+
+    # NOTES:
+    # This isn't seeming to mean anything. Maybe the TM has learnt templates,
+    #  but it is spread out across combining many clauses, or perhaps it doesn't know them at all
+    # MAYBE, we can go through all the clauses, make a heatmap by summing all for each cell, and then do something soemthing all at once?
