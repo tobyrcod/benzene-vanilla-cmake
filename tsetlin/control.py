@@ -39,7 +39,7 @@ class WinnerPredModel:
 
         if not weights:
             # [Lost, Empty, Inconclusive, Won]
-            weights = [-100, 20, 10, 100]
+            weights = [0.0, 0.13, 0.14, 0.84]
         weights = dict(zip(UtilsHex.SearchPattern.Match.MatchType, weights))
 
         board_score = 0
