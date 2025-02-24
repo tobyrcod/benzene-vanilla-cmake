@@ -7,8 +7,9 @@ from typing import Dict, List, Tuple
 
 import numpy as np
 from pathlib import Path
-from tsetlin.utils import UtilsPlot, UtilsHex, UtilsTM, UtilsDataset, Helpers
+from tqdm import tqdm
 
+from tsetlin.utils import UtilsPlot, UtilsHex, UtilsTM, UtilsDataset, Helpers
 
 def find_random_match_in_random_board():
     # Randomly select a boardsize
@@ -115,8 +116,8 @@ def calculate_template_matches_in_random(ds_dist: UtilsDataset.Dataset):
     # Continue generating boards to match until we are complete
     with open(filepath, mode='a', newline='') as ds_match:
         csv_writer = csv.writer(ds_match)
-        for board in range(start_board, num_boards):
-            print(f"Board: {board}, Progress: {100 * board / num_boards:.3f}%")
+        for board in tqdm(range(start_board, num_boards)):
+            # print(f"Board: {board}, Progress: {100 * board / num_boards:.3f}%")
 
             num_pieces = np.random.choice(possible_num_pieces, p=num_pieces_distribution)
             literals = UtilsTM.Literals.make_random_board(boardsize, num_pieces)
@@ -127,7 +128,7 @@ def calculate_template_matches_in_random(ds_dist: UtilsDataset.Dataset):
                     for match in matches:
                         base_name = match.search_pattern.base_name
                         var_name = match.search_pattern.variation_name
-                        csv_writer.writerow([board, num_pieces, match.player, match.type, base_name, var_name, match.coord[0], match.coord[1]])
+                        csv_writer.writerow([board, num_pieces, match.player, match.match_type, base_name, var_name, match.coord[0], match.coord[1]])
         csv_writer.writerow(['# Finished'])
 
 def calculate_template_matches_in_dataset(ds_states: UtilsDataset.Dataset):
@@ -174,8 +175,8 @@ def calculate_template_matches_in_dataset(ds_states: UtilsDataset.Dataset):
     # Continue finding matches in each row of the dataset until we are done
     with open(filepath, mode='a', newline='') as ds_match:
         csv_writer = csv.writer(ds_match)
-        for board in range(start_board, num_boards):
-            print(f"Board: {board}, Progress: {100 * board / num_boards:.3f}%")
+        for board in tqdm(range(start_board, num_boards)):
+            # print(f"Board: {board}, Progress: {100 * board / num_boards:.3f}%")
 
             literals = ds_states.X[board]
             num_pieces = sum(literals)
@@ -191,7 +192,7 @@ def calculate_template_matches_in_dataset(ds_states: UtilsDataset.Dataset):
 
 def _load_template_matches(filepath: Path) -> Tuple[int, List]:
     if not os.path.exists(filepath):
-        return -1, []
+        raise FileNotFoundError(filepath)
 
     intertemplate_matchings = calculate_intertemplate_matchings()
     num_boards = -1
@@ -286,36 +287,52 @@ def load_template_matches_in_dataset(ds_states: UtilsDataset.Dataset) -> Tuple[i
 
 # ANALYSIS
 
+def analyse_occurrence(dataset: UtilsDataset.Dataset):
+    num_dataset, matches_dataset = load_template_matches_in_dataset(dataset)
+    print(len(matches_dataset) / num_dataset)
+
+    occurrence_counts = Counter(match['MatchBaseName'] for match in matches_dataset)
+    normalized_counts = {key: value / num_dataset for key, value in occurrence_counts.items()}
+    print(normalized_counts)
+
+    matches_dataset = [match for match in matches_dataset if
+                       match['MatchType'] == UtilsHex.SearchPattern.Match.MatchType.WON]
+    occurrence_counts = Counter(match['MatchBaseName'] for match in matches_dataset)
+    normalized_counts = {key: value / num_dataset for key, value in occurrence_counts.items()}
+    print(normalized_counts)
+
 def analyse_dataset_matches(dataset: UtilsDataset.Dataset):
     # TODO: check distribution of moves is the same between both
     # TODO: plot distribution of templates at all in both
     # TODO: plot found templates in percentage of games (at all, and then per win/lose)
+    # TODO: use pandas dataframes instead
 
-    # num_random, matches_random = load_template_matches_in_random(dataset)
     num_dataset, matches_dataset = load_template_matches_in_dataset(dataset)
 
     # random_occurrences = Counter(match['MatchBaseName'] for match in matches_random)
     # random_frac = {key: value / num_random for key, value in random_occurrences.items()}
     # print(random_frac, num_random)
 
-    dataset_occurrences = Counter(match['MatchBaseName'] for match in matches_dataset)
-    print(num_dataset, dataset_occurrences)
+    # For searching regular games, we want the templates we won.
+    # matches_dataset = [match for match in matches_dataset if
+    #                    match['MatchType'] == UtilsHex.SearchPattern.Match.MatchType.WON]
+    # For searching clauses, we want all the templates that we just haven't lost (maybe).
     matches_dataset = [match for match in matches_dataset if
-                       match['MatchType'] == UtilsHex.SearchPattern.Match.MatchType.WON]
-    dataset_occurrences = Counter(match['MatchBaseName'] for match in matches_dataset)
-    print(num_dataset, dataset_occurrences)
+                       match['MatchType'] != UtilsHex.SearchPattern.Match.MatchType.LOST]
 
     # Split dataset by winner/looser and matches by black/white and see changes
 
     # Get the matches grouped by who they matched for
     matches_black = [match for match in matches_dataset if match['MatchPlayer'] == 0]
     matches_white = [match for match in matches_dataset if match['MatchPlayer'] == 1]
+    print("matches_black", "matches_white", "frac_black")
     print(len(matches_black), len(matches_white), len(matches_black) / len(matches_dataset))
     assert len(matches_black) + len(matches_white) == len(matches_dataset)
 
     # Get the matches grouped by which player wins
     matches_black_win = [match for match in matches_dataset if dataset.Y[match['Board#']] == 0]
     matches_white_win = [match for match in matches_dataset if dataset.Y[match['Board#']] == 1]
+    print("matches_black_win", "matches_white_win", "frac_black_win")
     print(len(matches_black_win), len(matches_white_win), len(matches_black_win) / len(matches_dataset))
     assert len(matches_black_win) + len(matches_white_win) == len(matches_dataset)
 
@@ -349,6 +366,24 @@ def analyse_dataset_matches(dataset: UtilsDataset.Dataset):
 
 
 if __name__ == '__main__':
-    # calculate_template_matches_in_dataset(UtilsDataset.BASELINE)
+    UtilsDataset.load_raw_datasets()
+    UtilsHex.SearchPattern.initialise()
 
-    analyse_dataset_matches(UtilsDataset.BASELINE)
+    # nbs, nws, pbs, pws = UtilsTM.Model.load_trained_model_clauses(Path("models/6x6-baseline_exact_model.pkl"), boardsize=6)
+    # UtilsPlot.plot_clause(nbs[747], 6, Path("models/6x6-baseline_exact_clauses/test_clause_plot21.png"))
+
+    # nbs_dataset = UtilsDataset.clauses_to_dataset("negative_black_clauses", clauses=nbs, clause_player=0, clause_winner=1, boardsize=6)
+    # nws_dataset = UtilsDataset.clauses_to_dataset("negative_white_clauses", clauses=nws, clause_player=1, clause_winner=0, boardsize=6)
+    # pbs_dataset = UtilsDataset.clauses_to_dataset("positive_black_clauses", clauses=pbs, clause_player=0, clause_winner=0, boardsize=6)
+    # pws_dataset = UtilsDataset.clauses_to_dataset("positive_white_clauses", clauses=pws, clause_player=1, clause_winner=1, boardsize=6)
+    # UtilsPlot.plot_literals(nbs_dataset.X[747], 6, Path("models/6x6-baseline_exact_clauses/test_clause_plot22.png"))
+
+    # ps_dataset = nbs_dataset + nws_dataset
+    # ps_dataset += pbs_dataset + pws_dataset
+    # ps_dataset.name = "6x6-baseline_exact_clauses_option3"
+
+    # calculate_template_matches_in_dataset(ps_dataset)
+    # analyse_dataset_matches(ps_dataset)
+
+    # calculate_template_matches_in_random(UtilsDataset.BASELINE)
+    # analyse_occurrence(UtilsDataset.BASELINE)

@@ -202,29 +202,7 @@ class UtilsHex:
             for y in range(boardsize):
                 for x in range(boardsize):
                     i = UtilsHex.Coordinates.coord_to_index(x, y, boardsize)
-                    # The key difference to literals here is that the clause can take negated values
-                    # e.g. Instead of just saying white here or black here, we can say NOT white or NOT black here
-                    #  (equivalent to empty or black, empty or white respectively)
-                    # We somehow need to handle this in a way that is still interpretable:
-                    # Option 1: Ignore all the negated literals
-                    """ 
-                    player = 0 if clause[i] == 1 else 1 if clause[literals_per_player+i] == 1 else -1 
-                    """
-                    # Option 2: Turn all the negated literals into a piece for the other player
-                    """
-                    player = -1
-                    if clause[i] == 1:
-                        player = 0
-                    elif clause[i] == -1:
-                        player = 1
-                    elif clause[literals_per_player+i] == 1:
-                        player = 1
-                    elif clause[literals_per_player+i] == -1:
-                        player = 0
-                    """
-                    # Option 3: Handle this when we search for templates instead,
-                    #  and here we just introduce new hex grid values for negated literals
-                    #"""
+
                     player = -1
                     if clause[i] == 1:
                         player = 0
@@ -234,7 +212,6 @@ class UtilsHex:
                         player = 1
                     elif clause[literals_per_player+i] == -1:
                         player = 3
-                    #"""
 
                     hex_grid[y][x] = player
 
@@ -479,10 +456,16 @@ class UtilsHex:
 
         @staticmethod
         def get_pattern_names() -> List[str]:
+            if not UtilsHex.SearchPattern._DATASET:
+                print("Warning: There are no search pattens loaded. You may be forgetting to call 'UtilsHex.SearchPattern.initialise()'")
+
             return list(UtilsHex.SearchPattern._DATASET.keys())
 
         @staticmethod
         def get_pattern_variations(base_name: str) -> List["UtilsHex.SearchPattern"]:
+            if not UtilsHex.SearchPattern._DATASET:
+                print("Warning: There are no search pattens loaded. You may be forgetting to call 'UtilsHex.SearchPattern.initialise()'")
+
             return UtilsHex.SearchPattern._DATASET.get(base_name, [])
 
         # Searching for a pattern
@@ -828,6 +811,9 @@ class UtilsHex:
             :param allowed_players: list of players we are looking for matches for
             :return: the full search pattern match information
             """
+
+            if not UtilsHex.SearchPattern._DATASET:
+                print("Warning: There are no search pattens loaded. You may be forgetting to call 'UtilsHex.SearchPattern.initialise()'")
 
             # By default, we are allowed to find a match for either player
             if allowed_players is None:
@@ -1205,6 +1191,8 @@ class UtilsTM:
                 '!': -1
             }
 
+            # print(len(raw_clause))
+
             clause = UtilsTM.Literals.make_empty_board(boardsize)
 
             # Raw clauses currently look like this:
@@ -1268,6 +1256,15 @@ class UtilsTM:
 
             return negative_black_clauses, negative_white_clauses, positive_black_clauses, positive_white_clauses
 
+        @staticmethod
+        def calculate_clause_branch_factor(clause: List[int]):
+            # Each clause can evaluate to true for some number of literals
+            # e.g. if the clause has a NOT black, then either an empty or a white tile would be true.
+            # We need to know how big this number can be to see if we can look at them all!
+            num_negated_literals = clause.count(-1)
+            # Each negated literal can take 2 values.
+            branch_factor = pow(2, num_negated_literals)
+            return branch_factor
 
 
 class UtilsDataset:
@@ -1309,7 +1306,7 @@ class UtilsDataset:
 
             X = np.vstack((X1, X2))
             Y = np.hstack((Y1, Y2))
-            return UtilsDataset.Dataset(X, Y, self.boardsize, f"({self.name} + {other.name})")
+            return UtilsDataset.Dataset(X, Y, self.boardsize, f"({self.name} + {other.name})", complete=self.complete and other.complete)
 
         def __str__(self):
             return f"{self.name}: {len(self.X)}"
@@ -1521,6 +1518,147 @@ class UtilsDataset:
             print(e, file=sys.stderr)
 
 
+    @staticmethod
+    def clauses_to_dataset(clauses_name: str,
+                           clauses: List[List[int]],
+                           clause_player: int,
+                           clause_winner: int,
+                           boardsize: int) -> Dataset:
+        datasetX = []
+        datasetY = []
+
+        for clause in clauses:
+            literals = UtilsDataset._clause_to_literals(clause, clause_player, clause_winner, boardsize)
+            datasetX.append(literals)
+            datasetY.append(clause_winner)
+
+        return UtilsDataset.Dataset(np.array(datasetX), np.array(datasetY), boardsize, clauses_name, complete=False)
+
+    @staticmethod
+    def _clause_to_literals(clause: List[int], clause_player: int, clause_winner: int, boardsize: int) -> List[int]:
+        # Option 1: Remove negative literals
+        """
+        return [max(0, l) for l in clause]
+        """
+
+
+        # Option 2: Turn all negated literals into a literal for the opponent
+        #  e.g. NOT black becomes white, NOT white becomes black
+        """
+        literals = [0] * len(clause)
+        literals_per_player = len(literals) // 2
+        for i in range(literals_per_player):
+            if clause[i] == -1:
+                literals[i] = 0
+                literals[literals_per_player+i] = 1
+            elif clause[literals_per_player+i] == -1:
+                literals[i] = 1
+                literals[literals_per_player+i] = 0
+            else:
+                literals[i] = clause[i]
+                literals[literals_per_player+i] = clause[literals_per_player+i]
+        return literals
+        """
+
+        # Option 3: Take a generous interpretation
+        #  e.g. if we are looking at positive black clauses:
+        #       - any NOT white become black
+        #       - any NOT black become empty
+        #  e.g. if we are looking at negative black clauses:
+        #       - any NOT white become empty
+        #       - any NOT black become white
+        #  e.g. if we are looking at positive white clauses:
+        #       - any NOT white become empty
+        #       - any NOT black become white
+        #  e.g. if we are looking at negative white clauses:
+        #       - any NOT white become black
+        #       - any NOT black become empty
+        # """
+        literals = [0] * len(clause)
+        literals_per_player = len(literals) // 2
+        for i in range(literals_per_player):
+            black_literal = clause[i]
+            white_literal = clause[literals_per_player+i]
+            # Positive Black or Negative White
+            if clause_winner == 0:
+                # NOT white
+                if white_literal == -1:
+                    # Becomes black
+                    black_literal = 1
+                    white_literal = 0
+                # NOT black
+                elif black_literal == -1:
+                    # becomes empty
+                    black_literal = 0
+                    white_literal = 0
+            # Negative Black or Positive White
+            else:  # clause_winner == 1
+                # NOT white
+                if white_literal == -1:
+                    # becomes empty
+                    black_literal = 0
+                    white_literal = 0
+                # NOT black
+                elif black_literal == -1:
+                    # becomes white
+                    black_literal = 0
+                    white_literal = 1
+            literals[i] = black_literal
+            literals[literals_per_player+i] = white_literal
+
+        return literals
+        # """
+
+        # Option 4: Take an adversarial interpretation
+        #  e.g. if we are looking at positive black clauses:
+        #       - any NOT white become empty
+        #       - any NOT black become white
+        #  e.g. if we are looking at negative black clauses:
+        #       - any NOT white become black
+        #       - any NOT black become empty
+        #  e.g. if we are looking at positive white clauses:
+        #       - any NOT white become black
+        #       - any NOT black become empty
+        #  e.g. if we are looking at negative white clauses:
+        #       - any NOT white become empty
+        #       - any NOT black become white
+        """
+        literals = [0] * len(clause)
+        literals_per_player = len(literals) // 2
+        for i in range(literals_per_player):
+            black_literal = clause[i]
+            white_literal = clause[literals_per_player+i]
+            # Positive Black or Negative White
+            if clause_winner == 0:
+                # NOT white
+                if white_literal == -1:
+                    # Becomes empty
+                    black_literal = 0
+                    white_literal = 0
+                # NOT black
+                elif black_literal == -1:
+                    # becomes white
+                    black_literal = 0
+                    white_literal = 1
+            # Negative Black or Positive White
+            else:  # clause_winner == 1
+                # NOT white
+                if white_literal == -1:
+                    # becomes black
+                    black_literal = 1
+                    white_literal = 0
+                # NOT black
+                elif black_literal == -1:
+                    # becomes empty
+                    black_literal = 0
+                    white_literal = 0
+            literals[i] = black_literal
+            literals[literals_per_player+i] = white_literal
+
+        return literals
+        """
+
+
 class UtilsPlot:
 
     PLOTS_DIR = Path("plots")
@@ -1648,19 +1786,6 @@ class UtilsPlot:
 
         # And plot the hex grid
         UtilsPlot._plot_hex_grid(hex_grid, filepath, True)
-
-    @staticmethod
-    def plot_clause(clause: List[int], boardsize: int, filepath: Path):
-        # Convert the literals to a hex grid
-        hex_grid = UtilsHex.HexGrid.from_clause(clause, boardsize)
-
-        # For ease of debugging, we want to plot the 1d index not the hex coord
-        #  as this matches the clause file
-        def coord_text_func(x: int, y: int) -> str:
-            return "b{}/w{}".format(a:=UtilsHex.Coordinates.coord_to_index(x, y, boardsize), a+boardsize**2)
-
-        # And plot the hex grid
-        UtilsPlot._plot_hex_grid(hex_grid, filepath, True, coord_text_func=coord_text_func)
 
     @staticmethod
     def plot_search_pattern(search_pattern: UtilsHex.SearchPattern, exclude_players: List[int]=None, filepath: Path=None):
@@ -1811,6 +1936,34 @@ class UtilsPlot:
         plt.savefig(filepath, dpi=300)  # Change filename and dpi as needed
         plt.close()  # Close the plot to free resources
 
+    ### MODEL
+
+    @staticmethod
+    def plot_clause(clause: List[int], boardsize: int, filepath: Path):
+        # Convert the literals to a hex grid
+        hex_grid = UtilsHex.HexGrid.from_clause(clause, boardsize)
+
+        # For ease of debugging, we want to plot the 1d index not the hex coord
+        #  as this matches the clause file
+        def coord_text_func(x: int, y: int) -> str:
+            return "b{}/w{}".format(a:=UtilsHex.Coordinates.coord_to_index(x, y, boardsize), a+boardsize**2)
+
+        # And plot the hex grid
+        UtilsPlot._plot_hex_grid(hex_grid, filepath, True, coord_text_func=coord_text_func)
+
+    @staticmethod
+    def plot_clauses_branch_factor_histogram(clauses: List[List[int]], filepath: Path):
+        bfs = [UtilsTM.Model.calculate_clause_branch_factor(clause) for clause in clauses]
+        x_values = sorted([int(math.log(bf, 2)) for bf in bfs])
+        y_values = np.arange(1, len(x_values) + 1)
+
+        plt.step(x_values, y_values, where="post", linestyle="-", linewidth=2, label="Cumulative Count")
+        plt.xlabel("Branch Factor (log2)")
+        plt.ylabel("Count Clauses than or equal")
+        plt.title("Cumulative Histogram")
+
+        UtilsPlot.save_plot(plt, filepath)
+
     ### RANDOM ONE-TIME METHODS
 
     @staticmethod
@@ -1855,10 +2008,79 @@ if __name__ == '__main__':
     # UtilsPlot._plot_all_search_pattern_variations()
     # UtilsPlot._plot_all_search_pattern_match_types('crescent')
 
-    nb, nw, pb, pw = UtilsTM.Model.load_trained_model_clauses(Path("models/6x6-baseline_exact_model.pkl"), 6)
-    UtilsPlot.plot_clause(nb[1], 6, Path("models/6x6-baseline_exact_clauses/test_clause_plot.png"))
+    # nbs, nws, pbs, pws = UtilsTM.Model.load_trained_model_clauses(Path("models/6x6-baseline_exact_model.pkl"), 6)
+    # UtilsPlot.plot_clause(nbs[44], 6, Path("models/6x6-baseline_exact_clauses/test_clause_plot.png"))
 
     # NOTES:
     # This isn't seeming to mean anything. Maybe the TM has learnt templates,
     #  but it is spread out across combining many clauses, or perhaps it doesn't know them at all
-    # MAYBE, we can go through all the clauses, make a heatmap by summing all for each cell, and then do something soemthing all at once?
+    # MAYBE, we can go through all the clauses, make a heatmap by summing all for each cell, and then do something new all at once?
+
+    # Ok lets run the full template searches anyway to see what happens
+    # In order to do this, we need to turn the clauses into a dataset of matches
+    # To do this, we need to decide how to convert ternary literals into a simple binary.
+    # The key difference to literals here is that the clause can take negated values
+    # e.g. Instead of just saying white here or black here, we can say NOT white or NOT black here
+    #  (equivalent to empty or black, empty or white respectively)
+    # We somehow need to handle this in a way that is still interpretable:
+    # Option 1: Ignore all the negated literals
+    # Option 2: Turn all negated literals into a literal for the opponent
+    #  e.g. NOT black becomes white, NOT white becomes black
+    # Option 3: Take a generous interpretation
+    #  e.g. if we are looking at positive black clauses:
+    #       - any NOT white become black
+    #       - any NOT black become empty
+    #  e.g. if we are looking at negative black clauses:
+    #       - any NOT white become empty
+    #       - any NOT black become white
+    #  e.g. if we are looking at positive white clauses:
+    #       - any NOT white become empty
+    #       - any NOT black become white
+    #  e.g. if we are looking at negative white clauses:
+    #       - any NOT white become black
+    #       - any NOT black become empty
+    # Option 4: Take an adversarial interpretation
+    #  e.g. if we are looking at positive black clauses:
+    #       - any NOT white become empty
+    #       - any NOT black become white
+    #  e.g. if we are looking at negative black clauses:
+    #       - any NOT white become black
+    #       - any NOT black become empty
+    #  e.g. if we are looking at positive white clauses:
+    #       - any NOT white become black
+    #       - any NOT black become empty
+    #  e.g. if we are looking at negative white clauses:
+    #       - any NOT white become empty
+    #       - any NOT black become white
+    # Option 5: When converting to literals, branch into EVERY possible matching interpretation
+    #  e.g. If we have NOT black, we make new 2 clauses (one empty and one white)
+    #        and then we do this for every negative literals
+    #  WILL NEED TO SEE IF THIS IS EVEN TRACTABLE. IT SOUNDS AWFUL!
+    # nb_bfs = [UtilsTM.Model.calculate_clause_branch_factor(nb) for nb in nbs]
+    # print(max(nb_bfs), sum(nb_bfs))
+    # (36893488147419103232, 77903096256648712784)
+    # NOPE NO AND DEFINITELY NOT!!
+    # Need to see the full distribution
+    # UtilsPlot.plot_clauses_branch_factor_histogram(nbs, Path("models/6x6-baseline_exact_clauses/nb_test.png"))
+
+    # Alternative solution:
+    # We wanted to limit clause sizes anyway as this makes them more human-readable.
+    # If we limit to 7, bf is limited to 2^7=128, making this approach viable again.
+    # Paper: https://arxiv.org/abs/2301.08190
+    # Need to switch to TMU.
+    # https://www.reddit.com/r/MachineLearning/comments/10holgp/r_new_tsetlin_machine_learning_scheme_creates_up/
+    # https://github.com/cair/tmu?tab=readme-ov-file
+    # - "Indeed, the accuracy in
+    # creases with shorter clauses for TREC, IMDb, and
+    # BBC Sports" WOW?!
+    # "Even with significantly constrained clause size,
+    # the performance of CSC-TM is not compromised compared
+    # with the other TM variants."
+    # They even tried it for boardgames!
+    # [NOTION IMAGE]
+    # We need to first see the distribution now of lengths of the raw clauses when it is unconstrained
+    # ...
+
+    # Is there a future for a tsetlin machine that just doesn't use negative literals at all?
+    # I know it might be a silly idea, but I'd like to see if it could pull it off.
+    pass
