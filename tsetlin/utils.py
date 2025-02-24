@@ -17,7 +17,10 @@ from pysgf import SGF, SGFNode
 from typing import Any, Dict, List, Tuple, Callable, Set
 from imblearn.under_sampling import RandomUnderSampler, TomekLinks, EditedNearestNeighbours
 from imblearn.over_sampling import RandomOverSampler
-from collections import Counter
+from collections import Counter, defaultdict
+
+from tqdm import tqdm
+
 
 # TODO: document every method with """ """
 # TODO: actually instantiate & use the types
@@ -468,7 +471,7 @@ class UtilsHex:
 
             return UtilsHex.SearchPattern._DATASET.get(base_name, [])
 
-        # Searching for a pattern
+        # Searching for a single pattern
 
         @staticmethod
         def search_literals(search_pattern: "UtilsHex.SearchPattern", literals: List[int], boardsize: int) -> List["UtilsHex.SearchPattern.Match"]:
@@ -746,6 +749,81 @@ class UtilsHex:
             # We must have provided an invalid base_name
             return UtilsHex.SearchPattern.Match.MatchType.LOST
 
+        # Searching for dataset patterns
+
+        @staticmethod
+        def calculate_matches_in_dataset(ds_states: "UtilsDataset.Dataset", filepath: Path=None):
+            if not filepath:
+                file_dir: Path = UtilsPlot.PLOT_TEMPLATES_DIR
+                filepath: Path = file_dir / f"{ds_states.name}_template_matches.csv"
+
+            boardsize = ds_states.boardsize
+            start_board = 0
+            num_boards = ds_states.num_rows
+
+            csv_headers = ['Board#', 'NumPieces', 'MatchPlayer', 'MatchType', 'MatchBaseName', 'MatchVarName', 'MatchX',
+                           'MatchY']
+
+            # If this match dataset already exist, we need to correctly add to it
+            if os.path.exists(filepath):
+                with open(filepath, mode='r', newline='') as ds_match:
+                    csv_reader = csv.reader(ds_match)
+
+                    curr_dataset_name = next(csv_reader)[1]
+                    assert curr_dataset_name == ds_states.name
+                    curr_boardsize = int(next(csv_reader)[1])
+                    assert curr_boardsize == boardsize
+                    curr_num_boards = int(next(csv_reader)[1])
+                    assert curr_num_boards == num_boards
+                    headers = next(csv_reader)
+
+                    last_row = None
+                    for match in csv_reader:
+                        last_row = match
+                    if last_row == ['# Finished']:
+                        print('This search is already finished!')
+                        return
+                    last_board = int(last_row[headers.index('Board#')])
+                    start_board = last_board + 1
+                    print(f'Resuming existing search from board {start_board}...')
+
+            # If this match dataset doesn't already exist, we need to make it
+            else:
+                with open(filepath, mode='w', newline='') as ds_match:
+                    csv_writer = csv.writer(ds_match)
+                    csv_writer.writerow(['dataset', ds_states.name])
+                    csv_writer.writerow(['boardsize', boardsize])
+                    csv_writer.writerow(['num_boards', num_boards])
+                    csv_writer.writerow(csv_headers)
+
+            # Continue finding matches in each row of the dataset until we are done
+            with open(filepath, mode='a', newline='') as ds_match:
+                csv_writer = csv.writer(ds_match)
+                for board in tqdm(range(start_board, num_boards)):
+                    # print(f"Board: {board}, Progress: {100 * board / num_boards:.3f}%")
+
+                    literals = ds_states.X[board]
+                    num_pieces = sum(literals)
+                    for template_name in UtilsHex.SearchPattern.get_pattern_names():
+                        variations = UtilsHex.SearchPattern.get_pattern_variations(template_name)
+                        for search_pattern in variations:
+                            matches = UtilsHex.SearchPattern.search_literals(search_pattern, literals, boardsize)
+                            for match in matches:
+                                base_name = match.search_pattern.base_name
+                                var_name = match.search_pattern.variation_name
+                                csv_writer.writerow(
+                                    [board, num_pieces, match.player, match.match_type, base_name, var_name,
+                                     match.coord[0], match.coord[1]])
+                csv_writer.writerow(['# Finished'])
+
+        @staticmethod
+        def load_matches_in_dataset(ds_states: "UtilsDataset.Dataset", filepath: Path=None):
+            if not filepath:
+                file_dir: Path = UtilsPlot.PLOT_TEMPLATES_DIR
+                filepath: Path = file_dir / f"{ds_states.name}_template_matches.csv"
+
+            return UtilsHex.SearchPattern._load_template_matches(filepath)
+
         # ----------------------------------------
         # PRIVATE INTERFACE
         # ----------------------------------------
@@ -877,6 +955,118 @@ class UtilsHex:
                         matches.append(match)
 
             return matches
+
+        @staticmethod
+        def _calculate_intertemplate_matchings() -> Dict[str, Dict[str, List[np.array]]]:
+            # See which templates can be found entirely inside other templates (probably always just bridges...)
+
+            # Use a default dict so we don't need to check for the key existing already
+            matchings = defaultdict(lambda: defaultdict(list))
+
+            def check_for_in_pair(looking_for: UtilsHex.SearchPattern, looking_in: UtilsHex.SearchPattern):
+                local_origin = looking_in.induced_include_coords[0]
+                matches = UtilsHex.SearchPattern.search_search_pattern(looking_for, looking_in)
+                for match in matches:
+                    local_match_position = match.coord - local_origin
+                    matchings[looking_in.full_name][looking_for.full_name].append(local_match_position)
+
+            template_base_names = UtilsHex.SearchPattern.get_pattern_names()
+            for looking_for_base_name, looking_in_base_name in itertools.permutations(template_base_names, 2):
+                looking_for_patterns = UtilsHex.SearchPattern.get_pattern_variations(looking_for_base_name)
+                looking_in_patterns = UtilsHex.SearchPattern.get_pattern_variations(looking_in_base_name)
+                for looking_for_pattern, looking_in_pattern in itertools.product(looking_for_patterns,
+                                                                                 looking_in_patterns):
+                    check_for_in_pair(looking_for_pattern, looking_in_pattern)
+
+            # Convert from the easy to create defaultdict into the easy to work with regular dict
+            matchings = Helpers.defaultdict_to_dict(matchings)
+            return matchings
+
+        @staticmethod
+        def _load_template_matches(filepath: Path) -> Tuple[int, Dict[int, List]]:
+            if not os.path.exists(filepath):
+                raise FileNotFoundError(filepath)
+
+            intertemplate_matchings = UtilsHex.SearchPattern._calculate_intertemplate_matchings()
+            num_boards = -1
+            matches = {}
+
+            def process_board_matches(board_number, board_matches):
+                # To remove any matches that are dependent on others:
+                # First we find where we would remove any match if it existed
+                potential_remove_matches = defaultdict(set)
+                for match in board_matches:
+
+                    # TODO: maybe try with and without this to see what we should do
+                    # If this match is LOST, then we don't mind if we keep those dependent on it
+                    if match['MatchType'] == UtilsHex.SearchPattern.Match.MatchType.LOST:
+                        continue
+
+                    full_name = match['MatchBaseName']
+                    if match['MatchVarName']:
+                        full_name += f"_{match['MatchVarName']}"
+
+                    dependent_on_us = intertemplate_matchings.get(full_name, [])
+                    if not dependent_on_us:
+                        continue
+
+                    origin = np.array([match['MatchX'], match['MatchY']])
+                    for remove_full_name, remove_offsets in dependent_on_us.items():
+                        for remove_offset in remove_offsets:
+                            potential_remove_matches[remove_full_name].add(tuple(origin + remove_offset))
+
+                # We found no places we would want to remove matches, so exit
+                if not potential_remove_matches:
+                    matches[board_number] = board_matches
+                    return
+
+                # Now we go through the matches again to see if we have any of the ones we want to remove
+                kept_board_matches = []
+                for match in board_matches:
+                    full_name = match['MatchBaseName']
+                    if match['MatchVarName']:
+                        full_name += f"_{match['MatchVarName']}"
+
+                    remove_coords = potential_remove_matches.get(full_name, [])
+                    if (match['MatchX'], match['MatchY']) in remove_coords:
+                        continue
+
+                    kept_board_matches.append(match)
+
+                # Finally saving the ones we want to keep
+                matches[board_number] = board_matches
+
+            with open(filepath, mode='r', newline='') as ds_match:
+                csv_reader = csv.reader(ds_match)
+
+                ds_state_name = next(csv_reader)[1]
+                boardsize = int(next(csv_reader)[1])
+                num_boards = int(next(csv_reader)[1])
+                headers = next(csv_reader)
+
+                current_board = None
+                current_board_matches = []
+                for line in csv_reader:
+                    # Check we aren't are the end of the file
+                    if line == ['# Finished']:
+                        break
+                    match = dict(zip(headers, [int(x) if x.isdigit() else x for x in line]))
+                    match['MatchType'] = UtilsHex.SearchPattern.Match.MatchType[match['MatchType'].split('.')[-1]]
+                    board = match['Board#']
+                    if board != current_board:
+                        # We have reached the end of the current board
+                        # Process this board
+                        if current_board_matches:
+                            process_board_matches(current_board, current_board_matches)
+                        # Start the next board
+                        current_board = board
+                        current_board_matches = []
+                    current_board_matches.append(match)
+                # Process the final board of leftover matches
+                if current_board_matches:
+                    process_board_matches(current_board, current_board_matches)
+
+            return num_boards, matches
 
 
 class UtilsTournament:
@@ -1185,6 +1375,45 @@ class UtilsTM:
         # ASSUMPTION: No literal augmentations are applied - clauses would be a different form if they are.
 
         @staticmethod
+        def load_trained_model_clauses(model_path: Path, boardsize: int):
+            # NOTE: These trained clauses are extracted from the model on Google Colab (due to needing CUDA)
+
+            if not model_path.exists():
+                raise FileNotFoundError(model_path)
+
+            model_name = model_path.stem
+            model_clauses_dir = model_path.parent / model_name.replace('_model', "_clauses", 1)
+            if not model_clauses_dir.exists():
+                raise NotADirectoryError(model_clauses_dir)
+
+            negative_black_clauses_path = model_clauses_dir / ("negative_black_clauses" + ".json")
+            negative_white_clauses_path = model_clauses_dir / ("negative_white_clauses" + ".json")
+            positive_black_clauses_path = model_clauses_dir / ("positive_black_clauses" + ".json")
+            positive_white_clauses_path = model_clauses_dir / ("positive_white_clauses" + ".json")
+            if not negative_black_clauses_path.exists() or \
+                not negative_white_clauses_path.exists() or \
+                not positive_black_clauses_path.exists() or \
+                not positive_white_clauses_path.exists():
+                raise FileNotFoundError()
+
+            negative_black_clauses = UtilsTM.Model._load_clauses_file(negative_black_clauses_path, boardsize)
+            negative_white_clauses = UtilsTM.Model._load_clauses_file(negative_white_clauses_path, boardsize)
+            positive_black_clauses = UtilsTM.Model._load_clauses_file(positive_black_clauses_path, boardsize)
+            positive_white_clauses = UtilsTM.Model._load_clauses_file(positive_white_clauses_path, boardsize)
+
+            return negative_black_clauses, negative_white_clauses, positive_black_clauses, positive_white_clauses
+
+        @staticmethod
+        def calculate_clause_branch_factor(clause: List[int]):
+            # Each clause can evaluate to true for some number of literals
+            # e.g. if the clause has a NOT black, then either an empty or a white tile would be true.
+            # We need to know how big this number can be to see if we can look at them all!
+            num_negated_literals = clause.count(-1)
+            # Each negated literal can take 2 values.
+            branch_factor = pow(2, num_negated_literals)
+            return branch_factor
+
+        @staticmethod
         def _clean_raw_clause(raw_clause: List[str], boardsize: int) -> List[int]:
             polarity_char_to_polarity = {
                 ' ': 1,
@@ -1226,45 +1455,6 @@ class UtilsTM:
             # e.g. [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             clauses = [UtilsTM.Model._clean_raw_clause(raw_clause, boardsize) for raw_clause in raw_clauses]
             return clauses
-
-        @staticmethod
-        def load_trained_model_clauses(model_path: Path, boardsize: int):
-            # NOTE: These trained clauses are extracted from the model on Google Colab (due to needing CUDA)
-
-            if not model_path.exists():
-                raise FileNotFoundError(model_path)
-
-            model_name = model_path.stem
-            model_clauses_dir = model_path.parent / model_name.replace('_model', "_clauses", 1)
-            if not model_clauses_dir.exists():
-                raise NotADirectoryError(model_clauses_dir)
-
-            negative_black_clauses_path = model_clauses_dir / ("negative_black_clauses" + ".json")
-            negative_white_clauses_path = model_clauses_dir / ("negative_white_clauses" + ".json")
-            positive_black_clauses_path = model_clauses_dir / ("positive_black_clauses" + ".json")
-            positive_white_clauses_path = model_clauses_dir / ("positive_white_clauses" + ".json")
-            if not negative_black_clauses_path.exists() or \
-                not negative_white_clauses_path.exists() or \
-                not positive_black_clauses_path.exists() or \
-                not positive_white_clauses_path.exists():
-                raise FileNotFoundError()
-
-            negative_black_clauses = UtilsTM.Model._load_clauses_file(negative_black_clauses_path, boardsize)
-            negative_white_clauses = UtilsTM.Model._load_clauses_file(negative_white_clauses_path, boardsize)
-            positive_black_clauses = UtilsTM.Model._load_clauses_file(positive_black_clauses_path, boardsize)
-            positive_white_clauses = UtilsTM.Model._load_clauses_file(positive_white_clauses_path, boardsize)
-
-            return negative_black_clauses, negative_white_clauses, positive_black_clauses, positive_white_clauses
-
-        @staticmethod
-        def calculate_clause_branch_factor(clause: List[int]):
-            # Each clause can evaluate to true for some number of literals
-            # e.g. if the clause has a NOT black, then either an empty or a white tile would be true.
-            # We need to know how big this number can be to see if we can look at them all!
-            num_negated_literals = clause.count(-1)
-            # Each negated literal can take 2 values.
-            branch_factor = pow(2, num_negated_literals)
-            return branch_factor
 
 
 class UtilsDataset:
@@ -2001,9 +2191,12 @@ class UtilsPlot:
 
             UtilsPlot.plot_search_pattern(base_pattern, exclude_players=list(exclude_players))
 
+
 if __name__ == '__main__':
-    # UtilsHex.SearchPattern.initialise()
-    # UtilsDataset.load_raw_datasets()
+    UtilsDataset.load_raw_datasets()
+    UtilsHex.SearchPattern.initialise()
+
+    # UtilsPlot.plot_literals(literals, boardsize, Path('test.png'))
 
     # UtilsPlot._plot_all_search_pattern_variations()
     # UtilsPlot._plot_all_search_pattern_match_types('crescent')
@@ -2083,4 +2276,3 @@ if __name__ == '__main__':
 
     # Is there a future for a tsetlin machine that just doesn't use negative literals at all?
     # I know it might be a silly idea, but I'd like to see if it could pull it off.
-    pass
