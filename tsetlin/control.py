@@ -54,44 +54,47 @@ class WinnerPredModel:
         prediction = 0 if board_score >= 0 else 1
         return prediction
 
+    @staticmethod
+    def _find_best_weights():
+        UtilsDataset.load_raw_datasets()
+        UtilsHex.SearchPattern.initialise()
+        dataset = UtilsDataset.BASELINE
+
+        # We need to find the best weights, use bayesian optimisation to do this
+        space = [Real(low=-1, high=0, name="lost"),
+                 Real(low=-0.5, high=0.5, name="empty"),
+                 Real(low=-0.5, high=0.5, name="inconclusive"),
+                 Real(low=0, high=1, name="won")]
+
+        # We need to define what we are trying to optimise for
+        # In our case it is accuracy (for example)
+        @use_named_args(space)
+        def objective(**params):
+            weights = [params["lost"], params["empty"], params["inconclusive"], params["won"]]
+            y_pred, boards_with_matches = WinnerPredModel.predict_winners_for_dataset(dataset, weights)
+            y_true = [dataset.Y[i] for i in range(len(dataset.Y)) if i in boards_with_matches]
+
+            report = classification_report(y_true, y_pred, output_dict=True)
+            return -report['accuracy']  # Need to negate accuracy as this process minimises the objective
+
+        result = gp_minimize(
+            objective,
+            space,
+            n_calls=50,
+            acq_func='EI',
+            verbose=True,
+            n_jobs=-1
+        )
+        best_weights = result.x
+        best_accuracy = -result.fun
+        print(f"Best accuracy: {best_accuracy:.4f} with weights {best_weights}")
+
+        plt.plot(-result.func_vals)  # Convert negative accuracy back to positive
+        plt.xlabel("Iteration")
+        plt.ylabel("Accuracy")
+        plt.title("Bayesian Optimization Progress")
+        UtilsPlot.save_plot(plt, Path("optimisation.png"))
+
 
 if __name__ == '__main__':
-    UtilsDataset.load_raw_datasets()
-    UtilsHex.SearchPattern.initialise()
-    dataset = UtilsDataset.BASELINE
-
-    # We need to find the best weights, use bayesian optimisation to do this
-    space = [Real(low=-1, high=0,  name="lost"),
-             Real(low=-0.5, high=0.5, name="empty"),
-             Real(low=-0.5, high=0.5, name="inconclusive"),
-             Real(low=0, high=1, name="won")]
-
-    # We need to define what we are trying to optimise for
-    # In our case it is accuracy (for example)
-    @use_named_args(space)
-    def objective(**params):
-        weights = [params["lost"], params["empty"], params["inconclusive"], params["won"]]
-        y_pred, boards_with_matches = WinnerPredModel.predict_winners_for_dataset(dataset, weights)
-        y_true = [dataset.Y[i] for i in range(len(dataset.Y)) if i in boards_with_matches]
-
-        report = classification_report(y_true, y_pred, output_dict=True)
-        return -report['accuracy']  # Need to negate accuracy as this process minimises the objective
-
-    # initial_weights = [[-100, 20, 10, 100], [-100, 20, 20, 100], [0, 10, 10, 50]]
-    result = gp_minimize(
-        objective,
-        space,
-        n_calls=50,
-        acq_func='EI',
-        verbose=True,
-        n_jobs=-1
-    )
-    best_weights = result.x
-    best_accuracy = -result.fun
-    print(f"Best accuracy: {best_accuracy:.4f} with weights {best_weights}")
-
-    plt.plot(-result.func_vals)  # Convert negative accuracy back to positive
-    plt.xlabel("Iteration")
-    plt.ylabel("Accuracy")
-    plt.title("Bayesian Optimization Progress")
-    UtilsPlot.save_plot(plt, Path("optimisation3.png"))
+    WinnerPredModel._find_best_weights()
