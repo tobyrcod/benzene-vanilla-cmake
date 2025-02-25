@@ -18,6 +18,9 @@ class WinnerPredModel:
     # Potentially add hyperparameter tuning here for the weights
     # Potentially add turn indicators to influence the weights
 
+    # [Lost, Empty, Inconclusive, Won]
+    BEST_WEIGHTS = [0.0, 0.13, 0.14, 0.84]
+
     @staticmethod
     def predict_winners_for_dataset(dataset: UtilsDataset.Dataset, weights=None):
         num_games, matches = UtilsHex.SearchPattern.load_matches_in_dataset(dataset)
@@ -38,8 +41,7 @@ class WinnerPredModel:
             raise NotImplementedError()
 
         if not weights:
-            # [Lost, Empty, Inconclusive, Won]
-            weights = [0.0, 0.13, 0.14, 0.84]
+            weights = WinnerPredModel.BEST_WEIGHTS
         weights = dict(zip(UtilsHex.SearchPattern.Match.MatchType, weights))
 
         board_score = 0
