@@ -1375,33 +1375,30 @@ class UtilsTM:
         # ASSUMPTION: No literal augmentations are applied - clauses would be a different form if they are.
 
         @staticmethod
-        def load_trained_model_clauses(model_path: Path, boardsize: int):
+        def load_trained_tmu_model_clauses(clauses_path: Path, boardsize: int) -> Tuple[List[List[int]], List[List[int]]]:
             # NOTE: These trained clauses are extracted from the model on Google Colab (due to needing CUDA)
 
-            if not model_path.exists():
-                raise FileNotFoundError(model_path)
-
-            model_name = model_path.stem
-            model_clauses_dir = model_path.parent / model_name.replace('_model', "_clauses", 1)
-            if not model_clauses_dir.exists():
-                raise NotADirectoryError(model_clauses_dir)
-
-            negative_black_clauses_path = model_clauses_dir / ("negative_black_clauses" + ".json")
-            negative_white_clauses_path = model_clauses_dir / ("negative_white_clauses" + ".json")
-            positive_black_clauses_path = model_clauses_dir / ("positive_black_clauses" + ".json")
-            positive_white_clauses_path = model_clauses_dir / ("positive_white_clauses" + ".json")
-            if not negative_black_clauses_path.exists() or \
-                not negative_white_clauses_path.exists() or \
-                not positive_black_clauses_path.exists() or \
-                not positive_white_clauses_path.exists():
+            if not clauses_path.exists():
                 raise FileNotFoundError()
 
-            negative_black_clauses = UtilsTM.Model._load_clauses_file(negative_black_clauses_path, boardsize)
-            negative_white_clauses = UtilsTM.Model._load_clauses_file(negative_white_clauses_path, boardsize)
-            positive_black_clauses = UtilsTM.Model._load_clauses_file(positive_black_clauses_path, boardsize)
-            positive_white_clauses = UtilsTM.Model._load_clauses_file(positive_white_clauses_path, boardsize)
+            clauses, weights = UtilsTM.Model._load_weighted_clauses_file(clauses_path, boardsize)
 
-            return negative_black_clauses, negative_white_clauses, positive_black_clauses, positive_white_clauses
+            return clauses, weights
+
+        @staticmethod
+        def make_model_clauses_satisfiable(clauses: List[List[int]], weights: List[List[int]]):
+            sat_clauses, sat_weights = [], []
+            for i in range(len(clauses)):
+                sat_clause, sat_codes = UtilsTM.Model._clean_to_sat_clause(clauses[i])
+                if i == 1:
+                    print(clauses[i])
+                    print('negs', [i for i, x in enumerate(clauses[i]) if x == -1])
+                    print('sat_codes', sat_codes)
+                if 1 not in sat_codes:
+                    sat_clauses.append(sat_clause)
+                    sat_weights.append(weights[i])
+
+            return sat_clauses, sat_weights
 
         @staticmethod
         def calculate_clause_branch_factor(clause: List[int]):
@@ -1411,10 +1408,51 @@ class UtilsTM:
             num_negated_literals = clause.count(-1)
             # Each negated literal can take 2 values.
             branch_factor = pow(2, num_negated_literals)
+            # NOTE: this is an upper bound, as if both players have a -1 in a position,
+            # this doesnt branch but is instead forced into a single state
+            # TODO: calculate this properly using sat_codes
             return branch_factor
 
         @staticmethod
-        def _clean_raw_clause(raw_clause: List[str], boardsize: int) -> List[int]:
+        def expand_negated_literals_in_clause(clause: List[int]):
+            literals_per_player = len(clause) // 2
+            non_negated_clauses = []
+            frontier = [clause]
+            while frontier:
+                c0 = frontier.pop(0)
+                if -1 not in c0:
+                    # We have no negated literals left in the clause
+                    # So we can save it and move on
+                    non_negated_clauses.append(list(c0))
+                else:
+                    # We have at least one negated literal in this list
+                    # So let's get its index
+                    negated_index = c0.index(-1)
+                    # So we need to make two copies with the negative replaced
+                    c1 = list(c0)
+                    c2 = list(c0)
+                    # The first copy will replace the negated literal with empty
+                    c1[negated_index] = 0
+                    # The second copy will replace the negated literal
+                    # with a positive literal for the other player
+                    other_player_index = (negated_index + literals_per_player) % (2 * literals_per_player)
+                    c2[negated_index] = 0
+                    c2[other_player_index] = 1
+                    # Finally, we add both of these to the frontier
+                    # In case they have further negated literals to remove
+                    frontier.append(c1)
+                    if c0[other_player_index] != -1:
+                        # We only add the case for making the other player positive,
+                        # If we don't explicitly already want it to be negative
+                        frontier.append(c2)
+
+            # TODO: bring assertion back as soon as the branch factor logic is fixed
+            # assert len(non_negated_clauses) == UtilsTM.Model.calculate_clause_branch_factor(clause)
+
+            return non_negated_clauses
+
+        @staticmethod
+        def _raw_to_clean_clause(raw_clause: List[str], boardsize: int) -> List[int]:
             polarity_char_to_polarity = {
                 ' ': 1,
                 '!': -1
@@ -1442,19 +1480,69 @@ class UtilsTM:
             return clause
 
         @staticmethod
-        def _load_clauses_file(clause_file_path: Path, boardsize: int):
+        def _clean_to_sat_clause(clause: List[int]) -> Tuple[List[int], List[int]]:
+            # TODO: switch to enum values instead of pure ints
+            # Does the clause have more than one non-zero literal in the same hex position (both players!)
+            # If so, what horrendous problems do we have with that...
+            sat_codes = []
+            literals_per_player = len(clause) // 2
+            for i in range(literals_per_player):
+                black = clause[i]
+                white = clause[literals_per_player + i]
+                if black == 0 or white == 0:
+                    # We only care about one or the other, as we should
+                    sat_codes.append(0)
+                    continue
+                if black == -1 and white == -1:
+                    # We want this position to be neither black or white -> completely empty
+                    # This seems reasonable in logic/theory, however strange it is
+                    # TODO: Make this a valid option in the logic/plotting/expanding
+                    sat_codes.append(-1)
+                    continue
+                if black == 1 and white == 1:
+                    # Please no...
+                    # We want this hex position to have a black and a white piece, impossible!!
+                    sat_codes.append(1)
+                    continue
+                # We have one 1 and one -1,
+                sat_codes.append(2)
+                # So want this cell position to be:
+                # 1. black and not white, or
+                # 2. white and not black
+                # This is a waste of a literal, as this can be trivially simplified
+                # 1. If black,
+                if black == 1:
+                    # Turn white off
+                    clause[literals_per_player+i] = 0
+                # 2. If white,
+                elif white == 1:
+                    # Turn black off
+                    clause[i] = 0
+                else:
+                    raise ValueError()
+                continue
+
+            return clause, sat_codes
+
+        @staticmethod
+        def _load_weighted_clauses_file(clause_file_path: Path, boardsize: int):
             if not clause_file_path.exists():
                 raise FileNotFoundError(clause_file_path)
 
             with open(clause_file_path, "r", encoding="utf-8") as json_file:
                 # Clauses currently look like this:
                 # e.g. [' x1', ' x56', '!x25']
-                raw_clauses = json.load(json_file)
+                raw_weighted_clauses = json.load(json_file)
+
+            # TODO: just change the Google Colab CUDA output to save two separate lists
 
             # They need to be represented in an easier to interpret intermediate 'cleaned clause' list format
             # e.g. [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-            clauses = [UtilsTM.Model._clean_raw_clause(raw_clause, boardsize) for raw_clause in raw_clauses]
-            return clauses
+            raw_clauses = [x[0] for x in raw_weighted_clauses]
+            clean_clauses = [UtilsTM.Model._raw_to_clean_clause(raw_clause, boardsize) for raw_clause in raw_clauses]
+
+            raw_weights = [x[1] for x in raw_weighted_clauses]
+            return clean_clauses, raw_weights
 
 
 class UtilsDataset:
