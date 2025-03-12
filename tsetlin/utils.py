@@ -824,6 +824,36 @@ class UtilsHex:
 
             return UtilsHex.SearchPattern._load_template_matches(filepath)
 
+        # Searching for clause patterns
+
+        @staticmethod
+        def calculate_matches_in_clauses(filepath: Path, boardsize: int):
+            # Load the raw clauses and clean them into equivalent literals
+            clauses, weights = UtilsTM.Model.load_trained_tmu_model_clauses(filepath, boardsize)
+            clauses, weights = UtilsTM.Model.make_model_clauses_satisfiable(clauses, weights)
+            clauses, weights = UtilsTM.Model.convert_clauses_to_literals(clauses, weights)
+
+            # Convert from a list of clauses to a dataset
+            X = np.array(clauses)
+            Y = np.array([np.argmax(w) for w in weights])
+            name = filepath.parent.stem + "_ds"
+            dataset = UtilsDataset.Dataset(X, Y, boardsize, name, False)
+
+            # Search the dataset
+            matches_filepath = filepath.parent / "template_matches.csv"
+            UtilsHex.SearchPattern.calculate_matches_in_dataset(dataset, matches_filepath)
+
+        @staticmethod
+        def load_matches_in_clauses(filepath: Path, boardsize: int):
+            # Load the raw clauses and clean them into equivalent literals
+            clauses, weights = UtilsTM.Model.load_trained_tmu_model_clauses(filepath, boardsize)
+            clauses, weights = UtilsTM.Model.make_model_clauses_satisfiable(clauses, weights)
+            clauses, weights = UtilsTM.Model.convert_clauses_to_literals(clauses, weights)
+
+            matches_filepath = filepath.parent / "template_matches.csv"
+            num_boards, matches = UtilsHex.SearchPattern._load_template_matches(matches_filepath)
+            return clauses, weights, matches
+
         # ----------------------------------------
         # PRIVATE INTERFACE
         # ----------------------------------------
@@ -1390,10 +1420,10 @@ class UtilsTM:
             sat_clauses, sat_weights = [], []
             for i in range(len(clauses)):
                 sat_clause, sat_codes = UtilsTM.Model._clean_to_sat_clause(clauses[i])
-                if i == 1:
-                    print(clauses[i])
-                    print('negs', [i for i, x in enumerate(clauses[i]) if x == -1])
-                    print('sat_codes', sat_codes)
+                # if i == 1:
+                    # print(clauses[i])
+                    # print('negs', [i for i, x in enumerate(clauses[i]) if x == -1])
+                    # print('sat_codes', sat_codes)
                 if 1 not in sat_codes:
                     sat_clauses.append(sat_clause)
                     sat_weights.append(weights[i])
@@ -1414,7 +1444,25 @@ class UtilsTM:
             return branch_factor
 
         @staticmethod
-        def expand_negated_literals_in_clause(clause: List[int]):
+        def convert_clauses_to_literals(clauses: List[List[int]], weights: List[List[int]]):
+            # Remove negative literals by expanding them all into empty and positive branching board states
+
+            non_negated_clauses, non_negated_weights = [], []
+            for j in range(len(clauses)):
+                clause = clauses[j]
+                weight = weights[j]
+
+                expanded_clauses = UtilsTM.Model._expand_negated_literals_in_clause(clause)
+                for expanded_clause in expanded_clauses:
+                    non_negated_clauses.append(expanded_clause)
+                    # TODO: figure out if weight should be equal or shared for all branches
+                    non_negated_weights.append(weight)
+
+            assert all(-1 not in clause for clause in non_negated_clauses)
+            return non_negated_clauses, non_negated_weights
+
+        @staticmethod
+        def _expand_negated_literals_in_clause(clause: List[int]):
             literals_per_player = len(clause) // 2
             non_negated_clauses = []
             frontier = [clause]
