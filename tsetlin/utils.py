@@ -1753,6 +1753,8 @@ class UtilsDataset:
     X6_PLY_3: "UtilsDataset.Dataset" = None
     X6_PLY_4: "UtilsDataset.Dataset" = None
     X6_BASELINE: "UtilsDataset.Dataset" = None
+    X6_EQUAL_UNDER: "UtilsDataset.Dataset" = None
+    X6_EQUAL_OVER: "UtilsDataset.Dataset" = None
 
     @staticmethod
     def load_raw_datasets():
@@ -1772,18 +1774,26 @@ class UtilsDataset:
         UtilsDataset.X6_PLY_3 = UtilsDataset._load_winner_pred_dataset("6x6-3ply-simple", augmentation, history, history_size)
         UtilsDataset.X6_PLY_4 = UtilsDataset._load_winner_pred_dataset("6x6-4ply-simple-incomplete", augmentation, history, history_size)
 
+        # Combine all of these datasets
+        ds_x6_combined = UtilsDataset.X6_PLY_1 + UtilsDataset.X6_PLY_2 + UtilsDataset.X6_PLY_3 + UtilsDataset.X6_PLY_4
+
         # Define a new baseline dataset to match the distribution of the original paper
         baseline_black = 175968
         baseline_white = 111826
-        UtilsDataset.X6_BASELINE = UtilsDataset.X6_PLY_1 + UtilsDataset.X6_PLY_2 + UtilsDataset.X6_PLY_3 + UtilsDataset.X6_PLY_4
         """
         baseline_total = baseline_black + baseline_white
         baseline_majority_frac = baseline_black / baseline_total
         UtilsDataset.BASELINE = UtilsDataset.BASELINE.reduce_majority_frac(baseline_majority_frac)
         UtilsDataset.BASELINE.name = '6x6-baseline_dist'
         """
-        UtilsDataset.X6_BASELINE = UtilsDataset.X6_BASELINE.reduce_player_counts(baseline_black, baseline_white)
+        UtilsDataset.X6_BASELINE = ds_x6_combined.reduce_player_counts(baseline_black, baseline_white)
         UtilsDataset.X6_BASELINE.name = '6x6-baseline_exact'
+
+        # Define a new equal dataset to make the win:lose ratio 1:1 for black:white
+        UtilsDataset.X6_EQUAL_UNDER = ds_x6_combined.undersample()
+        UtilsDataset.X6_EQUAL_OVER = ds_x6_combined.oversample()
+        UtilsDataset.X6_EQUAL_UNDER.name = "6x6-equal_under"
+        UtilsDataset.X6_EQUAL_OVER.name = "6x6-equal_over"
 
 
     @staticmethod
@@ -1997,6 +2007,8 @@ class UtilsPlot:
         filepath.parent.mkdir(parents=True, exist_ok=True)
         plt.savefig(filepath, dpi=300, bbox_inches=bbox_inches)
         plt.close()
+
+        print("Plot saved to: ", filepath)
 
     ### HEX
 
@@ -2330,85 +2342,7 @@ class UtilsPlot:
 
 if __name__ == '__main__':
     UtilsDataset.load_raw_datasets()
-    UtilsHex.SearchPattern.initialise()
+    # UtilsHex.SearchPattern.initialise()
 
-    # UtilsPlot.plot_literals(literals, boardsize, Path('test.png'))
-
-    # UtilsPlot._plot_all_search_pattern_variations()
-    # UtilsPlot._plot_all_search_pattern_match_types('crescent')
-
-    # nbs, nws, pbs, pws = UtilsTM.Model.load_trained_model_clauses(Path("models/6x6-baseline_exact_model.pkl"), 6)
-    # UtilsPlot.plot_clause(nbs[44], 6, Path("models/6x6-baseline_exact_clauses/test_clause_plot.png"))
-
-    # NOTES:
-    # This isn't seeming to mean anything. Maybe the TM has learnt templates,
-    #  but it is spread out across combining many clauses, or perhaps it doesn't know them at all
-    # MAYBE, we can go through all the clauses, make a heatmap by summing all for each cell, and then do something new all at once?
-
-    # Ok lets run the full template searches anyway to see what happens
-    # In order to do this, we need to turn the clauses into a dataset of matches
-    # To do this, we need to decide how to convert ternary literals into a simple binary.
-    # The key difference to literals here is that the clause can take negated values
-    # e.g. Instead of just saying white here or black here, we can say NOT white or NOT black here
-    #  (equivalent to empty or black, empty or white respectively)
-    # We somehow need to handle this in a way that is still interpretable:
-    # Option 1: Ignore all the negated literals
-    # Option 2: Turn all negated literals into a literal for the opponent
-    #  e.g. NOT black becomes white, NOT white becomes black
-    # Option 3: Take a generous interpretation
-    #  e.g. if we are looking at positive black clauses:
-    #       - any NOT white become black
-    #       - any NOT black become empty
-    #  e.g. if we are looking at negative black clauses:
-    #       - any NOT white become empty
-    #       - any NOT black become white
-    #  e.g. if we are looking at positive white clauses:
-    #       - any NOT white become empty
-    #       - any NOT black become white
-    #  e.g. if we are looking at negative white clauses:
-    #       - any NOT white become black
-    #       - any NOT black become empty
-    # Option 4: Take an adversarial interpretation
-    #  e.g. if we are looking at positive black clauses:
-    #       - any NOT white become empty
-    #       - any NOT black become white
-    #  e.g. if we are looking at negative black clauses:
-    #       - any NOT white become black
-    #       - any NOT black become empty
-    #  e.g. if we are looking at positive white clauses:
-    #       - any NOT white become black
-    #       - any NOT black become empty
-    #  e.g. if we are looking at negative white clauses:
-    #       - any NOT white become empty
-    #       - any NOT black become white
-    # Option 5: When converting to literals, branch into EVERY possible matching interpretation
-    #  e.g. If we have NOT black, we make new 2 clauses (one empty and one white)
-    #        and then we do this for every negative literals
-    #  WILL NEED TO SEE IF THIS IS EVEN TRACTABLE. IT SOUNDS AWFUL!
-    # nb_bfs = [UtilsTM.Model.calculate_clause_branch_factor(nb) for nb in nbs]
-    # print(max(nb_bfs), sum(nb_bfs))
-    # (36893488147419103232, 77903096256648712784)
-    # NOPE NO AND DEFINITELY NOT!!
-    # Need to see the full distribution
-    # UtilsPlot.plot_clauses_branch_factor_histogram(nbs, Path("models/6x6-baseline_exact_clauses/nb_test.png"))
-
-    # Alternative solution:
-    # We wanted to limit clause sizes anyway as this makes them more human-readable.
-    # If we limit to 7, bf is limited to 2^7=128, making this approach viable again.
-    # Paper: https://arxiv.org/abs/2301.08190
-    # Need to switch to TMU.
-    # https://www.reddit.com/r/MachineLearning/comments/10holgp/r_new_tsetlin_machine_learning_scheme_creates_up/
-    # https://github.com/cair/tmu?tab=readme-ov-file
-    # - "Indeed, the accuracy in
-    # creases with shorter clauses for TREC, IMDb, and
-    # BBC Sports" WOW?!
-    # "Even with significantly constrained clause size,
-    # the performance of CSC-TM is not compromised compared
-    # with the other TM variants."
-    # They even tried it for boardgames!
-    # [NOTION IMAGE]
-    # We need to first see the distribution now of lengths of the raw clauses when it is unconstrained
-    # ...
-
-    # Is there a future for a tsetlin machine that just doesn't use negative literals at all?
-    # I know it might be a silly idea, but I'd like to see if it could pull it off.
+    UtilsPlot.plot_dataset_win_rates(UtilsDataset.X6_EQUAL_UNDER, by_state=True)
+    UtilsPlot.plot_dataset_win_rates(UtilsDataset.X6_EQUAL_OVER, by_state=True)
