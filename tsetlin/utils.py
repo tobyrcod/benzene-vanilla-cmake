@@ -13,6 +13,7 @@ from enum import IntFlag, Enum
 from pathlib import Path
 from matplotlib import pyplot as plt
 from matplotlib.patches import RegularPolygon, Circle
+from matplotlib.colors import LinearSegmentedColormap
 from pysgf import SGF, SGFNode
 from typing import Any, Dict, List, Tuple, Callable, Set
 from imblearn.under_sampling import RandomUnderSampler, TomekLinks, EditedNearestNeighbours
@@ -176,6 +177,8 @@ class UtilsHex:
 
     class HexGrid:
 
+        # TODO: make its own class? (not List[List[int]])
+
         # All under assumption of NO AUGMENTATIONS when plotting!
         # TODO: see what happens when you try to plot augmented literals
 
@@ -186,8 +189,18 @@ class UtilsHex:
         # (negated, color) can be recovered from divmod(value, 2)
 
         @staticmethod
-        def from_literals(literals: List[int], boardsize: int) -> List[List[int]]:
+        def make_empty_hexgrid(boardsize: int) -> List[List[int]]:
             hex_grid = [[-1 for x in range(boardsize)] for y in range(boardsize)]
+            return hex_grid
+
+        @staticmethod
+        def make_empty_heatmap(boardsize: int, default: float=0) -> List[List[float]]:
+            heatmap = [[default for x in range(boardsize)] for y in range(boardsize)]
+            return heatmap
+
+        @staticmethod
+        def from_literals(literals: List[int], boardsize: int) -> List[List[int]]:
+            hex_grid = UtilsHex.HexGrid.make_empty_hexgrid(boardsize)
 
             literals_per_player = boardsize**2
             for y in range(boardsize):
@@ -200,7 +213,8 @@ class UtilsHex:
 
         @staticmethod
         def from_clause(clause: List[int], boardsize: int) -> List[List[int]]:
-            hex_grid = [[-1 for x in range(boardsize)] for y in range(boardsize)]
+            hex_grid = UtilsHex.HexGrid.make_empty_hexgrid(boardsize)
+
             literals_per_player = boardsize ** 2
             for y in range(boardsize):
                 for x in range(boardsize):
@@ -220,14 +234,14 @@ class UtilsHex:
 
             return hex_grid
 
-
         @staticmethod
         def from_search_pattern(search_pattern: "UtilsHex.SearchPattern") -> List[List[int]]:
             # Search patterns are all independent of boards
             # So we need to create a new board on which this search pattern could fit
 
             boardsize = search_pattern.induced_boardsize
-            hex_grid = [[-1 for x in range(boardsize)] for y in range(boardsize)]
+            hex_grid = UtilsHex.HexGrid.make_empty_hexgrid(boardsize)
+
             for include_coord in search_pattern.induced_include_coords:
                 hex_grid[include_coord[1]][include_coord[0]] = 0
 
@@ -238,7 +252,20 @@ class UtilsHex:
             for i, row in enumerate(hex_grid):
                 string = i * 2 * " "
                 for cell in row:
-                    string += str(cell).ljust(2, str(cell)[-1]) + " " * 2
+                    string += str(cell).ljust(2, str(cell)[-1])
+                    string += " " * 2
+                print(string)
+            print()
+
+        @staticmethod
+        def print_heatmap(heatmap: List[List[float]]):
+            for i, row in enumerate(heatmap):
+                string = i * 2 * " "
+                for cell in row:
+                    if cell == 1:
+                        cell -= 0.01  # Show 00 to 99, not 00 to 00
+                    string += f"{cell:.2f}"[2:]
+                    string += " " * 2
                 print(string)
             print()
 
@@ -2002,6 +2029,14 @@ class UtilsPlot:
     PLOT_TEMPLATES_DIR = PLOTS_DIR / "templates"
     PLOT_WIN_RATES_DIR = PLOTS_DIR / "win_rates"
 
+    COLORMAP = LinearSegmentedColormap.from_list(
+        'blue_white_red',
+        [(0.0, 'blue'),
+                (0.5, 'lightyellow'),
+                (1.0, 'red')],
+        N=256
+    )
+
     @staticmethod
     def save_plot(plt: matplotlib.pyplot.plot, filepath: Path, bbox_inches=None):
         filepath.parent.mkdir(parents=True, exist_ok=True)
@@ -2013,21 +2048,32 @@ class UtilsPlot:
     ### HEX
 
     @staticmethod
-    def _plot_hex_grid(hex_grid: List[List[int]], filepath: Path, show_axis: bool=False, coord_text_func: Callable[[int, int], str]=None):
+    def _plot_hex_grid(hex_grid: List[List[int]],
+                       filepath: Path, show_axis: bool=False,
+                       coord_text_func: Callable[[int, int], str]=None,
+                       heatmap: List[List[float]]=None):
         # Plot a Hexagonal Grid
         # - logic from: https://www.redblobgames.com/grids/hexagons/
+
+        boardsize = len(hex_grid)
 
         # By default, the coord text is its position
         if not coord_text_func:
             coord_text_func = lambda x, y: UtilsHex.Coordinates.coord_to_position(x, y)
 
+        # By default, we just use a basic heatmap where every colour is the same
+        if not heatmap:
+            heatmap = UtilsHex.HexGrid.make_empty_heatmap(boardsize, default=0.5)
+        else:
+            # If we are showing a wanted heatmap, we should display the values
+            old_coord_text_func = coord_text_func
+            coord_text_func = lambda x, y: old_coord_text_func(x, y) + f"\n{heatmap[y][x]:.2f}"
+
         # Define the grid colors
-        cell_color = 'lightyellow'
         piece_colors = ['black', 'white']
         grid_color = 'black'
 
         # Define the grid properties
-        boardsize = len(hex_grid)
         hex_radius = 1
         dy = (3 / 2) * hex_radius
         dx = np.sqrt(3) * hex_radius
@@ -2046,6 +2092,7 @@ class UtilsPlot:
                 position = get_cell_position(x, y)
 
                 # Plot the grid
+                cell_color = UtilsPlot.COLORMAP(heatmap[y][x])
                 hexagon = RegularPolygon(position, numVertices=6, radius=hex_radius,
                                          orientation=0, edgecolor=grid_color, facecolor=cell_color)
                 ax.add_patch(hexagon)
