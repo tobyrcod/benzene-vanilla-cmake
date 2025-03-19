@@ -1748,11 +1748,11 @@ class UtilsDataset:
             return UtilsDataset.Dataset(self.X.copy(), self.Y.copy(), self.boardsize, self.name, self.complete)
 
     TOURNAMENTS_DIR = Path("tournaments")
-    PLY_1: "UtilsDataset.Dataset" = None
-    PLY_2: "UtilsDataset.Dataset" = None
-    PLY_3: "UtilsDataset.Dataset" = None
-    PLY_4: "UtilsDataset.Dataset" = None
-    BASELINE: "UtilsDataset.Dataset" = None
+    X6_PLY_1: "UtilsDataset.Dataset" = None
+    X6_PLY_2: "UtilsDataset.Dataset" = None
+    X6_PLY_3: "UtilsDataset.Dataset" = None
+    X6_PLY_4: "UtilsDataset.Dataset" = None
+    X6_BASELINE: "UtilsDataset.Dataset" = None
 
     @staticmethod
     def load_raw_datasets():
@@ -1767,23 +1767,23 @@ class UtilsDataset:
         history = UtilsTM.Literals.History.HISTORY_NONE
         history_size = 0
 
-        UtilsDataset.PLY_1 = UtilsDataset._load_winner_pred_dataset("6x6-1ply-simple", augmentation, history, history_size)
-        UtilsDataset.PLY_2 = UtilsDataset._load_winner_pred_dataset("6x6-2ply-simple", augmentation, history, history_size)
-        UtilsDataset.PLY_3 = UtilsDataset._load_winner_pred_dataset("6x6-3ply-simple" , augmentation, history, history_size)
-        UtilsDataset.PLY_4 = UtilsDataset._load_winner_pred_dataset("6x6-4ply-simple-incomplete", augmentation, history, history_size)
+        UtilsDataset.X6_PLY_1 = UtilsDataset._load_winner_pred_dataset("6x6-1ply-simple", augmentation, history, history_size)
+        UtilsDataset.X6_PLY_2 = UtilsDataset._load_winner_pred_dataset("6x6-2ply-simple", augmentation, history, history_size)
+        UtilsDataset.X6_PLY_3 = UtilsDataset._load_winner_pred_dataset("6x6-3ply-simple", augmentation, history, history_size)
+        UtilsDataset.X6_PLY_4 = UtilsDataset._load_winner_pred_dataset("6x6-4ply-simple-incomplete", augmentation, history, history_size)
 
         # Define a new baseline dataset to match the distribution of the original paper
         baseline_black = 175968
         baseline_white = 111826
-        UtilsDataset.BASELINE = UtilsDataset.PLY_1 + UtilsDataset.PLY_2 + UtilsDataset.PLY_3 + UtilsDataset.PLY_4
+        UtilsDataset.X6_BASELINE = UtilsDataset.X6_PLY_1 + UtilsDataset.X6_PLY_2 + UtilsDataset.X6_PLY_3 + UtilsDataset.X6_PLY_4
         """
         baseline_total = baseline_black + baseline_white
         baseline_majority_frac = baseline_black / baseline_total
         UtilsDataset.BASELINE = UtilsDataset.BASELINE.reduce_majority_frac(baseline_majority_frac)
         UtilsDataset.BASELINE.name = '6x6-baseline_dist'
         """
-        UtilsDataset.BASELINE = UtilsDataset.BASELINE.reduce_player_counts(baseline_black, baseline_white)
-        UtilsDataset.BASELINE.name = '6x6-baseline_exact'
+        UtilsDataset.X6_BASELINE = UtilsDataset.X6_BASELINE.reduce_player_counts(baseline_black, baseline_white)
+        UtilsDataset.X6_BASELINE.name = '6x6-baseline_exact'
 
 
     @staticmethod
