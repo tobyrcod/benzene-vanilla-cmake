@@ -5,7 +5,6 @@ import random
 import sys
 import csv
 import json
-from linecache import cache
 
 import matplotlib.pyplot
 import numpy as np
