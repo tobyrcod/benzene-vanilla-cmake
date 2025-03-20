@@ -493,10 +493,10 @@ class Tests:
 
             def test_data_group_by_game():
 
-                pairs = [(UtilsDataset.PLY_1, "6x6-1ply-simple"),
-                         (UtilsDataset.PLY_2, "6x6-2ply-simple"),
-                         (UtilsDataset.PLY_3, "6x6-3ply-simple"),
-                         (UtilsDataset.PLY_4, "6x6-4ply-simple-incomplete")]
+                pairs = [(UtilsDataset.X6_PLY_1, "6x6-1ply-simple"),
+                         (UtilsDataset.X6_PLY_2, "6x6-2ply-simple"),
+                         (UtilsDataset.X6_PLY_3, "6x6-3ply-simple"),
+                         (UtilsDataset.X6_PLY_4, "6x6-4ply-simple-incomplete")]
 
                 # Loader the tournament results file and check some basic game facts
                 for dataset, tournament_name in pairs:
