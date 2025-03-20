@@ -780,7 +780,7 @@ class UtilsHex:
         @staticmethod
         def calculate_matches_in_dataset(ds_states: "UtilsDataset.Dataset", filepath: Path=None):
             if not filepath:
-                file_dir: Path = UtilsPlot.PLOT_TEMPLATES_DIR
+                file_dir: Path = Path("matches")
                 filepath: Path = file_dir / f"{ds_states.name}_template_matches.csv"
 
             boardsize = ds_states.boardsize
@@ -2388,7 +2388,8 @@ class UtilsPlot:
 
 if __name__ == '__main__':
     UtilsDataset.load_raw_datasets()
-    # UtilsHex.SearchPattern.initialise()
+    UtilsHex.SearchPattern.initialise()
 
-    UtilsPlot.plot_dataset_win_rates(UtilsDataset.X6_EQUAL_UNDER, by_state=True)
-    UtilsPlot.plot_dataset_win_rates(UtilsDataset.X6_EQUAL_OVER, by_state=True)
+    dataset = UtilsDataset.X6_EQUAL_UNDER
+    id = 0
+    UtilsPlot.plot_literals(dataset.X[id], dataset.boardsize, Path(f"matches/{dataset.name}_{id}.png"))
