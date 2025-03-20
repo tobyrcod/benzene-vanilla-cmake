@@ -1,4 +1,5 @@
 import json
+import sys
 from pathlib import Path
 from typing import DefaultDict
 
@@ -9,19 +10,22 @@ from utils import *
 
 UtilsHex.SearchPattern.initialise()
 
-clause_path = Path("models/tmu/6x6-baseline_exact_8limit/weighted_clauses.json")
+directory = Path("models/tmu/6x6-equalunder_8limit")
+clause_path = directory / "weighted_clauses.json"
 
 # Calculate matches
 # print('Finding matches...')
 # UtilsHex.SearchPattern.calculate_matches_in_clauses(clause_path, 6)
+# sys.exit()
 
 # Reload the clauses & matches
 clauses, clauses_weights, clauses_matches  = UtilsHex.SearchPattern.load_matches_in_clauses(clause_path, 6)
 print(len(clauses), len(clauses_weights), len(clauses_matches))
 
 # Visualise a clause
-# UtilsPlot.plot_literals(clauses[6], 6, clause_path.parent / "plot.png")
-# print(clauses_matches[6])
+# UtilsPlot.plot_literals(clauses[132], 6, directory / "plot.png")
+# print(clauses_matches[132])
+# sys.exit()
 
 # Work out the score for the found clauses templates
 # These matrices define scores for the 4 possible discrete cases:
