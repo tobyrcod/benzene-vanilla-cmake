@@ -448,11 +448,10 @@ class UtilsHex:
         # Create the patterns we want
 
         @staticmethod
-        def initialise():
+        def initialise(verbose: bool=True):
             """
             Add each of the templates manually defined as search patterns.
             So Far: Bridge, Crescent, Span, Trapezoid, Wheel
-            :return:
             """
 
             def add_from_templates_directory(directory_path: Path):
@@ -477,9 +476,11 @@ class UtilsHex:
                 for search_pattern in search_patterns:
                     UtilsHex.SearchPattern._add_search_pattern(search_pattern)
 
-            print("Loading Search Patterns from Templates...")
+            if verbose:
+                print("Loading Search Patterns from Templates...")
             add_from_templates_directory(Path("../templates"))
-            print(UtilsHex.SearchPattern.get_pattern_names())
+            if verbose:
+                print(UtilsHex.SearchPattern.get_pattern_names())
 
         # Getting the patterns that exist
 
@@ -780,7 +781,7 @@ class UtilsHex:
         @staticmethod
         def calculate_matches_in_dataset(ds_states: "UtilsDataset.Dataset", filepath: Path=None):
             if not filepath:
-                file_dir: Path = Path("matches")
+                file_dir: Path = Path("dataset matches")
                 filepath: Path = file_dir / f"{ds_states.name}_template_matches.csv"
 
             boardsize = ds_states.boardsize
@@ -845,7 +846,7 @@ class UtilsHex:
         @staticmethod
         def load_matches_in_dataset(ds_states: "UtilsDataset.Dataset", filepath: Path=None):
             if not filepath:
-                file_dir: Path = UtilsPlot.PLOT_TEMPLATES_DIR
+                file_dir: Path = Path("dataset matches")
                 filepath: Path = file_dir / f"{ds_states.name}_template_matches.csv"
 
             return UtilsHex.SearchPattern._load_template_matches(filepath)
@@ -2387,9 +2388,7 @@ class UtilsPlot:
 
 
 if __name__ == '__main__':
-    UtilsDataset.load_raw_datasets()
+    # UtilsDataset.load_raw_datasets()
     UtilsHex.SearchPattern.initialise()
 
-    dataset = UtilsDataset.X6_EQUAL_UNDER
-    id = 0
-    UtilsPlot.plot_literals(dataset.X[id], dataset.boardsize, Path(f"matches/{dataset.name}_{id}.png"))
+    UtilsHex.SearchPattern.calculate_matches_in_clauses(Path("models/tmu/6x6-equalunder_8limit/weighted_clauses.json"), 6)
