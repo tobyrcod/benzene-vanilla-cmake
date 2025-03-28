@@ -2391,4 +2391,5 @@ if __name__ == '__main__':
     # UtilsDataset.load_raw_datasets()
     UtilsHex.SearchPattern.initialise()
 
-    UtilsHex.SearchPattern.calculate_matches_in_clauses(Path("models/tmu/6x6-equalunder_8limit/weighted_clauses.json"), 6)
+    UtilsHex.SearchPattern.calculate_matches_in_clauses(Path(
+        "models/tmu/onevsone/6x6-equalunder_8limit/weighted_clauses.json"), 6)

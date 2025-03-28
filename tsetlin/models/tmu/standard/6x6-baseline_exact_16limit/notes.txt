@@ -1,0 +1,4 @@
+too few literals per clause in first model
+Counter({2: 3805, 3: 2923, 4: 2216, 5: 1859, 6: 1473, 7: 1228, 1: 1023, 8: 1013, 9: 835, 10: 705, 11: 570, 12: 533, 13: 513, 15: 406, 14: 402, 16: 329, 17: 135, 18: 24, 19: 5, 0: 3})
+
+try reducing s, reducing limit to get more literals in the clauses we have, but a lower overall maximum

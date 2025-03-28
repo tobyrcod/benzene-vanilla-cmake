@@ -1,0 +1,7 @@
+20000
+Counter({3: 2825, 4: 2698, 5: 2610, 2: 2521, 6: 2488, 7: 2466, 8: 2377, 9: 1378, 1: 320, 10: 272, 11: 40, 12: 5})
+5.22535
+
+this is looking perfect! The trend is holding, f1 is still high but template interpretability should be higher!
+
+NOTES: look for distribution fo clause lengths being centered in different places, say how we can recenter it to be optimised for humans (7 ish things right?)
