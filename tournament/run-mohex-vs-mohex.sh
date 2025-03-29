@@ -13,6 +13,7 @@ function usage()
     echo "-o | --openings=name     set of openings to use"
     echo "-r | --rounds=#          number of rounds to play"
     echo "-s | --size=#            boardsize to play on"
+    echo "-x | --blunder=#         blunder rate of play"
     echo 
 }
 if [ $# != 2 ]; then

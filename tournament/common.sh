@@ -3,24 +3,26 @@
 # This file should not be run on its own. Calling script
 # must define a 'usage()' function.
 
-TEMP=`getopt -o ho:r:s:t:: --long help,openings:,rounds:,size:,type: -- "$@"`
+TEMP=`getopt -o ho:r:s:x:t:: --long help,openings:,rounds:,size:,blunder:,type: -- "$@"`
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 eval set -- "$TEMP"
 
 SIZE=13
 ROUNDS=10
 OPENINGS=""
+BLUNDER=0
 TYPE="iterative"
 
 while true ; do
     case "$1" in
         -h|--help) usage; exit 1 ;;
-	-o|--openings) OPENINGS=$2; shift 2;;
-        -r|--rounds) ROUNDS=$2; shift 2;;
-        -s|--size) SIZE=$2; shift 2;;
-        -t|--type) TYPE=$2; shift 2;;
+        -o|--openings) OPENINGS=$2; shift 2 ;;
+        -r|--rounds) ROUNDS=$2; shift 2 ;;
+        -s|--size) SIZE=$2; shift 2 ;;
+        -t|--type) TYPE=$2; shift 2 ;;
+        -x|--blunder) BLUNDER=$2; shift 2 ;;
         --) shift ; break ;;
-        *) echo "Internal error!" ; exit 1 ;;
+        *) echo "Internal error: unrecognized option '$1'" ; exit 1 ;;
     esac
 done
 
@@ -62,6 +64,7 @@ run_tournament()
         --dir "$DIRECTORY" \
         --openings $OPENINGS \
         --size $SIZE --rounds $ROUNDS \
+        --blunder $BLUNDER \
         --p1cmd "$PROGRAM1 --config $CONFIG1.htp" --p1name $NAME1 \
         --p2cmd "$PROGRAM2 --config $CONFIG2.htp" --p2name $NAME2 \
         --quiet

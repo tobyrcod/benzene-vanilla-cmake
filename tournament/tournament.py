@@ -17,7 +17,7 @@ from resultsfile import ResultsFile
 # Contains useful functions for all types of tournaments.
 class Tournament:
     def __init__(self,
-                 p1name, p1cmd, p2name, p2cmd, size, rounds, outdir,
+                 p1name, p1cmd, p2name, p2cmd, size, rounds, blunder, outdir,
                  openings, verbose, log):
 
         self._p1name = p1name
@@ -26,6 +26,7 @@ class Tournament:
         self._p2cmd = p2cmd
         self._size = size
         self._rounds = rounds
+        self._blunder = blunder
         self._outdir = outdir
         self._verbose = verbose
         self._log = log
@@ -152,6 +153,7 @@ class IterativeTournament(Tournament):
             self._gamesPerRound = len(self._openings)
 
     def playTournament(self):
+        print(self._blunder)
         first = self._resultsFile.getLastIndex() + 1
         maxGames = self._rounds * self._gamesPerRound
         if first < maxGames:

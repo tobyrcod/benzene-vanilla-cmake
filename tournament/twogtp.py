@@ -24,6 +24,7 @@ def printUsage():
         "  --log      |-q: do not save agent logs of each game to file\n"
         "  --rounds   |-r: number of rounds (default 1)\n"
         "  --size     |-s: boardsize (default 11)\n"
+        "  --blunder  |-x: blunder rate (default 0)\n"
         "  --type     |-t: type of tournament ('iterative' or 'random')\n")
 
 #----------------------------------------------------------------------------
@@ -31,6 +32,7 @@ def printUsage():
 def main():
     rounds = 1
     size = 11
+    blunder=0.0
     verbose = True
     log = False
     p1name = ""
@@ -42,9 +44,9 @@ def main():
     type = "iterative"
 
     try:
-        options = "b:ho:s:w:qfl:t:"  # ':' after option denotes the option needs a value argument
+        options = "b:ho:s:x:w:qfl:t:"  # ':' after option denotes the option needs a value argument
         longOptions = ["p1cmd=", "p1name=", "p2cmd=", "p2name=",
-                       "rounds=", "help", "dir=", "size=",
+                       "rounds=", "help", "dir=", "size=", "blunder=",
                        "quiet", "log", "openings=", "type="]
         opts, args = getopt.getopt(sys.argv[1:], options, longOptions)
     except getopt.GetoptError:
@@ -70,6 +72,8 @@ def main():
             outdir = v
         elif o in ("-s", "--size"):
             size = int(v)
+        elif o in ("-x", "--blunder"):
+            blunder = float(v)
         elif o in ("-q", "--quiet"):
             verbose = False
         elif o in ("-f", "--log"):
@@ -85,10 +89,10 @@ def main():
         sys.exit(1)
 
     if type == "random":
-        RandomTournament(p1name, p1cmd, p2name, p2cmd, size, rounds,
+        RandomTournament(p1name, p1cmd, p2name, p2cmd, size, rounds, blunder,
                          outdir, openings, verbose, log).playTournament()
     elif type == "iterative":
-        IterativeTournament(p1name, p1cmd, p2name, p2cmd, size, rounds,
+        IterativeTournament(p1name, p1cmd, p2name, p2cmd, size, rounds, blunder,
                             outdir, openings, verbose, log).playTournament()
     else:
         print("Unknown tournament type!\n")
