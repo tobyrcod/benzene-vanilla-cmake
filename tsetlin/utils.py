@@ -5,7 +5,6 @@ import random
 import sys
 import csv
 import json
-
 import matplotlib.pyplot
 import numpy as np
 from enum import IntFlag, Enum
@@ -18,7 +17,7 @@ from typing import Any, Dict, List, Tuple, Callable, Set
 from imblearn.under_sampling import RandomUnderSampler, TomekLinks, EditedNearestNeighbours
 from imblearn.over_sampling import RandomOverSampler
 from collections import Counter, defaultdict
-
+from deprecated import deprecated
 from tqdm import tqdm
 
 
@@ -854,9 +853,10 @@ class UtilsHex:
         # Searching for clause patterns
 
         @staticmethod
-        def calculate_matches_in_clauses(filepath: Path, boardsize: int):
+        @deprecated(reason="onevsone clauses should not be used. use regular TM instead")
+        def calculate_matches_in_onevsone_clauses(filepath: Path, boardsize: int):
             # Load the raw clauses and clean them into equivalent literals
-            clauses, weights = UtilsTM.Model.load_trained_tmu_model_clauses(filepath, boardsize)
+            clauses, weights = UtilsTM.Model.load_trained_onevsone_model_clauses(filepath, boardsize)
             clauses, weights = UtilsTM.Model.make_model_clauses_satisfiable(clauses, weights)
             clauses, weights = UtilsTM.Model.convert_clauses_to_literals(clauses, weights)
 
@@ -871,9 +871,10 @@ class UtilsHex:
             UtilsHex.SearchPattern.calculate_matches_in_dataset(dataset, matches_filepath)
 
         @staticmethod
-        def load_matches_in_clauses(filepath: Path, boardsize: int):
+        @deprecated(reason="onevsone clauses should not be used. use regular TM instead")
+        def load_matches_in_onevsone_clauses(filepath: Path, boardsize: int):
             # Load the raw clauses and clean them into equivalent literals
-            clauses, weights = UtilsTM.Model.load_trained_tmu_model_clauses(filepath, boardsize)
+            clauses, weights = UtilsTM.Model.load_trained_onevsone_model_clauses(filepath, boardsize)
             clauses, weights = UtilsTM.Model.make_model_clauses_satisfiable(clauses, weights)
             clauses, weights = UtilsTM.Model.convert_clauses_to_literals(clauses, weights)
 
@@ -1432,30 +1433,86 @@ class UtilsTM:
         # ASSUMPTION: No literal augmentations are applied - clauses would be a different form if they are.
 
         @staticmethod
-        def load_trained_tmu_model_clauses(clauses_path: Path, boardsize: int) -> Tuple[List[List[int]], List[List[int]]]:
+        def load_trained_tm_data(dir_tm: Path, boardsize: int):
+            if not dir_tm.exists():
+                raise NotADirectoryError(dir_tm)
+
+            # Load the data from JSON
+            path_tm_data: Path = dir_tm / "tm_data.json"
+            with open(path_tm_data, 'r') as file:
+                tm_data = json.load(file)
+            print(tm_data.keys())  # ['tm_args', 'tm_reports', 'tm_best_f1', 'tm_insides']
+
+            # Create datasets from the clauses for each player and polarity
+            datasets = {
+                # Black
+                'Black': {
+                    'Negative': None,
+                    'Positive': None
+                },
+                'White': {
+                    'Negative': None,
+                    'Positive': None
+                }
+            }
+            for player, player_name in enumerate(['Black', 'White']):
+                for polarity, polarity_name in enumerate(['Negative', 'Positive']):
+                    print(player, player_name, polarity, polarity_name)
+                    tm_clause_data = tm_data['tm_insides'][player_name][polarity_name]
+                    # print(tm_clause_data.keys())  # ['clauses', 'weights', 'precisions', 'recalls']
+
+                    # We need to convert from raw text representation of clauses to list form
+                    raw_clauses = tm_clause_data['clauses']
+                    clean_clauses = [UtilsTM.Model._raw_to_clean_clause(raw_clause, boardsize) for raw_clause in raw_clauses]
+
+                    # These clauses may still have logical contradictions, so we need to fix those
+                    weights = tm_clause_data['weights']
+                    clean_clauses, weights = UtilsTM.Model._make_model_clauses_satisfiable(clean_clauses, weights)
+
+                    # Example of clean clause
+                    print(raw_clauses[c:=0])
+                    print(clean_clauses[c])
+                    # UtilsPlot.plot_clause(clean_clauses[c], 6, dir_tm / f"clause_{player_name}_{polarity_name}_{c}.png")
+
+                    # Is the branch factor small enough for us to expand all the clauses into literals?
+                    bf = sum([UtilsTM.Model.calculate_clause_branch_factor(clause) for clause in clean_clauses])
+                    print(bf)
+
+                    # If yes, perform expansion into literals
+                    literals, weights = UtilsTM.Model._convert_clauses_to_literals(clean_clauses, weights)
+                    print(len(literals), len(weights))
+
+                    # Convert from a list of literals to a dataset we can search through
+                    X = np.array(literals)
+                    winner = player if polarity == 1 else 1 - player
+                    Y = np.array([winner for _ in range(len(literals))])
+                    name = f"{player_name}_{polarity_name}_ds"
+                    dataset = UtilsDataset.Dataset(X, Y, boardsize, name, False)
+                    dataset.weights = weights
+                    datasets[player_name][polarity_name] = dataset
+
+            return datasets
+
+        @staticmethod
+        @deprecated(reason="onevsone clauses should not be used. use regular TM instead")
+        def load_trained_onevsone_model_clauses(clauses_path: Path, boardsize: int) -> Tuple[List[List[int]], List[List[int]]]:
             # NOTE: These trained clauses are extracted from the model on Google Colab (due to needing CUDA)
 
             if not clauses_path.exists():
-                raise FileNotFoundError()
+                raise FileNotFoundError(clauses_path)
 
-            clauses, weights = UtilsTM.Model._load_weighted_clauses_file(clauses_path, boardsize)
+            with open(clauses_path, "r", encoding="utf-8") as json_file:
+                # Clauses currently look like this:
+                # e.g. [' x1', ' x56', '!x25']
+                raw_weighted_clauses = json.load(json_file)
 
-            return clauses, weights
+            # They need to be represented in an easier to interpret intermediate 'cleaned clause' list format
+            # e.g. [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+            raw_clauses = [x[0] for x in raw_weighted_clauses]
+            clean_clauses = [UtilsTM.Model._raw_to_clean_clause(raw_clause, boardsize) for raw_clause in raw_clauses]
 
-        @staticmethod
-        def make_model_clauses_satisfiable(clauses: List[List[int]], weights: List[List[int]]):
-            sat_clauses, sat_weights = [], []
-            for i in range(len(clauses)):
-                sat_clause, sat_codes = UtilsTM.Model._clean_to_sat_clause(clauses[i])
-                # if i == 1:
-                    # print(clauses[i])
-                    # print('negs', [i for i, x in enumerate(clauses[i]) if x == -1])
-                    # print('sat_codes', sat_codes)
-                if 1 not in sat_codes:
-                    sat_clauses.append(sat_clause)
-                    sat_weights.append(weights[i])
-
-            return sat_clauses, sat_weights
+            raw_weights = [x[1] for x in raw_weighted_clauses]
+            return clean_clauses, raw_weights
 
         @staticmethod
         def calculate_clause_branch_factor(clause: List[int]):
@@ -1470,8 +1527,10 @@ class UtilsTM:
             # TODO: calculate this properly using sat_codes
             return branch_factor
 
+        # ---------------------------------------------------------------------------------------------------
+
         @staticmethod
-        def convert_clauses_to_literals(clauses: List[List[int]], weights: List[List[int]]):
+        def _convert_clauses_to_literals(clauses: List[List[int]], weights: List[int]):
             # Remove negative literals by expanding them all into empty and positive branching board states
 
             non_negated_clauses, non_negated_weights = [], []
@@ -1540,7 +1599,7 @@ class UtilsTM:
             # Raw clauses currently look like this:
             # e.g. [' x1', ' x56', '!x25']
             for raw_literal in raw_clause:
-                # We can get the information we need from each literal by getting whats on either side of the 'x'
+                # We can get the information we need from each literal by getting what's on either side of the 'x'
                 # e.g. [' ', '25']
                 [polarity_char, index_str] = raw_literal.split('x')
                 polarity = polarity_char_to_polarity.get(polarity_char, 0)
@@ -1553,6 +1612,21 @@ class UtilsTM:
                 clause[index] = polarity
 
             return clause
+
+        @staticmethod
+        def _make_model_clauses_satisfiable(clauses: List[List[int]], weights: List[int]):
+            sat_clauses, sat_weights = [], []
+            for i in range(len(clauses)):
+                sat_clause, sat_codes = UtilsTM.Model._clean_to_sat_clause(clauses[i])
+                # if i == 1:
+                #   print(clauses[i])
+                #   print('negs', [i for i, x in enumerate(clauses[i]) if x == -1])
+                #   print('sat_codes', sat_codes)
+                if 1 not in sat_codes:
+                    sat_clauses.append(sat_clause)
+                    sat_weights.append(weights[i])
+
+            return sat_clauses, sat_weights
 
         @staticmethod
         def _clean_to_sat_clause(clause: List[int]) -> Tuple[List[int], List[int]]:
@@ -1598,26 +1672,6 @@ class UtilsTM:
                 continue
 
             return clause, sat_codes
-
-        @staticmethod
-        def _load_weighted_clauses_file(clause_file_path: Path, boardsize: int):
-            if not clause_file_path.exists():
-                raise FileNotFoundError(clause_file_path)
-
-            with open(clause_file_path, "r", encoding="utf-8") as json_file:
-                # Clauses currently look like this:
-                # e.g. [' x1', ' x56', '!x25']
-                raw_weighted_clauses = json.load(json_file)
-
-            # TODO: just change the Google Colab CUDA output to save two separate lists
-
-            # They need to be represented in an easier to interpret intermediate 'cleaned clause' list format
-            # e.g. [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-            raw_clauses = [x[0] for x in raw_weighted_clauses]
-            clean_clauses = [UtilsTM.Model._raw_to_clean_clause(raw_clause, boardsize) for raw_clause in raw_clauses]
-
-            raw_weights = [x[1] for x in raw_weighted_clauses]
-            return clean_clauses, raw_weights
 
 
 class UtilsDataset:
@@ -1879,148 +1933,6 @@ class UtilsDataset:
 
         except (FileNotFoundError, NotADirectoryError) as e:
             print(e, file=sys.stderr)
-
-
-    @staticmethod
-    def clauses_to_dataset(clauses_name: str,
-                           clauses: List[List[int]],
-                           clause_player: int,
-                           clause_winner: int,
-                           boardsize: int) -> Dataset:
-        datasetX = []
-        datasetY = []
-
-        for clause in clauses:
-            literals = UtilsDataset._clause_to_literals(clause, clause_player, clause_winner, boardsize)
-            datasetX.append(literals)
-            datasetY.append(clause_winner)
-
-        return UtilsDataset.Dataset(np.array(datasetX), np.array(datasetY), boardsize, clauses_name, complete=False)
-
-    @staticmethod
-    def _clause_to_literals(clause: List[int], clause_player: int, clause_winner: int, boardsize: int) -> List[int]:
-        # Option 1: Remove negative literals
-        """
-        return [max(0, l) for l in clause]
-        """
-
-
-        # Option 2: Turn all negated literals into a literal for the opponent
-        #  e.g. NOT black becomes white, NOT white becomes black
-        """
-        literals = [0] * len(clause)
-        literals_per_player = len(literals) // 2
-        for i in range(literals_per_player):
-            if clause[i] == -1:
-                literals[i] = 0
-                literals[literals_per_player+i] = 1
-            elif clause[literals_per_player+i] == -1:
-                literals[i] = 1
-                literals[literals_per_player+i] = 0
-            else:
-                literals[i] = clause[i]
-                literals[literals_per_player+i] = clause[literals_per_player+i]
-        return literals
-        """
-
-        # Option 3: Take a generous interpretation
-        #  e.g. if we are looking at positive black clauses:
-        #       - any NOT white become black
-        #       - any NOT black become empty
-        #  e.g. if we are looking at negative black clauses:
-        #       - any NOT white become empty
-        #       - any NOT black become white
-        #  e.g. if we are looking at positive white clauses:
-        #       - any NOT white become empty
-        #       - any NOT black become white
-        #  e.g. if we are looking at negative white clauses:
-        #       - any NOT white become black
-        #       - any NOT black become empty
-        # """
-        literals = [0] * len(clause)
-        literals_per_player = len(literals) // 2
-        for i in range(literals_per_player):
-            black_literal = clause[i]
-            white_literal = clause[literals_per_player+i]
-            # Positive Black or Negative White
-            if clause_winner == 0:
-                # NOT white
-                if white_literal == -1:
-                    # Becomes black
-                    black_literal = 1
-                    white_literal = 0
-                # NOT black
-                elif black_literal == -1:
-                    # becomes empty
-                    black_literal = 0
-                    white_literal = 0
-            # Negative Black or Positive White
-            else:  # clause_winner == 1
-                # NOT white
-                if white_literal == -1:
-                    # becomes empty
-                    black_literal = 0
-                    white_literal = 0
-                # NOT black
-                elif black_literal == -1:
-                    # becomes white
-                    black_literal = 0
-                    white_literal = 1
-            literals[i] = black_literal
-            literals[literals_per_player+i] = white_literal
-
-        return literals
-        # """
-
-        # Option 4: Take an adversarial interpretation
-        #  e.g. if we are looking at positive black clauses:
-        #       - any NOT white become empty
-        #       - any NOT black become white
-        #  e.g. if we are looking at negative black clauses:
-        #       - any NOT white become black
-        #       - any NOT black become empty
-        #  e.g. if we are looking at positive white clauses:
-        #       - any NOT white become black
-        #       - any NOT black become empty
-        #  e.g. if we are looking at negative white clauses:
-        #       - any NOT white become empty
-        #       - any NOT black become white
-        """
-        literals = [0] * len(clause)
-        literals_per_player = len(literals) // 2
-        for i in range(literals_per_player):
-            black_literal = clause[i]
-            white_literal = clause[literals_per_player+i]
-            # Positive Black or Negative White
-            if clause_winner == 0:
-                # NOT white
-                if white_literal == -1:
-                    # Becomes empty
-                    black_literal = 0
-                    white_literal = 0
-                # NOT black
-                elif black_literal == -1:
-                    # becomes white
-                    black_literal = 0
-                    white_literal = 1
-            # Negative Black or Positive White
-            else:  # clause_winner == 1
-                # NOT white
-                if white_literal == -1:
-                    # becomes black
-                    black_literal = 1
-                    white_literal = 0
-                # NOT black
-                elif black_literal == -1:
-                    # becomes empty
-                    black_literal = 0
-                    white_literal = 0
-            literals[i] = black_literal
-            literals[literals_per_player+i] = white_literal
-
-        return literals
-        """
-
 
 class UtilsPlot:
 
@@ -2338,6 +2250,7 @@ class UtilsPlot:
 
     @staticmethod
     def plot_clauses_branch_factor_histogram(clauses: List[List[int]], filepath: Path):
+        # TODO: use?
         bfs = [UtilsTM.Model.calculate_clause_branch_factor(clause) for clause in clauses]
         x_values = sorted([int(math.log(bf, 2)) for bf in bfs])
         y_values = np.arange(1, len(x_values) + 1)
@@ -2389,7 +2302,6 @@ class UtilsPlot:
 
 if __name__ == '__main__':
     # UtilsDataset.load_raw_datasets()
-    UtilsHex.SearchPattern.initialise()
+    # UtilsHex.SearchPattern.initialise()
+    pass
 
-    UtilsHex.SearchPattern.calculate_matches_in_clauses(Path(
-        "models/tmu/onevsone/6x6-equalunder_8limit/weighted_clauses.json"), 6)
