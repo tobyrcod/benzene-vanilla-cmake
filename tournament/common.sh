@@ -55,7 +55,7 @@ run_tournament()
         NAME2=$NAME2"-b"
     fi
 
-    DIRECTORY="jobs/"$SIZE"x"$SIZE"-"$NAME1"-vs-"$NAME2
+    DIRECTORY="jobs/${OPENINGS##*/}-$NAME1-vs-$NAME2"
 
     mkdir -p $DIRECTORY
 
