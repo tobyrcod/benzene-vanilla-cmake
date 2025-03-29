@@ -160,7 +160,7 @@ resultWhite = "?"
 error = 0
 errorMessage = ""
 game = Game()  # just a temporary
-gamePlayer = GamePlayer(black, white, size)
+gamePlayer = GamePlayer(black, white, size, blunder_rate=0)
 try:
     game = gamePlayer.play(opening, verbose)
     resultBlack = black.getResult()

@@ -26,7 +26,7 @@ class Tournament:
         self._p2cmd = p2cmd
         self._size = size
         self._rounds = rounds
-        self._blunder = blunder
+        self._blunder_rate = blunder
         self._outdir = outdir
         self._verbose = verbose
         self._log = log
@@ -92,7 +92,7 @@ class Tournament:
         error = 0
         errorMessage = ""
         game = Game()  # just a temporary
-        gamePlayer = GamePlayer(black, white, self._size)
+        gamePlayer = GamePlayer(black, white, self._size, self._blunder_rate)
         try:
             # Play an entire game from the opening move given, or fail on the way
             game = gamePlayer.play(opening, verbose)
@@ -153,7 +153,6 @@ class IterativeTournament(Tournament):
             self._gamesPerRound = len(self._openings)
 
     def playTournament(self):
-        print(self._blunder)
         first = self._resultsFile.getLastIndex() + 1
         maxGames = self._rounds * self._gamesPerRound
         if first < maxGames:

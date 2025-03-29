@@ -9,8 +9,8 @@ import socket
 import string
 import sys
 import time
+import random
 
-from random import randrange
 from program import Program
 from game import Game
 
@@ -24,10 +24,11 @@ class GamePlayer:
     # Constructor.
     #  black and white are programs.
     #  size is boardsize.
-    def __init__(self, black, white, size):
+    def __init__(self, black, white, size, blunder_rate):
         self._black = self._origblack = black
         self._white = self._origwhite = white
         self._size = size
+        self._blunder_rate = blunder_rate
         self._game = Game()
         self._verbose = False
 
@@ -73,10 +74,9 @@ class GamePlayer:
 
     # Plays the game after the opening until a player resigns
     def continueGame(self):
-        # COME BACK HERE
 
-        # SOMEWHERE IN HERE WE HAVE AN EXCEPTION THAT IS FALLING BACK INTO TOURNAMENT AND
-        # ENDING THE GAME
+        # TODO: SOMEWHERE IN HERE WE HAVE AN EXCEPTION THAT IS FALLING BACK INTO TOURNAMENT AND ENDING THE GAME
+        #  current fix is just allowing the game to easily be replayed in the tournament managing code
 
         resigned = False
         elapsedBlack = 0.0
@@ -84,20 +84,31 @@ class GamePlayer:
 
         while not resigned:
             start = time.time()
+
+            # Make the move with the active players program
+
             if self._blackToMove:
-                move = self._sendCommand(self._black, "genmove b")
+                # Are we making a blunder this move?
+                if random.random() < self._blunder_rate:
+                    # Yes? Pick a random legal move
+                    legal_moves = self._sendCommand(self._black, "all_legal_moves")
+                    legal_moves = legal_moves.strip().split(" ")[1:]  # Remove resigning as a possible blunder
+                    move = random.choice(legal_moves)
+                    # And make black play it
+                    self._sendCommand(self._black, f"play b {move}")
+                else:
+                    # No? Generate and play a move for black
+                    move = self._sendCommand(self._black, "genmove b")
                 elapsedBlack += (time.time() - start)
             else:
-
-                # MOST LIKELY IN _SENDCOMMAND for 'genmove w'
-
                 move = self._sendCommand(self._white, "genmove w")
-
                 elapsedWhite += (time.time() - start)
 
             move = move.strip().lower()
 
             self._game.addMove(move)
+
+            # Inform the other player's program of the move that has been made
 
             if self._blackToMove:
                 self._sendCommand(self._white, f"play b {move}")

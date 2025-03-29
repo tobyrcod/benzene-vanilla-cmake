@@ -4,7 +4,13 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c8370e84-2b5f-4e96-81dd-ff92d7793989" name="Changes" comment="small changes" />
+    <list default="true" id="c8370e84-2b5f-4e96-81dd-ff92d7793989" name="Changes" comment="add blunder amount to tournament name">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tournament/MoHexScript.py" beforeDir="false" afterPath="$PROJECT_DIR$/tournament/MoHexScript.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tournament/default.log" beforeDir="false" afterPath="$PROJECT_DIR$/tournament/default.log" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tournament/gameplayer.py" beforeDir="false" afterPath="$PROJECT_DIR$/tournament/gameplayer.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tournament/tournament.py" beforeDir="false" afterPath="$PROJECT_DIR$/tournament/tournament.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -14,26 +20,43 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "tobyrcod"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/tobyrcod/benzene-vanilla-cmake.git",
+    "accountId": "6ea814f0-735a-4bff-a964-26ef2838837e"
+  }
+}]]></component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
+  <component name="ProjectColorInfo"><![CDATA[{
+  "associatedIndex": 2
+}]]></component>
   <component name="ProjectId" id="2uai4n7nEWksQ2ZoXi3o8ZSOBQZ" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "WebServerToolWindowFactoryState": "false",
+    "git-widget-placeholder": "py3",
+    "node.js.detected.package.eslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/tsetlin/models/tmu/standard/6x6-baseline_exact_16limit" />
@@ -184,10 +207,17 @@
       <method v="2" />
     </configuration>
   </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-84874afdbe1a-aa17d162503b-com.jetbrains.pycharm.community.sharedIndexes.bundled-PC-243.23654.74" />
+      </set>
+    </attachedChunks>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="dc82e89c-175f-4d6b-9845-f6ed54fe4e4b" name="Changes" comment="" />
+      <changelist id="c8370e84-2b5f-4e96-81dd-ff92d7793989" name="Changes" comment="small changes" />
       <created>1742492897792</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
@@ -220,7 +250,15 @@
       <option name="project" value="LOCAL" />
       <updated>1742566015080</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="add blunder amount to tournament name">
+      <option name="closed" value="true" />
+      <created>1743267333406</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1743267333407</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -242,7 +280,8 @@
     <MESSAGE value="massively improve heuristic weight search speed by using a matrix multiplication method" />
     <MESSAGE value="small changes" />
     <MESSAGE value="remove unneeded job file" />
-    <option name="LAST_COMMIT_MESSAGE" value="remove unneeded job file" />
+    <MESSAGE value="add blunder amount to tournament name" />
+    <option name="LAST_COMMIT_MESSAGE" value="add blunder amount to tournament name" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/benzene_cmake$control.coverage" NAME="control Coverage Results" MODIFIED="1742498867798" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tsetlin" />
