@@ -1,8 +1,8 @@
 import itertools
 import random
 
-BOARD_SIZE = 6
-PLY = 4
+BOARD_SIZE = 9
+PLY = 3
 RANDOM_ORDER = True
 
 FILE_NAME = f"{BOARD_SIZE}x{BOARD_SIZE}-{'all-random' if RANDOM_ORDER else 'all'}-{PLY}ply"

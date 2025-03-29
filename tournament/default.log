@@ -1,41 +1,1731 @@
-0b111 config: MoHex v2.0.CMake Oct 24 2024.
-0b111 config: ============ InitializeSystem ============
-0b111 config: BenzeneProgram::InitRandom()
-0b111 config: Seed = 1275976f151 info: Prior Patterns:
-6f151 info: Global:
-60b111 info: Size            = 565 32648 
-0b111 info: TableEntries    = 65932 65910
-0b111 info: MirrorsAdded    = 0 0
-0b111 info: PrunableCount   = 30593 30629
-0b111 info: LargestGamma    = 5820.77
-0b111 info: SmallestGamma   = 6.6e-05
-0b111 info: Local:6f151 info: Size            = 550 5318 
-6f151 info: TableEntries    = 11602 11588
-6f151 info: MirrorsAdded    = 0 0
-6f151 info: PrunableCount   = 3659 3667
-6f151 info: LargestGamma    = 11281.8
-6f151 info: SmallestGamma   = 0.026235
-6f151 info: Playout Patterns:
-6f151 info: Global:
-6f151 info: Size            = 565 32648 
-6f151 info: TableEntries    = 70329 70329
-6f151 info: MirrorsAdded    = 4397 4419
-6f151 info: PrunableCount   = 30593 30629
-6f151 info: LargestGamma    = 5820.77
-6f151 info: SmallestGamma   = 6.6e-05
-6f151 info: Local:
-6f151 info: Size            = 550 5318 
-6f151 info: TableEntries    = 11602 11588
-6f151 info: MirrorsAdded    = 0 0
-6f151 info: PrunableCount   = 3659 3667
-6f151 info: LargestGamma    = 11281.8
-6f151 info: SmallestGamma   = 0.026235
-6f151 config: IcePatternSet: reading from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/ice-patterns.txt'.
-6f151 config: IcePatternSet: parsed 708 patterns.
+6b2b3 config: MoHex v2.0.CMake Dec 19 2024.
+6b2b3 config: ============ InitializeSystem ============
+6b2b3 config: BenzeneProgram::InitRandom()
+6b2b3 config: Seed = 631623
+6b2b3 info: Prior Patterns:
+6b2b3 info: Global:
+6b2b3 info: Size            = 565 32648 
+6b2b3 info: TableEntries    = 65932 65910
+6b2b3 info: MirrorsAdded    = 0 0
+6b2b3 info: PrunableCount   = 30593 30629
+6b2b3 info: LargestGamma    = 5820.77
+6b2b3 info: SmallestGamma   = 6.6e-05
+6b2b3 info: Local:
+6b2b3 info: Size            = 550 5318 
+6b2b3 info: TableEntries    = 11602 11588
+6b2b3 info: MirrorsAdded    = 0 0
+6b2b3 info: PrunableCount   = 3659 3667
+6b2b3 info: LargestGamma    = 11281.8
+6b2b3 info: SmallestGamma   = 0.026235
+6b2b3 info: Playout Patterns:
+6b2b3 info: Global:
+6b2b3 info: Size            = 565 32648 
+6b2b3 info: TableEntries    = 70329 70329
+6b2b3 info: MirrorsAdded    = 4397 4419
+6b2b3 info: PrunableCount   = 30593 30629
+6b2b3 info: LargestGamma    = 5820.77
+6b2b3 info: SmallestGamma   = 6.6e-05
+6b2b3 info: Local:
+6b2b3 info: Size            = 550 5318 
+6b2b3 info: TableEntries    = 11602 11588
+6b2b3 info: MirrorsAdded    = 0 0
+6b2b3 info: PrunableCount   = 3659 3667
+6b2b3 info: LargestGamma    = 11281.8
+6b2b3 info: SmallestGamma   = 0.026235
+6b2b3 config: IcePatternSet: reading from '/home2/btrc26/benzene-vanilla-cmake/share/ice-patterns.txt'.
+6b2b3 config: IcePatternSet: parsed 708 patterns.
+6b2b3 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+6b2b3 config: VCS:: parsed 2 patterns.
+6b2b3 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+6b2b3 config: VCS:: parsed 2 patterns.
+6b2b3 config: IcePatternSet: reading from '/home2/btrc26/benzene-vanilla-cmake/share/ice-patterns.txt'.
+6b2b3 config: IcePatternSet: parsed 708 patterns.
+6b2b3 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+6b2b3 config: VCS:: parsed 2 patterns.
+6b2b3 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+6b2b3 config: VCS:: parsed 2 patterns.
+6b2b3 info: Creating thread 0
+6b2b3 info: Creating thread 1
+6b2b3 info: Creating thread 2
+6b2b3 info: Creating thread 3
+6b2b3 info: Creating thread 4
+6b2b3 info: Creating thread 5
+6b2b3 info: Creating thread 6
+6b2b3 info: Creating thread 7
+6b2b3 info: Creating thread 8
+6b2b3 info: Creating thread 9
+6b2b3 info: Creating thread 10
+6b2b3 info: Creating thread 11
+6b2b3 info: Creating thread 12
+6b2b3 info: Creating thread 13
+6b2b3 info: Creating thread 14
+6b2b3 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+6b2b3 config: VCS:: parsed 2 patterns.
+6b2b3 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+6b2b3 config: VCS:: parsed 2 patterns.
+6b2b3 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+6b2b3 config: VCS:: parsed 2 patterns.
+6b2b3 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+6b2b3 config: VCS:: parsed 2 patterns.
+50503 info: PlayAndSolve: Building VCs to avoid race condition.
+50503 config: VCPattern: loading pattern templates from '/home2/btrc26/benzene-vanilla-cmake/share/vc-patterns.txt'.
+50503 info: PlayAndSolve: Continuing on as usual.
+98177 info: *** PlayerThread ***
+90167 info: *** SolverThread ***
+88157 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+88157 config: VCS:: parsed 2 patterns.
+affd7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+9ffb7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+97fa7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+affd7 config: VCS:: parsed 2 patterns.
+9ffb7 config: VCS:: parsed 2 patterns.
+97fa7 config: VCS:: parsed 2 patterns.
+8ff97 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+8ff97 config: VCS:: parsed 2 patterns.
+37fe7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+3fff7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+37fe7 config: VCS:: parsed 2 patterns.
+2ffd7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+1ffb7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+3fff7 config: VCS:: parsed 2 patterns.
+2ffd7 config: VCS:: parsed 2 patterns.
+1ffb7 config: VCS:: parsed 2 patterns.
+27fc7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+27fc7 config: VCS:: parsed 2 patterns.
+17fa7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+17fa7 config: VCS:: parsed 2 patterns.
+0ff97 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+0ff97 config: VCS:: parsed 2 patterns.
+b7fe7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+b7fe7 config: VCS:: parsed 2 patterns.
+affd7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+affd7 config: VCS:: parsed 2 patterns.
+9ffb7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+9ffb7 config: VCS:: parsed 2 patterns.
+bfff7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+bfff7 config: VCS:: parsed 2 patterns.
+9ffb7 dfpn: 
+17fa7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+17fa7 config: VCS:: parsed 2 patterns.
+0ff97 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+88157 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+1ffb7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+88157 config: VCS:: parsed 2 patterns.
+0ff97 config: VCS:: parsed 2 patterns.
+1ffb7 config: VCS:: parsed 2 patterns.
+8ff97 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+8ff97 config: VCS:: parsed 2 patterns.
+37fe7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+37fe7 config: VCS:: parsed 2 patterns.
+affd7 dfpn: waiting
+27fc7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+27fc7 config: VCS:: parsed 2 patterns.
+17fa7 dfpn: waiting
+0ff97 dfpn: waiting
+b7fe7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+b7fe7 config: VCS:: parsed 2 patterns.
+88157 dfpn: waiting
+bfff7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+bfff7 config: VCS:: parsed 2 patterns.
+1ffb7 dfpn: waiting
+a7fc7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+a7fc7 config: VCS:: parsed 2 patterns.
+3fff7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+3fff7 config: VCS:: parsed 2 patterns.
+8ff97 dfpn: waiting
+27fc7 dfpn: waiting
+97fa7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+97fa7 config: VCS:: parsed 2 patterns.
+37fe7 dfpn: waiting
+b7fe7 dfpn: waiting
+2ffd7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 info: Best move cannot be determined, must search state.
+98177 info: --- MoHexPlayer::Search() ---
+98177 info: Color: white
+98177 info: MaxGames: 999999999
+98177 info: NumberThreads: 15
+98177 info: MaxNodes: 90909090 (7999999920 bytes)
+98177 info: TimeForMove: 30
+2ffd7 config: VCS:: parsed 2 patterns.
+bfff7 dfpn: waiting
+3fff7 dfpn: waiting
+97fa7 dfpn: waiting
+a7fc7 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+a7fc7 config: VCS:: parsed 2 patterns.
+2ffd7 dfpn: waiting
+a7fc7 dfpn: waiting
+9ffb7 dfpn: c5
+2ffd7 dfpn: h3
+a7fc7 dfpn: g3
+bfff7 dfpn: f4
+97fa7 dfpn: g4
+0ff97 dfpn: d4
+8ff97 dfpn: f5
+27fc7 dfpn: d5
+1ffb7 dfpn: h2
+b7fe7 dfpn: h4
+affd7 dfpn: h5
+88157 dfpn: g5
+17fa7 dfpn: d3
+3fff7 dfpn: b5
+37fe7 dfpn: c4
+affd7 dfpn: f3
+9ffb7 dfpn: b6
+3fff7 dfpn: b4
+2ffd7 dfpn: e5
+27fc7 dfpn: c8
+b7fe7 dfpn: g6
+97fa7 dfpn: e3
+bfff7 dfpn: d7
+9ffb7 dfpn: b8
+8ff97 dfpn: h3
+88157 dfpn: c5
+0ff97 dfpn: f5
+3fff7 dfpn: h5
+1ffb7 dfpn: h2
+37fe7 dfpn: c4
+affd7 dfpn: b6
+17fa7 dfpn: b5
+9ffb7 dfpn: b4
+27fc7 dfpn: h4
+a7fc7 dfpn: b8
+bfff7 dfpn: d7
+2ffd7 dfpn: d3
+97fa7 dfpn: e3
+b7fe7 dfpn: g6
+9ffb7 dfpn: f3
+affd7 dfpn: c8
+3fff7 dfpn: f4
+37fe7 dfpn: d4
+88157 dfpn: c5
+1ffb7 dfpn: g3
+27fc7 dfpn: h4
+bfff7 dfpn: g4
+97fa7 dfpn: d5
+17fa7 dfpn: g5
+a7fc7 dfpn: e5
+8ff97 dfpn: h2
+27fc7 dfpn: e3
+2ffd7 dfpn: c4
+88157 dfpn: c5
+affd7 dfpn: b8
+0ff97 dfpn: f5
+affd7 dfpn: b5
+b7fe7 dfpn: b6
+affd7 dfpn: b4
+98177 info: Time for PreSearch: 0.141196s
+b7fe7 dfpn: d7
+affd7 dfpn: h3
+9ffb7 dfpn: d3
+3fff7 dfpn: f4
+9ffb7 dfpn: g6
+2ffd7 dfpn: c4
+8ff97 dfpn: h2
+37fe7 dfpn: d4
+97fa7 dfpn: b8
+bfff7 dfpn: g4
+37fe7 dfpn: d5
+88157 dfpn: c5
+1ffb7 dfpn: d4
+37fe7 dfpn: h5
+affd7 dfpn: h3
+27fc7 dfpn: e3
+b7fe7 dfpn: b6
+88157 dfpn: g3
+a7fc7 dfpn: d5
+17fa7 dfpn: g5
+8ff97 dfpn: b5
+2ffd7 dfpn: b4
+9ffb7 dfpn: g6
+97fa7 dfpn: c8
+bfff7 dfpn: g4
+97fa7 dfpn: d7
+b7fe7 dfpn: h2
+1ffb7 dfpn: d4
+98177 info: 
+  e8f1b15c745e342f
+  a  b  c  d  e  f  g  h  i  
+ 1\.  .  .  *  *  *  *  W  B\1
+  2\.  .  *  *  *  *  *  *  .\2
+   3\.  *  *  *  *  *  *  *  .\3
+    4\.  *  *  *  W  *  *  *  .\4
+     5\.  *  *  *  *  *  *  *  .\5
+      6\.  *  *  B  *  *  *  .  .\6
+       7\.  *  *  *  *  *  *  .  .\7
+        8\.  *  *  *  *  .  B  b  b\8
+         9\.  *  *  .  b  b  b  b  b\9
+            a  b  c  d  e  f  g  h  i  
+3fff7 dfpn: h4
+9ffb7 dfpn: c5
+97fa7 dfpn: b6
+8ff97 dfpn: f3
+a7fc7 dfpn: c8
+8ff97 dfpn: g6
+88157 dfpn: d7
+affd7 dfpn: d5
+1ffb7 dfpn: b5
+17fa7 dfpn: g5
+bfff7 dfpn: f3
+2ffd7 dfpn: b4
+37fe7 dfpn: h5
+97fa7 dfpn: b8
+b7fe7 dfpn: d4
+affd7 dfpn: e5
+88157 dfpn: d7
+1ffb7 dfpn: d3
+17fa7 dfpn: g5
+2ffd7 dfpn: b4
+8ff97 dfpn: c4
+8ff97 dfpn: b6
+0ff97 dfpn: f5
+b7fe7 dfpn: d4
+bfff7 dfpn: f3
+2ffd7 dfpn: d5
+8ff97 dfpn: h2
+9ffb7 dfpn: c5
+97fa7 dfpn: h3
+27fc7 dfpn: e3
+17fa7 dfpn: b5
+3fff7 dfpn: f4
+b7fe7 dfpn: d4
+37fe7 dfpn: c4
+88157 dfpn: b4
+a7fc7 dfpn: g6
+37fe7 dfpn: c4
+affd7 dfpn: g3
+2ffd7 dfpn: b8
+17fa7 dfpn: b5
+b7fe7 dfpn: b6
+88157 dfpn: e5
+17fa7 dfpn: h4
+27fc7 dfpn: e3
+98177 info: No subtree to reuse.
+b7fe7 dfpn: h5
+97fa7 dfpn: h3
+8ff97 dfpn: h2
+1ffb7 dfpn: d3
+3fff7 dfpn: f4
+a7fc7 dfpn: d5
+0ff97 dfpn: f5
+88157 dfpn: e5
+2ffd7 dfpn: d4
+affd7 dfpn: g3
+2ffd7 dfpn: b4
+2ffd7 dfpn: g4
+17fa7 dfpn: h4
+27fc7 dfpn: e3
+b7fe7 dfpn: h5
+8ff97 dfpn: h2
+9ffb7 dfpn: c5
+a7fc7 dfpn: b4
+bfff7 dfpn: f3
+3fff7 dfpn: b5
+3fff7 dfpn: b6
+1ffb7 dfpn: d3
+b7fe7 dfpn: c8
+8ff97 dfpn: d7
+1ffb7 dfpn: d4
+2ffd7 dfpn: b5
+88157 dfpn: e5
+9ffb7 dfpn: g4
+37fe7 dfpn: c4
+b7fe7 dfpn: c8
+8ff97 dfpn: d7
+27fc7 dfpn: d5
+a7fc7 dfpn: d3
+88157 dfpn: g5
+bfff7 dfpn: e3
+98177 info: StartSearch()[0]
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 info: StartSearch()[1]
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 info: StartSearch()[2]
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+17fa7 dfpn: h4
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 info: StartSearch()[3]
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+3fff7 dfpn: b8
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 info: StartSearch()[4]
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 info: StartSearch()[5]
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+1ffb7 dfpn: c7
+98177 info: StartSearch()[6]
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 info: StartSearch()[7]
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 info: StartSearch()[8]
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+3fff7 dfpn: g6
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 info: StartSearch()[9]
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+9ffb7 dfpn: h2
+98177 info: StartSearch()[10]
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 info: StartSearch()[11]
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 info: StartSearch()[12]
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 info: StartSearch()[13]
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 info: StartSearch()[14]
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+98177 config: VCS: reading captured set patterns from '/home2/btrc26/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+98177 config: VCS:: parsed 2 patterns.
+0ff97 dfpn: f5
+2ffd7 dfpn: b8
+97fa7 dfpn: h3
+affd7 dfpn: e5
+8ff97 dfpn: g4
+bfff7 dfpn: b4
+37fe7 dfpn: f6
+b7fe7 dfpn: e3
+27fc7 dfpn: d5
+88157 dfpn: b6
+97fa7 dfpn: h3
+97fa7 dfpn: f4
+b7fe7 dfpn: b5
+17fa7 dfpn: h3
+9ffb7 dfpn: h2
+2ffd7 dfpn: b8
+17fa7 dfpn: d7
+3fff7 dfpn: g6
+affd7 dfpn: e5
+affd7 dfpn: h3
+affd7 dfpn: g5
+88157 dfpn: f2
+a7fc7 dfpn: d3
+17fa7 dfpn: d7
+bfff7 dfpn: b4
+bfff7 dfpn: c8
+3fff7 dfpn: h3
+2ffd7 dfpn: h4
+b7fe7 dfpn: c6
+27fc7 dfpn: d5
+8ff97 dfpn: g4
+97fa7 dfpn: e3
+97fa7 dfpn: h5
+17fa7 dfpn: d7
+3fff7 dfpn: f3
+8ff97 dfpn: h3
+bfff7 dfpn: e3
+3fff7 dfpn: f3
+97fa7 dfpn: h5
+2ffd7 dfpn: e5
+8ff97 dfpn: h3
+8ff97 dfpn: b8
+a7fc7 dfpn: d3
+17fa7 dfpn: h3
+2ffd7 dfpn: g4
+a7fc7 dfpn: d3
+a7fc7 dfpn: e7
+affd7 dfpn: g5
+27fc7 dfpn: g3
+9ffb7 dfpn: h2
+97fa7 dfpn: e5
+bfff7 dfpn: e3
+8ff97 dfpn: b8
+8ff97 dfpn: g6
+97fa7 dfpn: d5
+affd7 dfpn: h5
+1ffb7 dfpn: c7
+8ff97 dfpn: g6
+3fff7 dfpn: f3
+27fc7 dfpn: e5
+affd7 dfpn: h4
+bfff7 dfpn: b8
+1ffb7 dfpn: c7
+37fe7 dfpn: f6
+2ffd7 dfpn: g3
+8ff97 dfpn: g6
+affd7 dfpn: g5
+17fa7 dfpn: e3
+0ff97 dfpn: f5
+8ff97 dfpn: c8
+97fa7 dfpn: h3
+affd7 dfpn: g5
+2ffd7 dfpn: g4
+affd7 dfpn: g3
+37fe7 dfpn: g5
+8ff97 dfpn: c8
+27fc7 dfpn: e5
+97fa7 dfpn: h4
+affd7 dfpn: f4
+97fa7 dfpn: d5
+97fa7 dfpn: b7
+37fe7 dfpn: g5
+1ffb7 dfpn: c7
+9ffb7 dfpn: h2
+2ffd7 dfpn: g4
+17fa7 dfpn: e3
+bfff7 dfpn: b8
+8ff97 dfpn: h5
+37fe7 dfpn: g6
+affd7 dfpn: f4
+2ffd7 dfpn: g4
+88157 dfpn: f2
+3fff7 dfpn: f3
+affd7 dfpn: c8
+37fe7 dfpn: f6
+2ffd7 dfpn: g4
+1ffb7 dfpn: h4
+1ffb7 dfpn: g3
+b7fe7 dfpn: c6
+27fc7 dfpn: e5
+27fc7 dfpn: f4
+bfff7 dfpn: g6
+8ff97 dfpn: d7
+2ffd7 dfpn: h3
+a7fc7 dfpn: e7
+37fe7 dfpn: h4
+affd7 dfpn: c8
+17fa7 dfpn: e3
+37fe7 dfpn: g4
+2ffd7 dfpn: e5
+affd7 dfpn: h4
+3fff7 dfpn: f3
+2ffd7 dfpn: h3
+37fe7 dfpn: g4
+27fc7 dfpn: e5
+1ffb7 dfpn: g3
+affd7 dfpn: h4
+bfff7 dfpn: g6
+3fff7 dfpn: h5
+17fa7 dfpn: e3
+37fe7 dfpn: g5
+17fa7 dfpn: e3
+2ffd7 dfpn: h3
+1ffb7 dfpn: f4
+bfff7 dfpn: g4
+8ff97 dfpn: d7
+affd7 dfpn: h4
+3fff7 dfpn: b8
+8ff97 dfpn: g3
+37fe7 dfpn: g5
+2ffd7 dfpn: h3
+1ffb7 dfpn: f4
+3fff7 dfpn: c8
+affd7 dfpn: h4
+1ffb7 dfpn: b8
+8ff97 dfpn: f4
+affd7 dfpn: h4
+bfff7 dfpn: g4
+1ffb7 dfpn: h5
+97fa7 dfpn: f6
+2ffd7 dfpn: h3
+3fff7 dfpn: c8
+88157 dfpn: f2
+1ffb7 dfpn: b8
+2ffd7 dfpn: h3
+a7fc7 dfpn: e7
+3fff7 dfpn: c8
+27fc7 dfpn: e5
+8ff97 dfpn: h5
+97fa7 dfpn: f6
+17fa7 dfpn: e3
+8ff97 dfpn: d7
+37fe7 dfpn: g3
+2ffd7 dfpn: h5
+1ffb7 dfpn: c3
+affd7 dfpn: f4
+37fe7 dfpn: f3
+8ff97 dfpn: g3
+2ffd7 dfpn: c7
+8ff97 dfpn: g6
+27fc7 dfpn: e5
+3fff7 dfpn: h3
+affd7 dfpn: h5
+97fa7 dfpn: g3
+37fe7 dfpn: f4
+27fc7 dfpn: d7
+b7fe7 dfpn: c6
+b7fe7 dfpn: d8
+a7fc7 dfpn: e7
+bfff7 dfpn: g4
+9ffb7 dfpn: h2
+8ff97 dfpn: g6
+37fe7 dfpn: f4
+2ffd7 dfpn: c7
+37fe7 dfpn: h4
+97fa7 dfpn: f3
+0ff97 dfpn: f5
+bfff7 dfpn: g4
+3fff7 dfpn: h3
+27fc7 dfpn: d7
+97fa7 dfpn: f4
+3fff7 dfpn: h3
+17fa7 dfpn: e3
+3fff7 dfpn: f3
+3fff7 dfpn: f6
+37fe7 dfpn: h4
+affd7 dfpn: h5
+8ff97 dfpn: g6
+27fc7 dfpn: g3
+97fa7 dfpn: g5
+17fa7 dfpn: h3
+bfff7 dfpn: g4
+2ffd7 dfpn: c7
+affd7 dfpn: e3
+27fc7 dfpn: g3
+88157 dfpn: f2
+2ffd7 dfpn: h5
+2ffd7 dfpn: d7
+3fff7 dfpn: f6
+a7fc7 dfpn: e7
+17fa7 dfpn: h3
+97fa7 dfpn: h5
+affd7 dfpn: c8
+17fa7 dfpn: f4
+97fa7 dfpn: e3
+3fff7 dfpn: h3
+2ffd7 dfpn: g5
+3fff7 dfpn: c7
+37fe7 dfpn: h4
+97fa7 dfpn: h3
+17fa7 dfpn: f4
+affd7 dfpn: c8
+88157 dfpn: h5
+3fff7 dfpn: c7
+3fff7 dfpn: d7
+bfff7 dfpn: g4
+17fa7 dfpn: f4
+27fc7 dfpn: e5
+88157 dfpn: g3
+8ff97 dfpn: g6
+3fff7 dfpn: f6
+2ffd7 dfpn: g5
+97fa7 dfpn: h3
+97fa7 dfpn: d7
+17fa7 dfpn: e3
+affd7 dfpn: c8
+37fe7 dfpn: h4
+88157 dfpn: f2
+3fff7 dfpn: f6
+27fc7 dfpn: e5
+17fa7 dfpn: f3
+97fa7 dfpn: g3
+27fc7 dfpn: e5
+88157 dfpn: f4
+1ffb7 dfpn: b3
+88157 dfpn: e3
+97fa7 dfpn: g3
+8b5e7 dfpn: b7
+affd7 dfpn: c6
+bfff7 dfpn: c8
+2ffd7 dfpn: g3
+9b607 dfpn: h2
+0ff97 dfpn: e4
+27fc7 dfpn: d5
+37fe7 dfpn: f3
+37fe7 dfpn: f5
+8b5e7 dfpn: e5
+a3617 dfpn: d6
+a7fc7 dfpn: c5
+17fa7 dfpn: f3
+affd7 dfpn: c6
+9b607 dfpn: g4
+2ffd7 dfpn: g3
+bfff7 dfpn: c8
+affd7 dfpn: c6
+a7fc7 dfpn: b6
+b7fe7 dfpn: e8
+a7fc7 dfpn: b7
+8b5e7 dfpn: h3
+affd7 dfpn: c6
+37fe7 dfpn: f5
+3fff7 dfpn: d4
+2ffd7 dfpn: g3
+a7fc7 dfpn: b7
+9b607 dfpn: g4
+affd7 dfpn: e6
+a7fc7 dfpn: f6
+1ffb7 dfpn: d7
+9b607 dfpn: c6
+2ffd7 dfpn: b5
+a3617 dfpn: d6
+27fc7 dfpn: d5
+8b5e7 dfpn: b7
+affd7 dfpn: e6
+a7fc7 dfpn: g4
+9b607 dfpn: c5
+2ffd7 dfpn: b5
+a7fc7 dfpn: b6
+27fc7 dfpn: c6
+9b607 dfpn: g4
+affd7 dfpn: h4
+8b5e7 dfpn: b7
+bfff7 dfpn: c8
+2ffd7 dfpn: b5
+affd7 dfpn: c7
+9b607 dfpn: f4
+8b5e7 dfpn: h2
+27fc7 dfpn: g5
+affd7 dfpn: c7
+2ffd7 dfpn: c6
+a7fc7 dfpn: b5
+9b607 dfpn: f4
+affd7 dfpn: c5
+8b5e7 dfpn: h2
+27fc7 dfpn: g3
+9b607 dfpn: f4
+a7fc7 dfpn: b5
+a3617 dfpn: d6
+935f7 dfpn: b8
+8b5e7 dfpn: e6
+2ffd7 dfpn: c6
+9b607 dfpn: b7
+3fff7 dfpn: d4
+17fa7 dfpn: f3
+0ff97 dfpn: e4
+bfff7 dfpn: c8
+17fa7 dfpn: h2
+affd7 dfpn: e5
+9b607 dfpn: b7
+8b5e7 dfpn: c7
+27fc7 dfpn: g3
+9b607 dfpn: d5
+a7fc7 dfpn: b7
+8b5e7 dfpn: g4
+2ffd7 dfpn: c6
+17fa7 dfpn: h2
+a3617 dfpn: d6
+3fff7 dfpn: c7
+a7fc7 dfpn: f4
+17fa7 dfpn: h2
+affd7 dfpn: e5
+3fff7 dfpn: e6
+9b607 dfpn: h3
+8b5e7 dfpn: c7
+bfff7 dfpn: c8
+17fa7 dfpn: h2
+0ff97 dfpn: e4
+8b5e7 dfpn: b7
+3fff7 dfpn: f3
+3fff7 dfpn: f6
+37fe7 dfpn: f5
+a7fc7 dfpn: f4
+affd7 dfpn: e5
+8b5e7 dfpn: b7
+9b607 dfpn: h4
+a7fc7 dfpn: c7
+3fff7 dfpn: d5
+a7fc7 dfpn: e6
+a3617 dfpn: d6
+affd7 dfpn: c7
+9b607 dfpn: d4
+27fc7 dfpn: g3
+8b5e7 dfpn: b7
+8b5e7 dfpn: b6
+3fff7 dfpn: g5
+a7fc7 dfpn: f4
+8b5e7 dfpn: b7
+affd7 dfpn: c5
+a7fc7 dfpn: c7
+3fff7 dfpn: e5
+bfff7 dfpn: c8
+17fa7 dfpn: h2
+a7fc7 dfpn: f4
+8b5e7 dfpn: b7
+3fff7 dfpn: b5
+2ffd7 dfpn: c6
+27fc7 dfpn: g3
+8b5e7 dfpn: c7
+3fff7 dfpn: e6
+a7fc7 dfpn: f4
+a7fc7 dfpn: b5
+affd7 dfpn: c5
+a3617 dfpn: d6
+affd7 dfpn: h3
+8b5e7 dfpn: c7
+3fff7 dfpn: e5
+0ff97 dfpn: e4
+a7fc7 dfpn: f4
+bfff7 dfpn: c8
+affd7 dfpn: g4
+b7fe7 dfpn: e8
+8b5e7 dfpn: b7
+3fff7 dfpn: e5
+a7fc7 dfpn: f4
+affd7 dfpn: g4
+27fc7 dfpn: g3
+a3617 dfpn: d6
+8b5e7 dfpn: b6
+17fa7 dfpn: h2
+affd7 dfpn: b7
+8b5e7 dfpn: c5
+0ff97 dfpn: e4
+8b5e7 dfpn: g4
+9b607 dfpn: d4
+3fff7 dfpn: c7
+bfff7 dfpn: c8
+3fff7 dfpn: c5
+a7fc7 dfpn: f4
+a3617 dfpn: d6
+affd7 dfpn: b7
+0ff97 dfpn: e4
+8b5e7 dfpn: c7
+3fff7 dfpn: d5
+0ff97 dfpn: h4
+8b5e7 dfpn: f6
+a3617 dfpn: d6
+3fff7 dfpn: e5
+8b5e7 dfpn: e4
+0ff97 dfpn: c5
+a3617 dfpn: d6
+8b5e7 dfpn: f6
+27fc7 dfpn: g3
+3fff7 dfpn: e5
+a7fc7 dfpn: f4
+37fe7 dfpn: f5
+3fff7 dfpn: c7
+bfff7 dfpn: c8
+8b5e7 dfpn: e4
+0ff97 dfpn: e5
+2ffd7 dfpn: c6
+a3617 dfpn: d6
+a7fc7 dfpn: f4
+3fff7 dfpn: g5
+8b5e7 dfpn: c7
+0ff97 dfpn: e5
+affd7 dfpn: b7
+bfff7 dfpn: c8
+9b607 dfpn: d4
+3fff7 dfpn: d5
+affd7 dfpn: e4
+a3617 dfpn: d6
+9b607 dfpn: d4
+a7fc7 dfpn: f4
+3fff7 dfpn: b6
+affd7 dfpn: e6
+9b607 dfpn: g4
+8b5e7 dfpn: c7
+affd7 dfpn: b5
+9b607 dfpn: g4
+a7fc7 dfpn: f4
+17fa7 dfpn: h2
+3fff7 dfpn: b7
+bfff7 dfpn: c8
+27fc7 dfpn: g3
+0ff97 dfpn: e4
+0ff97 dfpn: h3
+3fff7 dfpn: b7
+a3617 dfpn: d6
+affd7 dfpn: d4
+3fff7 dfpn: b7
+0ff97 dfpn: e4
+affd7 dfpn: d4
+9b607 dfpn: g4
+3fff7 dfpn: b7
+affd7 dfpn: e5
+1ffb7 dfpn: d7 d5
+a7fc7 dfpn: d7 c6
+1ffb7 dfpn: d7 e5
+a7fc7 dfpn: d7 e4
+affd7 dfpn: d7 b9
+1ffb7 dfpn: d7 c6
+9b607 dfpn: d7 f6
+9b607 dfpn: d7 f5
+9b607 dfpn: d7 c8
+0ff97 dfpn: d7 f2
+bfff7 dfpn: d7 e5
+1ffb7 dfpn: d7 d5
+3fff7 dfpn: d7 g2
+a7fc7 dfpn: d7 e4
+9b607 dfpn: d7 d4
+a3617 dfpn: d7 g4
+1ffb7 dfpn: d7 d6
+8b5e7 dfpn: d7 e3
+9b607 dfpn: d7 e8
+9b607 dfpn: d7 c6
+9b607 dfpn: d7 f4
+bfff7 dfpn: d7 e5
+3fff7 dfpn: d7 f6
+1ffb7 dfpn: d7 d6
+27fc7 dfpn: d7 c8
+a7fc7 dfpn: d7 e4
+bfff7 dfpn: d7 e5
+9b607 dfpn: d7 d4
+27fc7 dfpn: d7 d5
+1ffb7 dfpn: d7 c6
+a7fc7 dfpn: d7 e4
+a3617 dfpn: d7 e8
+27fc7 dfpn: d7 c8
+bfff7 dfpn: d7 e5
+1ffb7 dfpn: d7 d6
+9b607 dfpn: d7 f4
+a7fc7 dfpn: d7 d5
+2ffd7 dfpn: d7 b6
+27fc7 dfpn: d7 e4
+a3617 dfpn: d7 g3
+bfff7 dfpn: d7 e5
+a7fc7 dfpn: d7 g4
+a7fc7 dfpn: d7 f5
+a7fc7 dfpn: d7 d5
+935f7 dfpn: d7 c5
+1ffb7 dfpn: d7 c8
+a3617 dfpn: d7 g3
+8b5e7 dfpn: d7 g4
+8b5e7 dfpn: d7 e8
+1ffb7 dfpn: d7 c8
+bfff7 dfpn: d7 d6
+3fff7 dfpn: d7 c6
+a7fc7 dfpn: d7 e3
+2ffd7 dfpn: d7 c7
+2ffd7 dfpn: d7 f5
+2ffd7 dfpn: d7 d5
+3fff7 dfpn: d7 f3
+9b607 dfpn: d7 f6
+1ffb7 dfpn: d7 c8
+bfff7 dfpn: d7 d6
+2ffd7 dfpn: d7 g2
+8b5e7 dfpn: d7 e8
+27fc7 dfpn: d7 e4
+0ff97 dfpn: d7 f2
+a7fc7 dfpn: d7 g4
+a3617 dfpn: d7 f4
+3fff7 dfpn: d7 f5
+1ffb7 dfpn: d7 d5
+9b607 dfpn: d7 e5
+bfff7 dfpn: d7 d6
+8b5e7 dfpn: d7 e8
+a3617 dfpn: d7 d4
+0ff97 dfpn: d7 h2
+a7fc7 dfpn: d7 c8
+2ffd7 dfpn: d7 g3
+affd7 dfpn: d7 b9
+8b5e7 dfpn: d7 g4
+37fe7 dfpn: d7 f6
+8b5e7 dfpn: d7 g4
+8b5e7 dfpn: d7 b5
+1ffb7 dfpn: d7 d5
+a3617 dfpn: d7 d4
+0ff97 dfpn: d7 f2
+9b607 dfpn: d7 e5
+a7fc7 dfpn: d7 c8
+bfff7 dfpn: d7 d6
+37fe7 dfpn: d7 e8
+17fa7 dfpn: d7 e6
+9b607 dfpn: d7 e5
+2ffd7 dfpn: d7 f6
+27fc7 dfpn: d7 e4
+9b607 dfpn: d7 e5
+0ff97 dfpn: d7 f4
+a7fc7 dfpn: d7 b8
+a7fc7 dfpn: d7 g3
+2ffd7 dfpn: d7 g2
+a3617 dfpn: d7 d4
+a7fc7 dfpn: d7 g3
+0ff97 dfpn: d7 h2
+8b5e7 dfpn: d7 b7
+0ff97 dfpn: d7 f3
+37fe7 dfpn: d7 e8
+3fff7 dfpn: d7 f5
+bfff7 dfpn: d7 d6
+a7fc7 dfpn: d7 c6
+9b607 dfpn: d7 e5
+a7fc7 dfpn: d7 e3
+2ffd7 dfpn: d7 f4
+0ff97 dfpn: d7 g3
+affd7 dfpn: d7 b9
+3fff7 dfpn: d7 f5
+a3617 dfpn: d7 d4
+27fc7 dfpn: d7 e4
+8b5e7 dfpn: d7 b7
+8b5e7 dfpn: d7 c6
+a7fc7 dfpn: d7 b7
+a7fc7 dfpn: d7 c8
+17fa7 dfpn: d7 e6
+affd7 dfpn: d7 f3
+2ffd7 dfpn: d7 f4
+a7fc7 dfpn: d7 f2
+3fff7 dfpn: d7 c8
+1ffb7 dfpn: d7 d5
+affd7 dfpn: d7 h2
+a7fc7 dfpn: d7 f6
+affd7 dfpn: d7 b7
+37fe7 dfpn: d7 e8
+affd7 dfpn: d7 h2
+0ff97 dfpn: d7 g3
+bfff7 dfpn: d7 d6
+a3617 dfpn: d7 d4
+affd7 dfpn: d7 g2
+8b5e7 dfpn: d7 c6
+3fff7 dfpn: d7 c8
+a3617 dfpn: d7 d4
+a7fc7 dfpn: d7 f6
+a3617 dfpn: d7 h2
+0ff97 dfpn: d7 e3
+935f7 dfpn: d7 c5
+a7fc7 dfpn: d7 b9
+27fc7 dfpn: d7 e4
+a3617 dfpn: d7 d4
+0ff97 dfpn: d7 f2
+3fff7 dfpn: d7 c8
+935f7 dfpn: d7 f5
+2ffd7 dfpn: d7 f4
+b7fe7 dfpn: d7 c4
+affd7 dfpn: d7 g2
+a3617 dfpn: d7 g3
+27fc7 dfpn: d7 e3
+0ff97 dfpn: d7 f3
+935f7 dfpn: d7 e4
+affd7 dfpn: d7 d4
+8b5e7 dfpn: d7 c6
+a7fc7 dfpn: d7 b9
+0ff97 dfpn: d7 h2
+a3617 dfpn: d7 g3
+affd7 dfpn: d7 d4
+8b5e7 dfpn: d7 f2
+17fa7 dfpn: d7 e6
+0ff97 dfpn: d7 c6
+9b607 dfpn: d7 e5
+37fe7 dfpn: d7 e8
+27fc7 dfpn: d7 e3
+935f7 dfpn: d7 h2
+935f7 dfpn: d7 e2
+affd7 dfpn: d7 f5
+8b5e7 dfpn: d7 e4
+0ff97 dfpn: d7 f3
+1ffb7 dfpn: d7 d5
+3fff7 dfpn: d7 c8
+17fa7 dfpn: d7 e6
+27fc7 dfpn: d7 d4
+affd7 dfpn: d7 f6
+8b5e7 dfpn: d7 b7
+8b5e7 dfpn: d7 h4
+0ff97 dfpn: d7 f5
+17fa7 dfpn: d7 f3
+27fc7 dfpn: d7 d4
+affd7 dfpn: d7 f6
+17fa7 dfpn: d7 f2
+0ff97 dfpn: d7 e3
+affd7 dfpn: d7 f3
+27fc7 dfpn: d7 d4
+27fc7 dfpn: d7 g2
+a7fc7 dfpn: d7 b9
+17fa7 dfpn: d7 f2
+a3617 dfpn: d7 g3
+3fff7 dfpn: d7 c8
+0ff97 dfpn: d7 d4
+27fc7 dfpn: d7 f6
+1ffb7 dfpn: d7 d5
+affd7 dfpn: d7 f3
+8b5e7 dfpn: d7 e4
+0ff97 dfpn: d7 e3
+17fa7 dfpn: d7 d4
+bfff7 dfpn: d7 d6
+affd7 dfpn: d7 f3
+2ffd7 dfpn: d7 f4
+a3617 dfpn: d7 g3
+27fc7 dfpn: d7 f6
+8b5e7 dfpn: d7 e4
+affd7 dfpn: d7 c6
+0ff97 dfpn: d7 f5
+a7fc7 dfpn: d7 b9
+17fa7 dfpn: d7 d4
+1ffb7 dfpn: d7 d5
+3fff7 dfpn: d7 c8
+37fe7 dfpn: d7 e8
+0ff97 dfpn: d7 f2
+2ffd7 dfpn: d7 f4
+affd7 dfpn: d7 c6
+a3617 dfpn: d7 g3
+935f7 dfpn: d7 e2
+0ff97 dfpn: d7 f5
+0ff97 dfpn: d7 f3
+8b5e7 dfpn: d7 e4
+27fc7 dfpn: d7 f6
+0ff97 dfpn: d7 e3
+affd7 dfpn: d7 c6
+affd7 dfpn: d7 e6
+bfff7 dfpn: d7 d6
+27fc7 dfpn: d7 c6
+2ffd7 dfpn: d7 f2
+17fa7 dfpn: d7 d4
+0ff97 dfpn: d7 f5
+b7fe7 dfpn: d7 c4
+0ff97 dfpn: d7 f6
+bfff7 dfpn: d7 f5
+1ffb7 dfpn: d7 d5
+935f7 dfpn: d7 f3
+bfff7 dfpn: d7 e3
+3fff7 dfpn: d7 c8
+a3617 dfpn: d7 g3
+affd7 dfpn: d7 e6
+0ff97 dfpn: d7 f4
+17fa7 dfpn: d7 f5
+935f7 dfpn: d7 f3
+a3617 dfpn: d7 b8
+2ffd7 dfpn: d7 f2
+a3617 dfpn: d7 g3
+affd7 dfpn: d7 e6
+bfff7 dfpn: d7 b8
+0ff97 dfpn: d7 f4
+935f7 dfpn: d7 d4
+bfff7 dfpn: d7 g2
+27fc7 dfpn: d7 c6
+2ffd7 dfpn: d7 f2
+27fc7 dfpn: d7 e3
+a3617 dfpn: d7 g3
+0ff97 dfpn: d7 d6
+a3617 dfpn: d7 f3
+935f7 dfpn: d7 d4
+2ffd7 dfpn: d7 f4
+17fa7 dfpn: d7 f2
+a7fc7 dfpn: d7 b9
+a3617 dfpn: d7 f3
+37fe7 dfpn: d7 e8
+8b5e7 dfpn: d7 e4
+27fc7 dfpn: d7 e3
+bfff7 dfpn: d7 f5
+0ff97 dfpn: d7 g3
+affd7 dfpn: d7 c6
+affd7 dfpn: d7 e2
+0ff97 dfpn: d7 g3
+0ff97 dfpn: d7 c6
+0ff97 dfpn: d7 g3
+bfff7 dfpn: d7 f5
+0ff97 dfpn: d7 g2
+17fa7 dfpn: d7 f2
+affd7 dfpn: d7 e2
+935f7 dfpn: d7 d4
+b7fe7 dfpn: d7 c4
+2ffd7 dfpn: d7 f4
+27fc7 dfpn: d7 e3
+9b607 dfpn: d7 e5
+27fc7 dfpn: d7 f6
+bfff7 dfpn: d7 e6
+affd7 dfpn: d7 c6
+0ff97 dfpn: d7 b8
+affd7 dfpn: d7 g3
+0ff97 dfpn: d7 e3
+27fc7 dfpn: d7 f5
+8b5e7 dfpn: d7 e4
+2ffd7 dfpn: d7 g2
+a3617 dfpn: d7 f3
+0ff97 dfpn: d7 c6
+27fc7 dfpn: d7 b8
+0ff97 dfpn: d7 h3
+27fc7 dfpn: d7 e3
+1ffb7 dfpn: d7 d5
+affd7 dfpn: d7 g3
+17fa7 dfpn: d7 f2
+3fff7 dfpn: d7 c8
+b7fe7 dfpn: d7 c4
+bfff7 dfpn: d7 e6
+2ffd7 dfpn: d7 g2
+0ff97 dfpn: d7 d3
+17fa7 dfpn: d7 f5
+27fc7 dfpn: d7 d6
+17fa7 dfpn: d7 f5
+17fa7 dfpn: d7 f2
+17fa7 dfpn: d7 e3
+b7fe7 dfpn: d7 c4
+2ffd7 dfpn: d7 f2
+27fc7 dfpn: d7 d6
+17fa7 dfpn: d7 e3
+17fa7 dfpn: d7 f4
+935f7 dfpn: d7 d4
+b7fe7 dfpn: d7 f6
+b7fe7 dfpn: d7 g2
+2ffd7 dfpn: d7 f2
+27fc7 dfpn: d7 d6
+27fc7 dfpn: d7 c4
+8b5e7 dfpn: d7 e4
+bfff7 dfpn: d7 e6
+27fc7 dfpn: d7 d6
+27fc7 dfpn: d7 f6
+17fa7 dfpn: d7 d6
+27fc7 dfpn: d7 f5
+27fc7 dfpn: d7 b8
+a3617 dfpn: d7 f3
+27fc7 dfpn: d7 e3
+935f7 dfpn: d7 d4
+17fa7 dfpn: d7 c4
+27fc7 dfpn: d7 f5
+27fc7 dfpn: d7 d6
+17fa7 dfpn: d7 f5
+17fa7 dfpn: d7 f6
+2ffd7 dfpn: d7 f2
+27fc7 dfpn: d7 d6
+1ffb7 dfpn: d7 d5
+17fa7 dfpn: d7 c4
+935f7 dfpn: d7 d4
+2ffd7 dfpn: d7 f6
+17fa7 dfpn: d7 f4
+27fc7 dfpn: d7 d6
+1ffb7 dfpn: d7 d5
+bfff7 dfpn: d7 f2
+1ffb7 dfpn: d7 d5
+b7fe7 dfpn: d7 g2
+17fa7 dfpn: d7 e6
+2ffd7 dfpn: d7 f6
+bfff7 dfpn: d7 f2
+1ffb7 dfpn: d7 d5
+27fc7 dfpn: d7 d6
+2ffd7 dfpn: d7 e3
+3fff7 dfpn: d7 c8
+935f7 dfpn: d7 d4
+a3617 dfpn: d7 f3
+27fc7 dfpn: d7 d6
+27fc7 dfpn: d7 e2
+2ffd7 dfpn: d7 d6
+a7fc7 dfpn: d7 b9
+17fa7 dfpn: d7 e6
+27fc7 dfpn: d7 f5
+affd7 dfpn: d7 g3
+bfff7 dfpn: d7 f2
+1ffb7 dfpn: d7 d5
+1ffb7 dfpn: d7 b8
+1ffb7 dfpn: d7 g5
+bfff7 dfpn: d7 f4
+17fa7 dfpn: d7 d5
+17fa7 dfpn: d7 f6
+2ffd7 dfpn: d7 d6
+37fe7 dfpn: b8 b7
+a3617 dfpn: b8 g3
+17fa7 dfpn: b8 b5
+935f7 dfpn: b8 f5
+37fe7 dfpn: b8 b7
+bfff7 dfpn: b8 d7
+bfff7 dfpn: b8 c7
+37fe7 dfpn: b8 c5
+b7fe7 dfpn: b8 h2
+1ffb7 dfpn: b8 f3
+affd7 dfpn: b8 d6
+8b5e7 dfpn: b8 c4
+935f7 dfpn: b8 b7
+bfff7 dfpn: b8 d4
+935f7 dfpn: b8 b7
+935f7 dfpn: b8 f4
+935f7 dfpn: b8 b7
+37fe7 dfpn: b8 e4
+bfff7 dfpn: b8 b6
+935f7 dfpn: b8 c6
+2ffd7 dfpn: b8 e3
+bfff7 dfpn: b8 b6
+27fc7 dfpn: b8 g4
+affd7 dfpn: b8 d5
+affd7 dfpn: b8 f4
+37fe7 dfpn: b8 e4
+935f7 dfpn: b8 c6
+bfff7 dfpn: b8 d4
+935f7 dfpn: b8 d6
+affd7 dfpn: b8 c7
+37fe7 dfpn: b8 e4
+affd7 dfpn: b8 c6
+935f7 dfpn: b8 e5
+37fe7 dfpn: b8 f5
+affd7 dfpn: b8 c6
+affd7 dfpn: b8 c7
+935f7 dfpn: b8 b7
+a3617 dfpn: b8 g3
+37fe7 dfpn: b8 d5
+1ffb7 dfpn: b8 f3
+935f7 dfpn: b8 b7
+affd7 dfpn: b8 c7
+bfff7 dfpn: b8 d4
+1ffb7 dfpn: b8 e4
+17fa7 dfpn: b8 b5
+b7fe7 dfpn: b8 h2
+935f7 dfpn: b8 c6
+a3617 dfpn: b8 g3
+8b5e7 dfpn: b8 d6
+37fe7 dfpn: b8 b6
+935f7 dfpn: b8 c6
+b7fe7 dfpn: b8 c5
+a3617 dfpn: b8 e5
+1ffb7 dfpn: b8 e4
+935f7 dfpn: b8 d5
+bfff7 dfpn: b8 d4
+1ffb7 dfpn: b8 c4
+8b5e7 dfpn: b8 d6
+8b5e7 dfpn: b8 c6
+bfff7 dfpn: b8 b7
+bfff7 dfpn: b8 g3
+17fa7 dfpn: b8 b7
+17fa7 dfpn: b8 e4
+b7fe7 dfpn: b8 d6
+affd7 dfpn: b8 c7
+27fc7 dfpn: b8 g4
+a3617 dfpn: b8 e5
+8b5e7 dfpn: b8 d4
+1ffb7 dfpn: b8 b5
+37fe7 dfpn: b8 b7
+935f7 dfpn: b8 d5
+bfff7 dfpn: b8 f5
+affd7 dfpn: b8 b6
+bfff7 dfpn: b8 g3
+b7fe7 dfpn: b8 c6
+8b5e7 dfpn: b8 d4
+1ffb7 dfpn: b8 b5
+1ffb7 dfpn: b8 h2
+1ffb7 dfpn: b8 c7
+affd7 dfpn: b8 f3
+17fa7 dfpn: b8 e4
+affd7 dfpn: b8 f5
+37fe7 dfpn: b8 b7
+a3617 dfpn: b8 e5
+b7fe7 dfpn: b8 d7
+1ffb7 dfpn: b8 c7
+8b5e7 dfpn: b8 d4
+17fa7 dfpn: b8 e4
+bfff7 dfpn: b8 g3
+affd7 dfpn: b8 f3
+8b5e7 dfpn: b8 d4
+2ffd7 dfpn: b8 e3
+37fe7 dfpn: b8 c5
+8b5e7 dfpn: b8 h2
+27fc7 dfpn: b8 g4
+b7fe7 dfpn: b8 c6
+b7fe7 dfpn: b8 f4
+bfff7 dfpn: b8 g3
+17fa7 dfpn: b8 f5
+37fe7 dfpn: b8 d6
+8b5e7 dfpn: b8 d4
+1ffb7 dfpn: b8 c7
+a3617 dfpn: b8 e5
+affd7 dfpn: b8 b7
+a3617 dfpn: b8 c5
+bfff7 dfpn: b8 b5
+37fe7 dfpn: b8 d6
+affd7 dfpn: b8 c4
+b7fe7 dfpn: b8 b7
+a3617 dfpn: b8 c5
+8b5e7 dfpn: b8 b6
+37fe7 dfpn: b8 h2
+1ffb7 dfpn: b8 f3
+17fa7 dfpn: b8 f5
+935f7 dfpn: b8 d5
+b7fe7 dfpn: e8 e5
+b7fe7 dfpn: e8 f5
+935f7 dfpn: e8 c6
+bfff7 dfpn: e8 g3
+a3617 dfpn: e8 g2
+affd7 dfpn: e8 f2
+37fe7 dfpn: e8 e3
+8b5e7 dfpn: e8 h2
+27fc7 dfpn: e8 h4
+17fa7 dfpn: e8 c5
+bfff7 dfpn: e8 d4
+8b5e7 dfpn: e8 e5
+b7fe7 dfpn: e8 e6
+b7fe7 dfpn: e8 g3
+a7fc7 dfpn: e8 b7
+1ffb7 dfpn: e8 f6
+b7fe7 dfpn: e8 g4
+2ffd7 dfpn: e8 d7
+2ffd7 dfpn: e8 f5
+1ffb7 dfpn: e8 f3
+b7fe7 dfpn: e8 g4
+2ffd7 dfpn: e8 e6
+affd7 dfpn: e8 f2
+b7fe7 dfpn: e8 d5
+b7fe7 dfpn: e8 g3
+2ffd7 dfpn: e8 e4
+bfff7 dfpn: e8 d4
+a7fc7 dfpn: e8 b7
+1ffb7 dfpn: e8 f3
+a7fc7 dfpn: e8 f6
+affd7 dfpn: e8 d5
+bfff7 dfpn: e8 g4
+b7fe7 dfpn: e8 b7
+8b5e7 dfpn: e8 e5
+3fff7 dfpn: e8 b6
+a7fc7 dfpn: e8 e6
+1ffb7 dfpn: e8 f3
+b7fe7 dfpn: e8 f5
+2ffd7 dfpn: e8 d4
+affd7 dfpn: e8 d5
+a3617 dfpn: e8 g2
+27fc7 dfpn: e8 h4
+bfff7 dfpn: e8 h2
+a7fc7 dfpn: e8 f6
+1ffb7 dfpn: e8 f3
+b7fe7 dfpn: e8 f5
+1ffb7 dfpn: e8 b7
+2ffd7 dfpn: e8 f4
+bfff7 dfpn: e8 f3
+a7fc7 dfpn: e8 g4
+27fc7 dfpn: e8 g3
+affd7 dfpn: e8 d5
+bfff7 dfpn: e8 f3
+b7fe7 dfpn: e8 h2
+1ffb7 dfpn: e8 b7
+bfff7 dfpn: e8 d4
+a7fc7 dfpn: e8 f6
+27fc7 dfpn: e8 e6
+a3617 dfpn: e8 g2
+1ffb7 dfpn: e8 f5
+17fa7 dfpn: e8 c5
+b7fe7 dfpn: e8 g3
+27fc7 dfpn: e8 f3
+935f7 dfpn: e8 c6
+a7fc7 dfpn: e8 f6
+27fc7 dfpn: e8 h2
+bfff7 dfpn: e8 f2
+2ffd7 dfpn: e8 f4
+8b5e7 dfpn: e8 e5
+affd7 dfpn: e8 d5
+b7fe7 dfpn: e8 b7
+27fc7 dfpn: e8 h4
+a3617 dfpn: e8 g2
+a7fc7 dfpn: e8 f6
+27fc7 dfpn: e8 e6
+b7fe7 dfpn: e8 b7
+bfff7 dfpn: e8 g3
+b7fe7 dfpn: e8 b7
+b7fe7 dfpn: e8 e4
+2ffd7 dfpn: e8 h2
+1ffb7 dfpn: e8 f5
+27fc7 dfpn: e8 e6
+affd7 dfpn: e8 d5
+2ffd7 dfpn: e8 g4
+a3617 dfpn: e8 f4
+bfff7 dfpn: e8 f3
+1ffb7 dfpn: e8 g3
+a7fc7 dfpn: e8 f6
+37fe7 dfpn: e8 e3
+2ffd7 dfpn: e8 b7
+bfff7 dfpn: e8 f3
+1ffb7 dfpn: e8 d6
+b7fe7 dfpn: e8 h2
+2ffd7 dfpn: e8 b7
+a3617 dfpn: e8 f4
+27fc7 dfpn: e8 e6
+2ffd7 dfpn: e8 g3
+affd7 dfpn: e8 d4
+1ffb7 dfpn: e8 d6
+1ffb7 dfpn: e8 b7
+bfff7 dfpn: e8 f3
+3fff7 dfpn: e8 b6
+bfff7 dfpn: e8 d5
+0ff97 dfpn: e8 h3
+a3617 dfpn: e8 g2
+1ffb7 dfpn: e8 f3
+b7fe7 dfpn: e8 h2
+2ffd7 dfpn: e8 f5
+affd7 dfpn: e8 d6
+bfff7 dfpn: e8 h4
+b7fe7 dfpn: e8 d5
+a7fc7 dfpn: e8 f6
+bfff7 dfpn: e8 f2
+a7fc7 dfpn: e8 b7
+2ffd7 dfpn: e8 f6
+a3617 dfpn: e8 f4
+affd7 dfpn: e8 d6
+a3617 dfpn: e8 h4
+b7fe7 dfpn: e8 g3
+8b5e7 dfpn: e8 e5
+2ffd7 dfpn: e8 d4
+affd7 dfpn: e8 d5
+a7fc7 dfpn: e8 e4
+27fc7 dfpn: e8 g4
+1ffb7 dfpn: e8 f3
+bfff7 dfpn: e8 f4
+b7fe7 dfpn: e8 g3
+a3617 dfpn: e8 h4
+affd7 dfpn: e8 d6
+bfff7 dfpn: e8 f6
+b7fe7 dfpn: e8 h2
+2ffd7 dfpn: e8 b7
+bfff7 dfpn: e8 g3
+a3617 dfpn: e8 d5
+a3617 dfpn: e8 f6
+a7fc7 dfpn: e8 d4
+27fc7 dfpn: e8 g4
+b7fe7 dfpn: e8 h2
+2ffd7 dfpn: e8 f5
+3fff7 dfpn: e8 b6
+affd7 dfpn: e8 e4
+bfff7 dfpn: e8 d5
+37fe7 dfpn: e8 e3
+27fc7 dfpn: e8 h4
+a3617 dfpn: e8 f6
+27fc7 dfpn: e8 e6
+a7fc7 dfpn: e8 f4
+affd7 dfpn: e8 g3
+b7fe7 dfpn: e8 g2
+bfff7 dfpn: e8 d5
+27fc7 dfpn: e8 d6
+a3617 dfpn: e8 e6
+2ffd7 dfpn: e8 f5
+37fe7 dfpn: e8 h2
+27fc7 dfpn: e8 d6
+affd7 dfpn: e8 b7
+1ffb7 dfpn: e8 e4
+affd7 dfpn: e8 d4
+37fe7 dfpn: e8 h2
+2ffd7 dfpn: e8 f5
+bfff7 dfpn: e8 d5
+3fff7 dfpn: e8 b6
+37fe7 dfpn: e8 h4
+37fe7 dfpn: e8 b7
+935f7 dfpn: e8 c6
+37fe7 dfpn: e8 g3
+a3617 dfpn: e8 e6
+b7fe7 dfpn: e8 h2
+a7fc7 dfpn: e8 f4
+affd7 dfpn: e8 d4
+27fc7 dfpn: e8 d6
+2ffd7 dfpn: e8 f6
+b7fe7 dfpn: e8 b7
+17fa7 dfpn: e8 c5
+27fc7 dfpn: e8 h4
+bfff7 dfpn: e8 d5
+37fe7 dfpn: e8 f3
+b7fe7 dfpn: e8 b7
+2ffd7 dfpn: e8 g4
+1ffb7 dfpn: e8 e4
+3fff7 dfpn: e8 g2
+affd7 dfpn: e8 d4
+b7fe7 dfpn: e8 e3
+2ffd7 dfpn: e8 h2
+27fc7 dfpn: e8 b7
+3fff7 dfpn: e8 g2
+affd7 dfpn: e8 d4
+37fe7 dfpn: e8 f3
+27fc7 dfpn: e8 g4
+0ff97 dfpn: e8 h3
+2ffd7 dfpn: e8 h2
+37fe7 dfpn: e8 b6
+affd7 dfpn: e8 d4
+2ffd7 dfpn: e8 f6
+27fc7 dfpn: e8 f2
+b7fe7 dfpn: e8 b7
+b7fe7 dfpn: e8 h2
+3fff7 dfpn: e8 d6
+37fe7 dfpn: e8 b6
+0ff97 dfpn: e8 h3
+2ffd7 dfpn: e8 f6
+a7fc7 dfpn: e8 f4
+affd7 dfpn: e8 f3
+27fc7 dfpn: e8 f5
+3fff7 dfpn: e8 g3
+3fff7 dfpn: e8 b7
+37fe7 dfpn: e8 g4
+27fc7 dfpn: e8 d4
+bfff7 dfpn: e8 d5
+0ff97 dfpn: e8 g3
+3fff7 dfpn: e8 b7
+37fe7 dfpn: e8 g4
+2ffd7 dfpn: e8 f6
+3fff7 dfpn: e8 f5
+37fe7 dfpn: e8 h4
+3fff7 dfpn: e8 f5
+b7fe7 dfpn: e8 h2
+affd7 dfpn: e8 f3
+bfff7 dfpn: e8 b7
+3fff7 dfpn: e8 f5
+37fe7 dfpn: e8 d5
+2ffd7 dfpn: e8 b6
+b7fe7 dfpn: e8 d6
+0ff97 dfpn: e8 g3
+bfff7 dfpn: e8 b7
+bfff7 dfpn: e8 g4
+2ffd7 dfpn: e8 h2
+a3617 dfpn: e8 e6
+affd7 dfpn: e8 f3
+bfff7 dfpn: e8 f6
+2ffd7 dfpn: e8 g4
+affd7 dfpn: e8 b7
+3fff7 dfpn: e8 f5
+affd7 dfpn: e8 h2
+bfff7 dfpn: e8 f6
+bfff7 dfpn: e8 f2
+3fff7 dfpn: e8 f5
+affd7 dfpn: e8 b6
+2ffd7 dfpn: e8 g4
+bfff7 dfpn: e8 h3
+935f7 dfpn: e8 c6
+1ffb7 dfpn: e8 e4
+affd7 dfpn: e8 h2
+b7fe7 dfpn: e8 d6
+affd7 dfpn: e8 f6
+2ffd7 dfpn: e8 b7
+3fff7 dfpn: e8 h2
+3fff7 dfpn: e8 g4
+b7fe7 dfpn: e8 f2
+affd7 dfpn: e8 f6
+27fc7 dfpn: e8 d4
+affd7 dfpn: e8 d6
+affd7 dfpn: e8 h2
+a7fc7 dfpn: e8 f4
+0ff97 dfpn: e8 g3
+affd7 dfpn: e8 b6
+3fff7 dfpn: e8 f5
+affd7 dfpn: e8 h2
+2ffd7 dfpn: e8 b7
+2ffd7 dfpn: e8 f6
+affd7 dfpn: e8 h4
+0ff97 dfpn: e8 h2
+2ffd7 dfpn: e8 g4
+37fe7 dfpn: e8 d5
+b7fe7 dfpn: e8 d6
+bfff7 dfpn: e8 g3
+affd7 dfpn: e8 b7
+2ffd7 dfpn: e8 f2
+a3617 dfpn: e8 e6
+b7fe7 dfpn: e8 d6
+affd7 dfpn: e8 h4
+3fff7 dfpn: e8 f5
+0ff97 dfpn: e8 g2
+17fa7 dfpn: e8 c5
+affd7 dfpn: e8 e3
+bfff7 dfpn: e8 b6
+a3617 dfpn: e8 e6
+2ffd7 dfpn: e8 h2
+affd7 dfpn: e8 f3
+b7fe7 dfpn: e8 d6
+bfff7 dfpn: e8 b7
+bfff7 dfpn: e8 f6
+2ffd7 dfpn: e8 h2
+bfff7 dfpn: e8 e3
+b7fe7 dfpn: e8 d6
+2ffd7 dfpn: e8 b7
+affd7 dfpn: e8 b6
+3fff7 dfpn: e8 f5
+0ff97 dfpn: e8 h3
+affd7 dfpn: e8 f2
+935f7 dfpn: e8 c6
+0ff97 dfpn: e8 h2
+3fff7 dfpn: e8 f5
+n: f5 h6
+88157 dfpn: f5 h3
+3fff7 dfpn: f5 i2
+8ff97 dfpn: f5 d4
+a7fc7 dfpn: f5 b5
+88157 dfpn: f5 d5
+97fa7 dfpn: f5 h5
+97fa7 dfpn: f5 h3
+88157 dfpn: f5 g4
+3fff7 dfpn: f5 i2
+97fa7 dfpn: f5 h3
+17fa7 dfpn: f5 b6
+97fa7 dfpn: f5 h5
+a7fc7 dfpn: f5 b5
+97fa7 dfpn: f5 d5
+a7fc7 dfpn: f5 h3
+97fa7 dfpn: f5 c4
+a7fc7 dfpn: f5 h3
+97fa7 dfpn: f5 b5
+a7fc7 dfpn: f5 h2
+a7fc7 dfpn: f5 h5
+88157 dfpn: f5 g4
+a7fc7 dfpn: f5 h3
+a7fc7 dfpn: f5 h2
+b7fe7 dfpn: f5 f4
+97fa7 dfpn: f5 b5
+27fc7 dfpn: f5 i4
+3fff7 dfpn: f5 i2
+a7fc7 dfpn: f5 d5
+a7fc7 dfpn: f5 h3
+88157 dfpn: f5 g4
+97fa7 dfpn: f5 d5
+a7fc7 dfpn: f5 h5
+97fa7 dfpn: f5 h2
+3fff7 dfpn: f5 i2
+a7fc7 dfpn: f5 h4
+a7fc7 dfpn: f5 a6
+88157 dfpn: f5 g4
+97fa7 dfpn: f5 h3
+88157 dfpn: f5 g4
+17fa7 dfpn: f5 b6
+3fff7 dfpn: f5 i2
+88157 dfpn: f5 c4
+3fff7 dfpn: f5 i2
+88157 dfpn: f5 f3
+27fc7 dfpn: f5 h5
+3fff7 dfpn: f5 d5
+27fc7 dfpn: f5 b5
+27fc7 dfpn: f5 i2
+bfff7 dfpn: f5 c5
+27fc7 dfpn: f5 b5
+0ff97 dfpn: f5 b3
+3fff7 dfpn: f5 h2
+0ff97 dfpn: f5 g3
+88157 dfpn: f5 f3
+0ff97 dfpn: f5 i2
+a7fc7 dfpn: f5 a6
+a7fc7 dfpn: f5 d5
+88157 dfpn: f5 f3
+3fff7 dfpn: f5 h2
+88157 dfpn: f5 h5
+0ff97 dfpn: f5 g4
+3fff7 dfpn: f5 a6
+88157 dfpn: f5 h5
+88157 dfpn: f5 i2
+ e7 g5 g6 f6 f7 e5
+74e67 info: 
+54e27 dfpn: d4 e3
+67fc7 dfpn: d4 d8
+74e67 info: *** Player move: i1
+7fff7 info: DfpnSolver::CheckAbort(): Abort flag!
+6ce57 info: 
+MID calls      68283
+VC builds      41572
+Terminal       2431
+Work           70714
+Wasted Work    25942 (36.6858%)
+Elapsed Time   23.1664
+MIDs/sec       2947.51
+VCs/sec        1794.5
+Cnt prune sib  1941
+Avg prune sib  2.02267 dev=1.73235 min=1 max=13
+Consider Size  16.9164 dev=13.5287 min=1 max=54
+Move Index     0.826364 dev=1.71649 min=0 max=11
+Move Percent   0.045322 dev=0.093264 min=0 max=0.5
+Delta Increase 3.49585 dev=15.3405 min=1 max=554
+Winner         empty
+PV             d4 e1 f2 e3 g3 f5 g5 g4 i3 h5 h4 f7 f6 d8 c8 d7 c7 e6 d3
 
-0b111 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
-0b111 config: VCS:: parsed 2 patterns.
-0b111 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
-0b111 config: VCS:: parsed 2 patterns.
-0b111 config: IcePatternSet: reading from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/ice-patterns.txt'.
-0b111 config: IcePatternSet: parsed 708 patterns.
+HashTableStatistics:
+Stores         142765
+LookupAttempt  1475107
+LookupSuccess  280554
+Collisions     0
+
+6ce57 info: Search aborted.
