@@ -1,21 +1,458 @@
-87521 config: MoHex v2.0.CMake Oct 24 2024.
-87521 config: ============ InitializeSystem ============
-87521 config: BenzeneProgram::InitRandom()
-87521 config: Seed = 663177
-36a21 info: Prior Patterns:
-36a21 info: Global:
-36a21 info: Size            = 565 32648 
-36a21 info: TableEntries    = 65932 65910
-36a21 info: MirrorsAdded    = 0 0
-36a21 info: PrunableCount   = 30593 30629
-36a21 info: LargestGamma    = 5820.77
-36a21 info: SmallestGamma   = 6.6e-05
-36a21 info: Local:
-36a21 info: Size            = 550 5318 
-36a21 info: TableEntries    = 11602 11588
-36a21 info: MirrorsAdded    = 0 0
-36a21 info: PrunableCount   = 3659 3667
-36a21 info: LargestGamma    = 11281.8
-36a21 info: SmallestGamma   = 0.026235
-36a21 info: Playout Patterns:
-36a21 info: Global:
+d3cf1 config: MoHex v2.0.CMake Oct 24 2024.
+d3cf1 config: ============ InitializeSystem ============
+d3cf1 config: BenzeneProgram::InitRandom()
+d3cf1 config: Seed = 3870
+d36b5e1 info: Prior Patterns:
+6b5e1 info: Globald36b5e1 info: Size            = 565 32648 
+6b5e1 info: TableEntries    = 65932 65910
+6b5e1 info: MirrorsAdded    = 0 0
+6b5e1 info: PrunableCount   = 30593 30629
+6b5e1 info: LargestGamma    = 5820.77
+6b5e1 info: SmallestGamma   = 6.6e-05
+6b5e1 info: Locald36b5e1 info: Size            = 550 5318 
+6b5e1 info: TableEntries    = 11602 11588
+6b5e1 info: MirrorsAdded    = 0 0
+6b5e1 info: PrunableCount   = 3659 3667
+6b5e1 info: LargestGamma    = 11281.8
+6b5e1 info: SmallestGamma   = 0.026235
+6b5e1 info: Playout Patterns:
+6b5e1 info: Globald36b5e1 info: Size            = 565 32648 
+6b5e1 info: TableEntries    = 70329 70329
+6b5e1 info: MirrorsAdded    = 4397 4419
+6b5e1 info: PrunableCount   = 30593 30629
+6b5e1 info: LargestGamma    = 5820.77
+6b5e1 info: SmallestGamma   = 6.6e-05
+6b5e1 info: Locald36b5e1 info: Size            = 550 5318 
+6b5e1 info: TableEntries    = 11602 11588
+6b5e1 info: MirrorsAdded    = 0 0
+6b5e1 info: PrunableCount   = 3659 3667
+6b5e1 info: LargestGamma    = 11281.8
+6b5e1 info: SmallestGamma   = 0.026235
+6b5e1 config: IcePatternSet: reading from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/ice-patterns.txt'.
+6b5e1 config: IcePatternSet: parsed 708 patternsd36b5e1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+6b5e1 config: VCS:: parsed 2 patterns.
+6b5e1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+6b5e1 config: VCS:: parsed 2 patterns.
+6b5e1 config: IcePatternSet: reading from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/ice-patterns.txt'.
+6b5e1 config: IcePatternSet: parsed 708 patternsd36b5e1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+6b5e1 config: VCS:: parsed 2 patterns.
+6b5e1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+6b5e1 config: VCS:: parsed 2 patternsd36b5e1 info: Creating thread 0
+6b5e1 info: Creating thread 1
+6b5e1 info: Creating thread 2
+6b5e1 info: Creating thread 3
+6b5e1 info: Creating thread 4
+6b5e1 info: Creating thread 5
+6b5e1 info: Creating thread 6
+6b5e1 info: Creating thread 7
+6b5e1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+6b5e1 config: VCS:: parsed 2 patterns.
+6b5e1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+6b5e1 config: VCS:: parsed 2 patterns.
+6b5e1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+6b5e1 config: VCS:: parsed 2 patterns.
+6b5e1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+6b5e1 config: VCS:: parsed 2 patternsd3cf1 info: PlayAndSolve: Building VCs to avoid race condition.
+d3cf1 config: VCPattern: loading pattern templates from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-patterns.txt'.
+d3cf1 info: PlayAndSolve: Continuing on as usual.
+fa0f1 info: *** PlayerThread ***
+f00f1 info: *** SolverThread ***
+e60f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+e60f1 config: VCS:: parsed 2 patterns.
+e60f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+e60f1 config: VCS:: parsed 2 patterns.
+e60f1 dfpn: 
+fa0f1 info: Mustplay is singleton!
+fa0f1 info: *** Player move: c3
+e60f1 info: DfpnSolver::CheckAbort(): Abort flag!
+f00f1 info: 
+MID calls      1
+VC builds      1
+Terminal       0
+Work           1
+Wasted Work    0 (0%)
+Elapsed Time   0.003344
+MIDs/sec       299.043
+VCs/sec        299.043
+Cnt prune sib  0
+Avg prune sib  -
+Consider Size  1 dev=0 min=1 max=1
+Move Index     -
+Move Percent   -
+Delta Increase -
+Winner         empty
+PV             c3
+
+HashTableStatistics:
+Stores         3
+LookupAttempt  12
+LookupSuccess  5
+Collisions     0
+
+f00f1 info: Search aborted.
+d3cf1 info: PlayAndSolve: Building VCs to avoid race condition.
+d3cf1 info: PlayAndSolve: Continuing on as usual.
+fa0f1 info: *** SolverThread ***
+f00f1 info: *** PlayerThread ***
+e60f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+e60f1 config: VCS:: parsed 2 patterns.
+e60f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+e60f1 config: VCS:: parsed 2 patterns.
+f00f1 info: Mustplay is singleton!
+f00f1 info: *** Player move: c4
+e60f1 dfpn: 
+e60f1 info: DfpnSolver::CheckAbort(): Abort flag!
+fa0f1 info: 
+MID calls      1
+VC builds      1
+Terminal       0
+Work           1
+Wasted Work    0 (0%)
+Elapsed Time   0.001687
+MIDs/sec       592.768
+VCs/sec        592.768
+Cnt prune sib  0
+Avg prune sib  -
+Consider Size  1 dev=0 min=1 max=1
+Move Index     -
+Move Percent   -
+Delta Increase -
+Winner         empty
+PV             c4
+
+HashTableStatistics:
+Stores         6
+LookupAttempt  24
+LookupSuccess  10
+Collisions     0
+
+fa0f1 info: Search aborted.
+d3cf1 info: PlayAndSolve: Building VCs to avoid race condition.
+d3cf1 info: PlayAndSolve: Continuing on as usual.
+f00f1 info: *** SolverThread ***
+fa0f1 info: *** PlayerThread ***
+e60f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+e60f1 config: VCS:: parsed 2 patterns.
+e60f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+e60f1 config: VCS:: parsed 2 patterns.
+fa0f1 info: Opponent has won; playing most blocking move.
+fa0f1 info: *** Player move: c2
+e60f1 dfpn: 
+f00f1 info: 
+MID calls      0
+VC builds      1
+Terminal       1
+Work           1
+Wasted Work    0 (0%)
+Elapsed Time   0.001539
+MIDs/sec       0
+VCs/sec        649.773
+Cnt prune sib  0
+Avg prune sib  -
+Consider Size  -
+Move Index     -
+Move Percent   -
+Delta Increase -
+Winner         white
+PV             
+
+HashTableStatistics:
+Stores         7
+LookupAttempt  30
+LookupSuccess  13
+Collisions     0
+
+d3cf1 info: PlayAndSolve: Building VCs to avoid race condition.
+d3cf1 info: PlayAndSolve: Continuing on as usual.
+fa0f1 info: *** SolverThread ***
+f00f1 info: *** PlayerThread ***
+e60f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+e60f1 config: VCS:: parsed 2 patterns.
+f00f1 info: Opponent has won; playing most blocking move.
+f00f1 info: *** Player move: d4
+e60f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+e60f1 config: VCS:: parsed 2 patterns.
+e60f1 dfpn: 
+fa0f1 info: 
+MID calls      0
+VC builds      1
+Terminal       1
+Work           1
+Wasted Work    0 (0%)
+Elapsed Time   0.001308
+MIDs/sec       0
+VCs/sec        764.526
+Cnt prune sib  0
+Avg prune sib  -
+Consider Size  -
+Move Index     -
+Move Percent   -
+Delta Increase -
+Winner         white
+PV             
+
+HashTableStatistics:
+Stores         8
+LookupAttempt  36
+LookupSuccess  16
+Collisions     0
+
+d3cf1 info: PlayAndSolve: Building VCs to avoid race condition.
+d3cf1 info: PlayAndSolve: Continuing on as usual.
+fa0f1 info: *** PlayerThread ***
+f00f1 info: *** SolverThread ***
+e60f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+e60f1 config: VCS:: parsed 2 patterns.
+fa0f1 info: Opponent has won; playing most blocking move.
+fa0f1 info: *** Player move: e4
+e60f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+e60f1 config: VCS:: parsed 2 patterns.
+e60f1 dfpn: 
+f00f1 info: 
+MID calls      0
+VC builds      1
+Terminal       1
+Work           1
+Wasted Work    0 (0%)
+Elapsed Time   0.001192
+MIDs/sec       0
+VCs/sec        838.926
+Cnt prune sib  0
+Avg prune sib  -
+Consider Size  -
+Move Index     -
+Move Percent   -
+Delta Increase -
+Winner         white
+PV             
+
+HashTableStatistics:
+Stores         9
+LookupAttempt  42
+LookupSuccess  19
+Collisions     0
+
+d3cf1 info: PlayAndSolve: Building VCs to avoid race condition.
+d3cf1 info: PlayAndSolve: Continuing on as usual.
+fa0f1 info: *** SolverThread ***
+f00f1 info: *** PlayerThread ***
+f00f1 info: Captured cells caused win! Removing...
+e60f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+e60f1 config: VCS:: parsed 2 patterns.
+e60f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+e60f1 config: VCS:: parsed 2 patterns.
+f00f1 info: Opponent has won; playing most blocking move.
+f00f1 info: *** Player move: f4
+e60f1 dfpn: 
+fa0f1 info: 
+MID calls      0
+VC builds      1
+Terminal       1
+Work           1
+Wasted Work    0 (0%)
+Elapsed Time   0.001253
+MIDs/sec       0
+VCs/sec        798.085
+Cnt prune sib  0
+Avg prune sib  -
+Consider Size  -
+Move Index     -
+Move Percent   -
+Delta Increase -
+Winner         white
+PV             
+
+HashTableStatistics:
+Stores         10
+LookupAttempt  48
+LookupSuccess  22
+Collisions     0
+
+d3cf1 info: PlayAndSolve: Building VCs to avoid race condition.
+d3cf1 info: PlayAndSolve: Continuing on as usual.
+fa0f1 info: *** PlayerThread ***
+f00f1 info: *** SolverThread ***
+fa0f1 info: Captured cells caused win! Removing...
+e60f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+e60f1 config: VCS:: parsed 2 patterns.
+e60f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+e60f1 config: VCS:: parsed 2 patterns.
+fa0f1 info: Opponent has won; playing most blocking move.
+fa0f1 info: *** Player move: a5
+e60f1 dfpn: 
+f00f1 info: 
+MID calls      0
+VC builds      1
+Terminal       1
+Work           1
+Wasted Work    0 (0%)
+Elapsed Time   0.001072
+MIDs/sec       0
+VCs/sec        932.836
+Cnt prune sib  0
+Avg prune sib  -
+Consider Size  -
+Move Index     -
+Move Percent   -
+Delta Increase -
+Winner         white
+PV             
+
+HashTableStatistics:
+Stores         11
+LookupAttempt  54
+LookupSuccess  25
+Collisions     0
+
+d3cf1 config: ============ BenzeneShutdown =============
+d3cf1 config: MoHexProgram:: ShutdownSystem()
+d3cf1 config: CommonProgram:: ShutdownSystem()
+d3cf1 config: BenzeneProgram:: ShutdownSystem()
+Flushing and closing this stream...
+yerThread ***
+340f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+340f1 config: VCS:: parsed 2 patterns.
+920f1 info: Winning SC.
+920f1 info: *** Player move: d5
+340f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+340f1 config: VCS:: parsed 2 patterns.
+340f1 dfpn: 
+3e0f1 info: 
+MID calls      0
+VC builds      1
+Terminal       1
+Work           1
+Wasted Work    0 (0%)
+Elapsed Time   0.001158
+MIDs/sec       0
+VCs/sec        863.558
+Cnt prune sib  0
+Avg prune sib  -
+Consider Size  -
+Move Index     -
+Move Percent   -
+Delta Increase -
+Winner         white
+PV             
+
+HashTableStatistics:
+Stores         30
+LookupAttempt  297
+LookupSuccess  49
+Collisions     0
+
+6b5e1 info: PlayAndSolve: Building VCs to avoid race condition.
+6b5e1 info: PlayAndSolve: Continuing on as usual.
+920f1 info: *** SolverThread ***
+3e0f1 info: *** PlayerThread ***
+340f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+340f1 config: VCS:: parsed 2 patterns.
+3e0f1 info: Winning SC.
+3e0f1 info: *** Player move: e5
+340f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+340f1 config: VCS:: parsed 2 patterns.
+340f1 dfpn: 
+920f1 info: 
+MID calls      0
+VC builds      1
+Terminal       1
+Work           1
+Wasted Work    0 (0%)
+Elapsed Time   0.001073
+MIDs/sec       0
+VCs/sec        931.966
+Cnt prune sib  0
+Avg prune sib  -
+Consider Size  -
+Move Index     -
+Move Percent   -
+Delta Increase -
+Winner         white
+PV             
+
+HashTableStatistics:
+Stores         31
+LookupAttempt  303
+LookupSuccess  52
+Collisions     0
+
+6b5e1 info: PlayAndSolve: Building VCs to avoid race condition.
+6b5e1 info: PlayAndSolve: Continuing on as usual.
+3e0f1 info: *** SolverThread ***
+920f1 info: *** PlayerThread ***
+920f1 info: Winning SC.
+920f1 info: *** Player move: f5
+340f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+340f1 config: VCS:: parsed 2 patterns.
+340f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+340f1 config: VCS:: parsed 2 patterns.
+340f1 dfpn: 
+3e0f1 info: 
+MID calls      0
+VC builds      1
+Terminal       1
+Work           1
+Wasted Work    0 (0%)
+Elapsed Time   0.00125
+MIDs/sec       0
+VCs/sec        800
+Cnt prune sib  0
+Avg prune sib  -
+Consider Size  -
+Move Index     -
+Move Percent   -
+Delta Increase -
+Winner         white
+PV             
+
+HashTableStatistics:
+Stores         32
+LookupAttempt  309
+LookupSuccess  55
+Collisions     0
+
+6b5e1 info: PlayAndSolve: Building VCs to avoid race condition.
+6b5e1 info: PlayAndSolve: Continuing on as usual.
+3e0f1 info: *** PlayerThread ***
+920f1 info: *** SolverThread ***
+3e0f1 info: Winning SC.
+3e0f1 info: *** Player move: a6
+340f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+340f1 config: VCS:: parsed 2 patterns.
+340f1 config: VCS: reading captured set patterns from '/home/parallels/CLionProjects/benzene-vanilla-cmake/share/vc-captured-set.txt'.
+340f1 config: VCS:: parsed 2 patterns.
+340f1 dfpn: 
+920f1 info: 
+MID calls      0
+VC builds      1
+Terminal       1
+Work           1
+Wasted Work    0 (0%)
+Elapsed Time   0.001142
+MIDs/sec       0
+VCs/sec        875.657
+Cnt prune sib  0
+Avg prune sib  -
+Consider Size  -
+Move Index     -
+Move Percent   -
+Delta Increase -
+Winner         white
+PV             
+
+HashTableStatistics:
+Stores         33
+LookupAttempt  315
+LookupSuccess  58
+Collisions     0
+
+6b5e1 config: ============ BenzeneShutdown =============
+6b5e1 config: MoHexProgram:: ShutdownSystem()
+6b5e1 config: CommonProgram:: ShutdownSystem()
+6b5e1 config: BenzeneProgram:: ShutdownSystem()
+Flushing and closing this stream...
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          9e311 config: ============ BenzeneShutdown =============
+9e311 config: MoHexProgram:: ShutdownSystem()
+9e311 config: CommonProgram:: ShutdownSystem()
+9e311 config: BenzeneProgram:: ShutdownSystem()
+Flushing and closing this stream...
