@@ -1963,7 +1963,8 @@ class UtilsPlot:
     def _plot_hex_grid(hex_grid: List[List[int]],
                        filepath: Path, show_axis: bool=False,
                        coord_text_func: Callable[[int, int], str]=None,
-                       heatmap: List[List[float]]=None):
+                       heatmap: List[List[float]]=None,
+                       is_heatmap_relative: bool=False):
         # Plot a Hexagonal Grid
         # - logic from: https://www.redblobgames.com/grids/hexagons/
 
@@ -1976,10 +1977,11 @@ class UtilsPlot:
         # By default, we just use a basic heatmap where every colour is the same
         if not heatmap:
             heatmap = UtilsHex.HexGrid.make_empty_heatmap(boardsize, default=0.5)
+            is_heatmap_relative = False
         else:
             # If we are showing a wanted heatmap, we should display the values
             old_coord_text_func = coord_text_func
-            coord_text_func = lambda x, y: old_coord_text_func(x, y) + f"\n{heatmap[y][x]:.2f}"
+            coord_text_func = lambda x, y: old_coord_text_func(x, y) + f"\n{heatmap[y][x]:.4f}"
 
         # Define the grid colors
         piece_colors = ['black', 'white']
@@ -2004,7 +2006,8 @@ class UtilsPlot:
                 position = get_cell_position(x, y)
 
                 # Plot the grid
-                cell_color = UtilsPlot.COLORMAP(heatmap[y][x])
+                heatmap_scale = np.max(heatmap) if is_heatmap_relative else 1
+                cell_color = UtilsPlot.COLORMAP(heatmap[y][x] / heatmap_scale)
                 hexagon = RegularPolygon(position, numVertices=6, radius=hex_radius,
                                          orientation=0, edgecolor=grid_color, facecolor=cell_color)
                 ax.add_patch(hexagon)
