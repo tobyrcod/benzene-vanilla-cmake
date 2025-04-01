@@ -4,59 +4,70 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="c8370e84-2b5f-4e96-81dd-ff92d7793989" name="Changes" comment="add blunder amount to tournament name">
+    <list default="true" id="c8370e84-2b5f-4e96-81dd-ff92d7793989" name="Changes" comment="(images) heatmap exploration of all player pieces when they win and lose">
+      <change afterPath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline/match/6x6-baseline_black_win_black_span_WON_heatmap.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline/match/6x6-baseline_black_win_black_trapezoid_WON_heatmap.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline/match/6x6-baseline_black_win_black_wheel_WON_heatmap.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline/match/6x6-baseline_white_win_black_span_WON_heatmap.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline/match/6x6-baseline_white_win_black_trapezoid_WON_heatmap.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline/match/6x6-baseline_white_win_black_wheel_WON_heatmap.png" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tournament/MoHexScript.py" beforeDir="false" afterPath="$PROJECT_DIR$/tournament/MoHexScript.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tournament/default.log" beforeDir="false" afterPath="$PROJECT_DIR$/tournament/default.log" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tournament/gameplayer.py" beforeDir="false" afterPath="$PROJECT_DIR$/tournament/gameplayer.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tournament/tournament.py" beforeDir="false" afterPath="$PROJECT_DIR$/tournament/tournament.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsetlin/dataset matches/6x6-baseline_exact_template_matches.csv" beforeDir="false" afterPath="$PROJECT_DIR$/tsetlin/dataset matches/6x6-baseline_template_matches.csv" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsetlin/heatmaps.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsetlin/heatmaps.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsetlin/playground.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsetlin/playground.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline_exact/6x6-baseline_exact_black_heatmap.png" beforeDir="false" afterPath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline/piece/6x6-baseline_black_heatmap.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline_exact/6x6-baseline_exact_black_win_black_heatmap.png" beforeDir="false" afterPath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline/piece/6x6-baseline_black_win_black_heatmap.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline_exact/6x6-baseline_exact_black_win_white_heatmap.png" beforeDir="false" afterPath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline/piece/6x6-baseline_black_win_white_heatmap.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline_exact/6x6-baseline_exact_white_heatmap.png" beforeDir="false" afterPath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline/piece/6x6-baseline_white_heatmap.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline_exact/6x6-baseline_exact_white_win_black_heatmap.png" beforeDir="false" afterPath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline/piece/6x6-baseline_white_win_black_heatmap.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline_exact/6x6-baseline_exact_white_win_white_heatmap.png" beforeDir="false" afterPath="$PROJECT_DIR$/tsetlin/plots/heatmaps/6x6-baseline/piece/6x6-baseline_white_win_white_heatmap.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tsetlin/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/tsetlin/utils.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="CMakeBuildProfile:Debug" />
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "tobyrcod"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;tobyrcod&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/tobyrcod/benzene-vanilla-cmake.git",
-    "accountId": "6ea814f0-735a-4bff-a964-26ef2838837e"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/tobyrcod/benzene-vanilla-cmake.git&quot;,
+    &quot;accountId&quot;: &quot;6ea814f0-735a-4bff-a964-26ef2838837e&quot;
   }
-}]]></component>
+}</component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
   </component>
-  <component name="ProjectColorInfo"><![CDATA[{
-  "associatedIndex": 2
-}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
   <component name="ProjectId" id="2uai4n7nEWksQ2ZoXi3o8ZSOBQZ" />
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "WebServerToolWindowFactoryState": "false",
-    "git-widget-placeholder": "py3",
-    "node.js.detected.package.eslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;WebServerToolWindowFactoryState&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;py3&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/tsetlin/models/tmu/standard/6x6-baseline_exact_16limit" />
@@ -65,78 +76,8 @@
     </key>
   </component>
   <component name="RunManager">
-    <configuration default="true" type="DjangoTestsConfigurationType">
-      <module name="benzene-vanilla-cmake" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="TARGET" value="" />
-      <option name="SETTINGS_FILE" value="" />
-      <option name="CUSTOM_SETTINGS" value="false" />
-      <option name="USE_OPTIONS" value="false" />
-      <option name="OPTIONS" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration default="true" type="PyBehaveRunConfigurationType" factoryName="Behave">
-      <module name="benzene-vanilla-cmake" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="ADDITIONAL_ARGS" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration default="true" type="Python.FlaskServer">
-      <module name="benzene-vanilla-cmake" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="launchJavascriptDebuger" value="false" />
-      <method v="2" />
-    </configuration>
-    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
-      <module name="benzene-vanilla-cmake" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="SCRIPT_NAME" value="" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <option name="EMULATE_TERMINAL" value="false" />
-      <option name="MODULE_MODE" value="false" />
-      <option name="REDIRECT_INPUT" value="false" />
-      <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
     <configuration name="playground" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="benzene-vanilla-cmake" />
-      <option name="ENV_FILES" value="" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
@@ -155,55 +96,6 @@
       <option name="MODULE_MODE" value="false" />
       <option name="REDIRECT_INPUT" value="false" />
       <option name="INPUT_FILE" value="" />
-      <method v="2" />
-    </configuration>
-    <configuration default="true" type="Tox" factoryName="Tox">
-      <module name="benzene-vanilla-cmake" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <method v="2" />
-    </configuration>
-    <configuration default="true" type="docs" factoryName="Docutils task">
-      <module name="benzene-vanilla-cmake" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="docutils_input_file" value="" />
-      <option name="docutils_output_file" value="" />
-      <option name="docutils_params" value="" />
-      <option name="docutils_task" value="" />
-      <option name="docutils_open_in_browser" value="false" />
-      <method v="2" />
-    </configuration>
-    <configuration default="true" type="docs" factoryName="Sphinx task">
-      <module name="benzene-vanilla-cmake" />
-      <option name="ENV_FILES" value="" />
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
-      <option name="docutils_input_file" value="" />
-      <option name="docutils_output_file" value="" />
-      <option name="docutils_params" value="" />
-      <option name="docutils_task" value="" />
-      <option name="docutils_open_in_browser" value="false" />
       <method v="2" />
     </configuration>
   </component>
@@ -228,6 +120,9 @@
       <workItem from="1742587878149" duration="876000" />
       <workItem from="1743165318935" duration="16623000" />
       <workItem from="1743256885674" duration="47000" />
+      <workItem from="1743429931647" duration="2093000" />
+      <workItem from="1743446815587" duration="5535000" />
+      <workItem from="1743494974216" duration="12952000" />
     </task>
     <task id="LOCAL-00001" summary="Remove unimportant files">
       <created>1742565913508</created>
@@ -258,7 +153,21 @@
       <option name="project" value="LOCAL" />
       <updated>1743267333407</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="heatmap exploration of all player pieces when they win and lose">
+      <created>1743452098816</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1743452098816</updated>
+    </task>
+    <task id="LOCAL-00006" summary="(images) heatmap exploration of all player pieces when they win and lose">
+      <created>1743452158879</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1743452158879</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -281,12 +190,17 @@
     <MESSAGE value="small changes" />
     <MESSAGE value="remove unneeded job file" />
     <MESSAGE value="add blunder amount to tournament name" />
-    <option name="LAST_COMMIT_MESSAGE" value="add blunder amount to tournament name" />
+    <MESSAGE value="heatmap exploration of all player pieces when they win and lose" />
+    <MESSAGE value="(images) heatmap exploration of all player pieces when they win and lose" />
+    <option name="LAST_COMMIT_MESSAGE" value="(images) heatmap exploration of all player pieces when they win and lose" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/benzene_cmake$control.coverage" NAME="control Coverage Results" MODIFIED="1742498867798" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tsetlin" />
     <SUITE FILE_PATH="coverage/benzene_cmake$playground.coverage" NAME="playground Coverage Results" MODIFIED="1743191839166" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tsetlin" />
     <SUITE FILE_PATH="coverage/benzene_cmake$heuristic.coverage" NAME="heuristic Coverage Results" MODIFIED="1742567700852" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tsetlin" />
+    <SUITE FILE_PATH="coverage/benzene_vanilla_cmake$heatmaps.coverage" NAME="heatmaps Coverage Results" MODIFIED="1743516321799" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tsetlin" />
+    <SUITE FILE_PATH="coverage/benzene_vanilla_cmake$heuristic.coverage" NAME="heuristic Coverage Results" MODIFIED="1743447033574" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tsetlin" />
     <SUITE FILE_PATH="coverage/benzene_cmake$utils.coverage" NAME="utils Coverage Results" MODIFIED="1743166028210" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tsetlin" />
+    <SUITE FILE_PATH="coverage/benzene_vanilla_cmake$playground.coverage" NAME="playground Coverage Results" MODIFIED="1743497548088" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/tsetlin" />
   </component>
 </project>

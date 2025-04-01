@@ -83,6 +83,6 @@ for player, player_name in enumerate(['Black', 'White']):
             print(matrix / match_type_sum)                      # Player percentage of clause weight for each match type
             match_type_score = np.sum(matrix, axis=1)
             # print(match_type_score)                             # Total clause weight for each player
-            # print(match_type_score / sum(match_type_score))     # Player percentage of clause weight
+            print(match_type_score / sum(match_type_score))     # Player percentage of clause weight
 
         analyse_matrix(weighted_clause_weighted_match_matrix)
