@@ -1,0 +1,6 @@
+20000
+Counter({3: 10106, 4: 4675, 2: 4130, 5: 865, 1: 111, 6: 88, 7: 22, 8: 3})
+3.121
+
+better but still much lower than with negatives.
+86% is still pretty good though so all of these are roughly the same

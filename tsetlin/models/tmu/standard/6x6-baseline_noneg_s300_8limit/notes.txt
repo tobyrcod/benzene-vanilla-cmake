@@ -1,0 +1,5 @@
+20000
+Counter({3: 9901, 2: 7063, 4: 2530, 1: 325, 5: 172, 6: 9})
+2.7594
+
+Back to too small literals per clause!!!
