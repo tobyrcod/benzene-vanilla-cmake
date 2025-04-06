@@ -42,7 +42,7 @@ def dataset_piece_occurrence(dataset: UtilsDataset.Dataset):
     dataset_white_win = [dataset.X[i] for i in range(dataset.num_rows) if dataset.Y[i] == 1]
 
     literals_black = np.array([literals[:literals_per_player] for literals in dataset.X])
-    literals_white = np.array([literals[:literals_per_player] for literals in dataset.X])
+    literals_white = np.array([literals[literals_per_player:] for literals in dataset.X])
 
     literals_black_win_black = np.array([literals[:literals_per_player] for literals in dataset_black_win])
     literals_white_win_white = np.array([literals[literals_per_player:] for literals in dataset_white_win])
@@ -66,7 +66,6 @@ def dataset_piece_occurrence(dataset: UtilsDataset.Dataset):
     process_player_dataset(literals_white_win_white, 'white_win_white', True)
     process_player_dataset(literals_black_win_white, 'black_win_white', True)
     process_player_dataset(literals_white_win_black, 'white_win_black', True)
-
 
 def dataset_matches_occurrence(dataset: UtilsDataset.Dataset):
     # Make a heatmap for the occurrences of matches found for each color in won and lost games
@@ -136,11 +135,48 @@ def dataset_matches_occurrence(dataset: UtilsDataset.Dataset):
     process(matches_A, num_matches, 0, 0)
     process(matches_B, num_matches, 1, 0)
 
-# TODO: heatmaps for templates in clauses
-def clause_matches_occurrence(dataset: UtilsDataset.Dataset):
+def clause_piece_occurrence(dataset: UtilsDataset.Dataset):
     # Make a heatmap for the occurrences of matches found for each color in won and lost games
+    boardsize = dataset.boardsize
+    literals_per_player = boardsize ** 2
+    hexgrid = UtilsHex.HexGrid.make_empty_hexgrid(boardsize)
 
-    dir_tm, clause_datasets = UtilsTM.Model.load_default_trained_tm_data(dataset)
+    dir_tm = UtilsTM.Model.dataset_to_default_model_path(dataset)
+    clause_datasets = UtilsTM.Model.load_trained_tm_data(dir_tm, dataset.boardsize)
+    print(clause_datasets)
+
+    for player, player_name in enumerate(['Black', 'White']):
+        for polarity, polarity_name in enumerate(['Negative', 'Positive']):
+            clause_dataset: UtilsDataset.Dataset = clause_datasets[player_name][polarity_name]
+            clauses, weights = clause_dataset.X, clause_dataset.weights
+
+            clauses = np.array(clauses) * np.abs(np.array(weights))[:, np.newaxis]
+            literals_black = np.array([literals[:literals_per_player] for literals in clauses])
+            literals_white = np.array([literals[literals_per_player:] for literals in clauses])
+
+            print('fff', len(literals_black), len(literals_white), len(weights))
+
+            def process_player_dataset(literals_player, name, is_relative):
+                player_literals_counts = np.sum(literals_player, axis=0)
+                player_literals_norm = player_literals_counts.astype(float) / len(literals_player)
+                player_heatmap = list(player_literals_norm.reshape(boardsize, boardsize))
+
+                name_heatmap = f"clauses_{player_name}_{polarity_name}_{name}_heatmap.png"
+                path_heatmap = dir_tm / "matches" / "heatmaps" / name_heatmap
+                UtilsHex.HexGrid.print_heatmap(player_heatmap)
+                UtilsPlot._plot_hex_grid(hexgrid, path_heatmap, heatmap=player_heatmap, is_heatmap_relative=is_relative)
+
+            process_player_dataset(literals_black, 'black', True)
+            process_player_dataset(literals_white, 'white', True)
+
+def clause_matches_occurrence(dataset: UtilsDataset.Dataset):
+    # TODO: take from playground.analyse_matches_in_tm
+
+    # Make a heatmap for the occurrences of matches found for each color in won and lost games
+    hexgrid = UtilsHex.HexGrid.make_empty_hexgrid(dataset.boardsize)
+
+    dir_tm = UtilsTM.Model.dataset_to_default_model_path(dataset)
+    clause_datasets = UtilsTM.Model.load_trained_tm_data(dir_tm, dataset.boardsize)
     print(clause_datasets)
 
     for player, player_name in enumerate(['Black', 'White']):
@@ -180,11 +216,17 @@ def clause_matches_occurrence(dataset: UtilsDataset.Dataset):
                     for offset in search_pattern.include_offsets:
                         position_x = match_x + offset[0]
                         position_y = match_y + offset[1]
-                        heatmap[position_y][position_x] += clause_weight
-                        UtilsHex.HexGrid.print_heatmap(heatmap)
+                        heatmap[position_y][position_x] += abs(clause_weight)  # Either all -ve or +ve, so just take abs
 
-                    print(match_name, match_var, match_x, match_y)
-                    return
+            heatmap = list(np.array(heatmap) / np.max(np.array(heatmap)))
+            name_heatmap = f"matches_{player_name}_" \
+                           f"{polarity_name}_" \
+                           f"ds_" \
+                           f"heatmap.png"
+            path_heatmap = dir_tm / "matches" / "heatmaps" / name_heatmap
+            UtilsHex.HexGrid.print_heatmap(heatmap)
+            UtilsPlot._plot_hex_grid(hexgrid, path_heatmap, heatmap=heatmap, is_heatmap_relative=True)
+
 
 
 if __name__ == '__main__':
@@ -194,5 +236,7 @@ if __name__ == '__main__':
     # example_random()
     # example_short_diagonal()
 
-    # dataset_piece_occurrence(UtilsDataset.X6_BASELINE)
+    dataset_piece_occurrence(UtilsDataset.X6_BASELINE)
     dataset_matches_occurrence(UtilsDataset.X6_BASELINE)
+    clause_piece_occurrence(UtilsDataset.X6_BASELINE)
+    clause_matches_occurrence(UtilsDataset.X6_BASELINE)

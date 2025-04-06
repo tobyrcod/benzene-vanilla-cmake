@@ -1433,16 +1433,11 @@ class UtilsTM:
         # ASSUMPTION: No literal augmentations are applied - clauses would be a different form if they are.
 
         @staticmethod
-        def load_default_trained_tm_data(dataset: "UtilsDataset.Dataset"):
-            # Define a default best set of clauses we want to use for each dataset
-            dir_tm = None
+        def dataset_to_default_model_path(dataset: "UtilsDataset.Dataset"):
             if dataset.name == "6x6-baseline":
-                dir_tm = Path("models/tmu/standard/6x6-baseline_s300_8limit")
+                return Path("models/tmu/standard/6x6-baseline_s300_8limit")
 
-            if not dir_tm:
-                return None
-
-            return dir_tm, UtilsTM.Model.load_trained_tm_data(dir_tm, dataset.boardsize)
+            return None
 
         @staticmethod
         def load_trained_tm_data(dir_tm: Path, boardsize: int):
