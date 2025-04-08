@@ -1857,32 +1857,46 @@ class UtilsDataset:
         history_size = 0
 
         if boardsize == 6:
+            print('Boardsize: 6')
             if blunder == 0:
-                UtilsDataset.X6_PLY_1 = UtilsDataset._load_winner_pred_dataset("6/6x6-1ply-blunder0", augmentation, history, history_size)
-                UtilsDataset.X6_PLY_2 = UtilsDataset._load_winner_pred_dataset("6/6x6-2ply-blunder0", augmentation, history, history_size)
-                UtilsDataset.X6_PLY_3 = UtilsDataset._load_winner_pred_dataset("6/6x6-3ply-blunder0", augmentation, history, history_size)
-                UtilsDataset.X6_PLY_4 = UtilsDataset._load_winner_pred_dataset("6/6x6-4ply-blunder0", augmentation, history, history_size)
+                print('Blunder: 0')
+                X6_PLY_1 = UtilsDataset._load_winner_pred_dataset("6/6x6-1ply-blunder0", augmentation, history, history_size)
+                X6_PLY_2 = UtilsDataset._load_winner_pred_dataset("6/6x6-2ply-blunder0", augmentation, history, history_size)
+                X6_PLY_3 = UtilsDataset._load_winner_pred_dataset("6/6x6-3ply-blunder0", augmentation, history, history_size)
+                X6_PLY_4 = UtilsDataset._load_winner_pred_dataset("6/6x6-4ply-blunder0", augmentation, history, history_size)
+            if blunder == 0.1:
+                print('Blunder: 0.1')
+                X6_PLY_1 = UtilsDataset._load_winner_pred_dataset("6/6x6-1ply-blunder01", augmentation, history, history_size)
+                X6_PLY_2 = UtilsDataset._load_winner_pred_dataset("6/6x6-2ply-blunder01", augmentation, history, history_size)
+                X6_PLY_3 = UtilsDataset._load_winner_pred_dataset("6/6x6-3ply-blunder01", augmentation, history, history_size)
+                X6_PLY_4 = UtilsDataset._load_winner_pred_dataset("6/6x6-4ply-blunder01", augmentation, history, history_size)
+            if blunder == 0.25:
+                print('Blunder: 0.25')
+                X6_PLY_1 = UtilsDataset._load_winner_pred_dataset("6/6x6-1ply-blunder025", augmentation, history, history_size)
+                X6_PLY_2 = UtilsDataset._load_winner_pred_dataset("6/6x6-2ply-blunder025", augmentation, history, history_size)
+                X6_PLY_3 = UtilsDataset._load_winner_pred_dataset("6/6x6-3ply-blunder025", augmentation, history, history_size)
+                X6_PLY_4 = UtilsDataset._load_winner_pred_dataset("6/6x6-4ply-blunder025", augmentation, history, history_size)
+            if blunder == 0.5:
+                print('Blunder: 0.5')
+                X6_PLY_1 = UtilsDataset._load_winner_pred_dataset("6/6x6-1ply-blunder05", augmentation, history, history_size)
+                X6_PLY_2 = UtilsDataset._load_winner_pred_dataset("6/6x6-2ply-blunder05", augmentation, history, history_size)
+                X6_PLY_3 = UtilsDataset._load_winner_pred_dataset("6/6x6-3ply-blunder05", augmentation, history, history_size)
+                X6_PLY_4 = UtilsDataset._load_winner_pred_dataset("6/6x6-4ply-blunder05", augmentation, history, history_size)
 
-        # Combine all of these datasets
-        ds_x6_combined = UtilsDataset.X6_PLY_1 + UtilsDataset.X6_PLY_2 + UtilsDataset.X6_PLY_3 + UtilsDataset.X6_PLY_4
+            # Combine all of these datasets
+            ds_x6_combined = X6_PLY_1 + X6_PLY_2 + X6_PLY_3 + X6_PLY_4
 
-        # Define a new baseline dataset to match the distribution of the original paper
-        baseline_black = 175968
-        baseline_white = 111826
-        """
-        baseline_total = baseline_black + baseline_white
-        baseline_majority_frac = baseline_black / baseline_total
-        UtilsDataset.BASELINE = UtilsDataset.BASELINE.reduce_majority_frac(baseline_majority_frac)
-        UtilsDataset.BASELINE.name = '6x6-baseline_dist'
-        """
-        UtilsDataset.X6_BASELINE = ds_x6_combined.reduce_player_counts(baseline_black, baseline_white)
-        UtilsDataset.X6_BASELINE.name = '6x6-baseline'
+            # Define a new baseline dataset to match the distribution of the original paper
+            baseline_black = 175968
+            baseline_white = 111826
+            UtilsDataset.X6_BASELINE = ds_x6_combined.reduce_player_counts(baseline_black, baseline_white)
+            UtilsDataset.X6_BASELINE.name = '6x6-baseline'
 
-        # Define a new equal dataset to make the win:lose ratio 1:1 for black:white
-        UtilsDataset.X6_EQUAL_UNDER = ds_x6_combined.undersample()
-        UtilsDataset.X6_EQUAL_OVER = ds_x6_combined.oversample()
-        UtilsDataset.X6_EQUAL_UNDER.name = "6x6-equal_under"
-        UtilsDataset.X6_EQUAL_OVER.name = "6x6-equal_over"
+            # Define a new equal dataset to make the win:lose ratio 1:1 for black:white
+            UtilsDataset.X6_EQUAL_UNDER = ds_x6_combined.undersample()
+            UtilsDataset.X6_EQUAL_OVER = ds_x6_combined.oversample()
+            UtilsDataset.X6_EQUAL_UNDER.name = "6x6-equal_under"
+            UtilsDataset.X6_EQUAL_OVER.name = "6x6-equal_over"
 
 
     @staticmethod
