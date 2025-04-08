@@ -1860,28 +1860,28 @@ class UtilsDataset:
             print('Boardsize: 6')
             if blunder == 0:
                 print('Blunder: 0')
-                X6_PLY_1 = UtilsDataset._load_winner_pred_dataset("6/6x6-1ply-blunder0", augmentation, history, history_size)
-                X6_PLY_2 = UtilsDataset._load_winner_pred_dataset("6/6x6-2ply-blunder0", augmentation, history, history_size)
-                X6_PLY_3 = UtilsDataset._load_winner_pred_dataset("6/6x6-3ply-blunder0", augmentation, history, history_size)
-                X6_PLY_4 = UtilsDataset._load_winner_pred_dataset("6/6x6-4ply-blunder0", augmentation, history, history_size)
+                X6_PLY_1 = UtilsDataset._load_winner_pred_dataset(6, 1, "0", augmentation, history, history_size)
+                X6_PLY_2 = UtilsDataset._load_winner_pred_dataset(6, 2, "0", augmentation, history, history_size)
+                X6_PLY_3 = UtilsDataset._load_winner_pred_dataset(6, 3, "0", augmentation, history, history_size)
+                X6_PLY_4 = UtilsDataset._load_winner_pred_dataset(6, 4, "0", augmentation, history, history_size)
             if blunder == 0.1:
                 print('Blunder: 0.1')
-                X6_PLY_1 = UtilsDataset._load_winner_pred_dataset("6/6x6-1ply-blunder01", augmentation, history, history_size)
-                X6_PLY_2 = UtilsDataset._load_winner_pred_dataset("6/6x6-2ply-blunder01", augmentation, history, history_size)
-                X6_PLY_3 = UtilsDataset._load_winner_pred_dataset("6/6x6-3ply-blunder01", augmentation, history, history_size)
-                X6_PLY_4 = UtilsDataset._load_winner_pred_dataset("6/6x6-4ply-blunder01", augmentation, history, history_size)
+                X6_PLY_1 = UtilsDataset._load_winner_pred_dataset(6, 1, "01", augmentation, history, history_size)
+                X6_PLY_2 = UtilsDataset._load_winner_pred_dataset(6, 2, "01", augmentation, history, history_size)
+                X6_PLY_3 = UtilsDataset._load_winner_pred_dataset(6, 3, "01", augmentation, history, history_size)
+                X6_PLY_4 = UtilsDataset._load_winner_pred_dataset(6, 4, "01", augmentation, history, history_size)
             if blunder == 0.25:
                 print('Blunder: 0.25')
-                X6_PLY_1 = UtilsDataset._load_winner_pred_dataset("6/6x6-1ply-blunder025", augmentation, history, history_size)
-                X6_PLY_2 = UtilsDataset._load_winner_pred_dataset("6/6x6-2ply-blunder025", augmentation, history, history_size)
-                X6_PLY_3 = UtilsDataset._load_winner_pred_dataset("6/6x6-3ply-blunder025", augmentation, history, history_size)
-                X6_PLY_4 = UtilsDataset._load_winner_pred_dataset("6/6x6-4ply-blunder025", augmentation, history, history_size)
+                X6_PLY_1 = UtilsDataset._load_winner_pred_dataset(6, 1, "025", augmentation, history, history_size)
+                X6_PLY_2 = UtilsDataset._load_winner_pred_dataset(6, 2, "025", augmentation, history, history_size)
+                X6_PLY_3 = UtilsDataset._load_winner_pred_dataset(6, 3, "025", augmentation, history, history_size)
+                X6_PLY_4 = UtilsDataset._load_winner_pred_dataset(6, 4, "025", augmentation, history, history_size)
             if blunder == 0.5:
                 print('Blunder: 0.5')
-                X6_PLY_1 = UtilsDataset._load_winner_pred_dataset("6/6x6-1ply-blunder05", augmentation, history, history_size)
-                X6_PLY_2 = UtilsDataset._load_winner_pred_dataset("6/6x6-2ply-blunder05", augmentation, history, history_size)
-                X6_PLY_3 = UtilsDataset._load_winner_pred_dataset("6/6x6-3ply-blunder05", augmentation, history, history_size)
-                X6_PLY_4 = UtilsDataset._load_winner_pred_dataset("6/6x6-4ply-blunder05", augmentation, history, history_size)
+                X6_PLY_1 = UtilsDataset._load_winner_pred_dataset(6, 1, "05", augmentation, history, history_size)
+                X6_PLY_2 = UtilsDataset._load_winner_pred_dataset(6, 2, "05", augmentation, history, history_size)
+                X6_PLY_3 = UtilsDataset._load_winner_pred_dataset(6, 3, "05", augmentation, history, history_size)
+                X6_PLY_4 = UtilsDataset._load_winner_pred_dataset(6, 4, "05", augmentation, history, history_size)
 
             # Combine all of these datasets
             ds_x6_combined = X6_PLY_1 + X6_PLY_2 + X6_PLY_3 + X6_PLY_4
@@ -1900,16 +1900,18 @@ class UtilsDataset:
 
 
     @staticmethod
-    def _load_winner_pred_dataset(tournament_name: str,
-                                 augmentation: UtilsTM.Literals.Augmentation,
-                                 history_type: UtilsTM.Literals.History,
-                                 history_size: int) -> Dataset:
+    def _load_winner_pred_dataset(boardsize: int,
+                                  ply: int,
+                                  blunder: str,
+                                  augmentation: UtilsTM.Literals.Augmentation,
+                                  history_type: UtilsTM.Literals.History,
+                                  history_size: int) -> Dataset:
         try:
 
             datasetX = []
             datasetY = []
 
-            dataset_path: Path = UtilsDataset.TOURNAMENTS_DIR / tournament_name / "dataset.csv"
+            dataset_path: Path = UtilsDataset.TOURNAMENTS_DIR / str(boardsize) / f"{boardsize}x{boardsize}-{ply}ply-blunder{blunder}" / "dataset.csv"
             with open(dataset_path, mode='r', newline='') as dataset_file:
                 reader = csv.reader(dataset_file)
 
@@ -1951,7 +1953,7 @@ class UtilsDataset:
                     datasetY.append(winner)
 
             assert (len(datasetX) == len(datasetY))
-            return UtilsDataset.Dataset(np.array(datasetX), np.array(datasetY), boardsize, tournament_name)
+            return UtilsDataset.Dataset(np.array(datasetX), np.array(datasetY), boardsize, dataset_path.parent.stem)
 
         except (FileNotFoundError, NotADirectoryError) as e:
             print(e, file=sys.stderr)
@@ -2326,7 +2328,9 @@ class UtilsPlot:
 
 
 if __name__ == '__main__':
-    # UtilsDataset.load_raw_datasets()
+    UtilsDataset.load_raw_datasets(boardsize=6, blunder=0)
     # UtilsHex.SearchPattern.initialise()
+
+    print(UtilsDataset.X6_BASELINE)
     pass
 
