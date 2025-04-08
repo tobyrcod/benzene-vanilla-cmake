@@ -1884,17 +1884,18 @@ class UtilsDataset:
                 X6_PLY_4 = UtilsDataset._load_winner_pred_dataset(6, 4, "05", augmentation, history, history_size)
 
             # Combine all of these datasets
-            ds_x6_combined = X6_PLY_1 + X6_PLY_2 + X6_PLY_3 + X6_PLY_4
+            UtilsDataset.X6_COMBINED = X6_PLY_1 + X6_PLY_2 + X6_PLY_3 + X6_PLY_4
 
             # Define a new baseline dataset to match the distribution of the original paper
-            baseline_black = 175968
-            baseline_white = 111826
-            UtilsDataset.X6_BASELINE = ds_x6_combined.reduce_player_counts(baseline_black, baseline_white)
-            UtilsDataset.X6_BASELINE.name = '6x6-baseline'
+            if blunder == 0:
+                baseline_black = 175968
+                baseline_white = 111826
+                UtilsDataset.X6_BASELINE = UtilsDataset.X6_COMBINED.reduce_player_counts(baseline_black, baseline_white)
+                UtilsDataset.X6_BASELINE.name = '6x6-baseline'
 
             # Define a new equal dataset to make the win:lose ratio 1:1 for black:white
-            UtilsDataset.X6_EQUAL_UNDER = ds_x6_combined.undersample()
-            UtilsDataset.X6_EQUAL_OVER = ds_x6_combined.oversample()
+            UtilsDataset.X6_EQUAL_UNDER = UtilsDataset.X6_COMBINED.undersample()
+            UtilsDataset.X6_EQUAL_OVER = UtilsDataset.X6_COMBINED.oversample()
             UtilsDataset.X6_EQUAL_UNDER.name = "6x6-equal_under"
             UtilsDataset.X6_EQUAL_OVER.name = "6x6-equal_over"
 
