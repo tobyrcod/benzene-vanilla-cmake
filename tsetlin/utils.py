@@ -1845,10 +1845,9 @@ class UtilsDataset:
     X6_EQUAL_OVER: "UtilsDataset.Dataset" = None
 
     @staticmethod
-    def load_raw_datasets():
+    def load_raw_datasets(boardsize: int, blunder: float):
         """
         Load some hardcoded datasets
-        :return:
         """
 
         print("Loading Datasets from file...")
@@ -1857,10 +1856,12 @@ class UtilsDataset:
         history = UtilsTM.Literals.History.HISTORY_NONE
         history_size = 0
 
-        UtilsDataset.X6_PLY_1 = UtilsDataset._load_winner_pred_dataset("6x6-1ply-simple", augmentation, history, history_size)
-        UtilsDataset.X6_PLY_2 = UtilsDataset._load_winner_pred_dataset("6x6-2ply-simple", augmentation, history, history_size)
-        UtilsDataset.X6_PLY_3 = UtilsDataset._load_winner_pred_dataset("6x6-3ply-simple", augmentation, history, history_size)
-        UtilsDataset.X6_PLY_4 = UtilsDataset._load_winner_pred_dataset("6x6-4ply-simple-incomplete", augmentation, history, history_size)
+        if boardsize == 6:
+            if blunder == 0:
+                UtilsDataset.X6_PLY_1 = UtilsDataset._load_winner_pred_dataset("6/6x6-1ply-blunder0", augmentation, history, history_size)
+                UtilsDataset.X6_PLY_2 = UtilsDataset._load_winner_pred_dataset("6/6x6-2ply-blunder0", augmentation, history, history_size)
+                UtilsDataset.X6_PLY_3 = UtilsDataset._load_winner_pred_dataset("6/6x6-3ply-blunder0", augmentation, history, history_size)
+                UtilsDataset.X6_PLY_4 = UtilsDataset._load_winner_pred_dataset("6/6x6-4ply-blunder0", augmentation, history, history_size)
 
         # Combine all of these datasets
         ds_x6_combined = UtilsDataset.X6_PLY_1 + UtilsDataset.X6_PLY_2 + UtilsDataset.X6_PLY_3 + UtilsDataset.X6_PLY_4
