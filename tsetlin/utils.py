@@ -1845,16 +1845,16 @@ class UtilsDataset:
     X6_EQUAL_OVER: "UtilsDataset.Dataset" = None
 
     @staticmethod
-    def load_raw_datasets(boardsize: int, blunder: float):
+    def load_raw_datasets(boardsize: int,
+                          blunder: float = 0,
+                          augmentation: UtilsTM.Literals.Augmentation = UtilsTM.Literals.Augmentation.AUG_NONE,
+                          history: UtilsTM.Literals.History = UtilsTM.Literals.History.HISTORY_NONE,
+                          history_size: int = 0):
         """
         Load some hardcoded datasets
         """
 
         print("Loading Datasets from file...")
-
-        augmentation = UtilsTM.Literals.Augmentation.AUG_NONE
-        history = UtilsTM.Literals.History.HISTORY_NONE
-        history_size = 0
 
         if boardsize == 6:
             print('Boardsize: 6')
