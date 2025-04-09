@@ -1913,6 +1913,7 @@ class UtilsDataset:
             datasetY = []
 
             dataset_path: Path = UtilsDataset.TOURNAMENTS_DIR / str(boardsize) / f"{boardsize}x{boardsize}-{ply}ply-blunder{blunder}" / "dataset.csv"
+            print(dataset_path)
             with open(dataset_path, mode='r', newline='') as dataset_file:
                 reader = csv.reader(dataset_file)
 

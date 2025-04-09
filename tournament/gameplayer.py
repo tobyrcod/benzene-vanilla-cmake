@@ -88,6 +88,8 @@ class GamePlayer:
             # Make the move with the active players program
 
             if self._blackToMove:
+                # BLACK MOVE
+
                 # Are we making a blunder this move?
                 if random.random() < self._blunder_rate:
                     # Yes? Pick a random legal move
@@ -101,7 +103,19 @@ class GamePlayer:
                     move = self._sendCommand(self._black, "genmove b")
                 elapsedBlack += (time.time() - start)
             else:
-                move = self._sendCommand(self._white, "genmove w")
+                # WHITE MOVE
+
+                # Are we making a blunder this move?
+                if random.random() < self._blunder_rate:
+                    # Yes? Pick a random legal move
+                    legal_moves = self._sendCommand(self._white, "all_legal_moves")
+                    legal_moves = legal_moves.strip().split(" ")[1:]  # Remove resigning as a possible blunder
+                    move = random.choice(legal_moves)
+                    # And make white play it
+                    self._sendCommand(self._white, f"play w {move}")
+                else:
+                    # No? Generate and play a move for white
+                    move = self._sendCommand(self._white, "genmove w")
                 elapsedWhite += (time.time() - start)
 
             move = move.strip().lower()
