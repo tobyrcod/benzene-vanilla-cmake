@@ -93,9 +93,14 @@ class GamePlayer:
                 # Are we making a blunder this move?
                 if random.random() < self._blunder_rate:
                     # Yes? Pick a random legal move
-                    legal_moves = self._sendCommand(self._black, "all_legal_moves")
-                    legal_moves = legal_moves.strip().split(" ")[1:]  # Remove resigning as a possible blunder
-                    move = random.choice(legal_moves)
+                    legal_moves = self._sendCommand(self._black, "all_legal_moves").strip().split(" ")
+                    if len(legal_moves) == 1:
+                        # Our only move is to resign
+                        move = legal_moves[0]
+                    else:
+                        # Remove resigning as a possible blunder
+                        legal_moves = legal_moves[1:]
+                        move = random.choice(legal_moves)
                     # And make black play it
                     self._sendCommand(self._black, f"play b {move}")
                 else:
@@ -108,9 +113,14 @@ class GamePlayer:
                 # Are we making a blunder this move?
                 if random.random() < self._blunder_rate:
                     # Yes? Pick a random legal move
-                    legal_moves = self._sendCommand(self._white, "all_legal_moves")
-                    legal_moves = legal_moves.strip().split(" ")[1:]  # Remove resigning as a possible blunder
-                    move = random.choice(legal_moves)
+                    legal_moves = self._sendCommand(self._white, "all_legal_moves").strip().split(" ")
+                    if len(legal_moves) == 1:
+                        # Our only move is to resign
+                        move = legal_moves[0]
+                    else:
+                        # Remove resigning as a possible blunder
+                        legal_moves = legal_moves[1:]
+                        move = random.choice(legal_moves)
                     # And make white play it
                     self._sendCommand(self._white, f"play w {move}")
                 else:
