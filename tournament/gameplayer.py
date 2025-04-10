@@ -94,6 +94,8 @@ class GamePlayer:
                 if random.random() < self._blunder_rate:
                     # Yes? Pick a random legal move
                     legal_moves = self._sendCommand(self._black, "all_legal_moves").strip().split(" ")
+                    if 'swap-pieces' in legal_moves:
+                        legal_moves.remove('swap-pieces')
                     if len(legal_moves) == 1:
                         # Our only move is to resign
                         move = legal_moves[0]
@@ -114,6 +116,8 @@ class GamePlayer:
                 if random.random() < self._blunder_rate:
                     # Yes? Pick a random legal move
                     legal_moves = self._sendCommand(self._white, "all_legal_moves").strip().split(" ")
+                    if 'swap-pieces' in legal_moves:
+                        legal_moves.remove('swap-pieces')
                     if len(legal_moves) == 1:
                         # Our only move is to resign
                         move = legal_moves[0]
