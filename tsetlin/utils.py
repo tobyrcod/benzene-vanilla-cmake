@@ -1699,17 +1699,18 @@ class UtilsDataset:
 
             self.boardsize = boardsize
             self.name = name
-            self.complete = complete    # Are full games used in this dataset, or are we pulling states randomly?
             self.augmentation = augmentation
             self.history = history
             self.history_size = history_size
+            # Are full games used in this dataset, or are we pulling states randomly / modifying them?
+            if augmentation != UtilsTM.Literals.Augmentation.AUG_NONE or history != UtilsTM.Literals.History.HISTORY_NONE:
+                complete = False
+            self.complete = complete
 
             self.state_win_counts = Counter(self.Y)
             self.state_num_pieces_counts = Counter([sum(state) for state in self.X])
 
-            if complete and \
-                    augmentation == UtilsTM.Literals.Augmentation.AUG_NONE and \
-                    history == UtilsTM.Literals.History.HISTORY_NONE:
+            if self.complete:
                 # TODO: remove and impute from states instead (what we need only as technically not games)
                 #  when complete we can claim its valid even if we still use state method
                 X_game, Y_game = self._group_by_game()
@@ -1943,7 +1944,16 @@ class UtilsDataset:
                     datasetY.append(winner)
 
             assert (len(datasetX) == len(datasetY))
-            return UtilsDataset.Dataset(np.array(datasetX), np.array(datasetY), boardsize, dataset_path.parent.stem)
+            return UtilsDataset.Dataset(
+                X=np.array(datasetX),
+                Y=np.array(datasetY),
+                boardsize=boardsize,
+                name=dataset_path.parent.stem,
+                complete=True,
+                augmentation=augmentation,
+                history=history_type,
+                history_size=history_size
+            )
 
         except (FileNotFoundError, NotADirectoryError) as e:
             print(e, file=sys.stderr)
