@@ -1752,12 +1752,6 @@ class UtilsDataset:
             return self._undersample_random(sampling_strategy)
 
         def reduce_majority_frac(self, frac: float) -> "UtilsDataset.Dataset":
-            """
-            Undersample the dataset by reducing the majority class until we have N total rows
-            :param N: The number of total rows after under sampling
-            :return: A Dataset object with the resulting under sampled distribution
-            """
-
             majority_winner, majority_count = map(int, max(self.state_win_counts.items(), key=lambda x: x[1]))
             minority_winner, minority_count = map(int, min(self.state_win_counts.items(), key=lambda x: x[1]))
             total_count = minority_count + majority_count
@@ -1846,7 +1840,7 @@ class UtilsDataset:
 
     @staticmethod
     def load_raw_datasets(boardsize: int,
-                          blunder: float = 0,
+                          blunder: int = 0,  # 0 to 5, 10
                           augmentation: UtilsTM.Literals.Augmentation = UtilsTM.Literals.Augmentation.AUG_NONE,
                           history: UtilsTM.Literals.History = UtilsTM.Literals.History.HISTORY_NONE,
                           history_size: int = 0):
@@ -1857,32 +1851,39 @@ class UtilsDataset:
         print("Loading Datasets from file...")
 
         if boardsize == 6:
-            X6_PLY_1 = UtilsDataset._load_winner_pred_dataset(6, 1, blunder, augmentation, history, history_size)
-            X6_PLY_2 = UtilsDataset._load_winner_pred_dataset(6, 2, blunder, augmentation, history, history_size)
-            X6_PLY_3 = UtilsDataset._load_winner_pred_dataset(6, 3, blunder, augmentation, history, history_size)
-            X6_PLY_4 = UtilsDataset._load_winner_pred_dataset(6, 4, blunder, augmentation, history, history_size)
+            if blunder == 10:
+                # Very large so we don't want to load all the time
+                # Fully random is 6-1-10
+                X6_RANDOM = UtilsDataset._load_winner_pred_dataset(6, 1, blunder, augmentation, history, history_size)
+                UtilsDataset.X6_RANDOM_EQUAL_UNDER = X6_RANDOM.reduce_player_counts(250_000, 250_000)
+                UtilsDataset.X6_RANDOM_EQUAL_UNDER.name = "6x6_random"
+            else:
+                X6_PLY_1 = UtilsDataset._load_winner_pred_dataset(6, 1, blunder, augmentation, history, history_size)
+                X6_PLY_2 = UtilsDataset._load_winner_pred_dataset(6, 2, blunder, augmentation, history, history_size)
+                X6_PLY_3 = UtilsDataset._load_winner_pred_dataset(6, 3, blunder, augmentation, history, history_size)
+                X6_PLY_4 = UtilsDataset._load_winner_pred_dataset(6, 4, blunder, augmentation, history, history_size)
 
-            # Combine all of these datasets
-            UtilsDataset.X6_COMBINED = X6_PLY_1 + X6_PLY_2 + X6_PLY_3 + X6_PLY_4
+                # Combine all of these datasets
+                UtilsDataset.X6_COMBINED = X6_PLY_1 + X6_PLY_2 + X6_PLY_3 + X6_PLY_4
 
-            # Define a new baseline dataset to match the distribution of the original paper
-            if blunder == 0:
-                baseline_black = 175968
-                baseline_white = 111826
-                UtilsDataset.X6_BASELINE = UtilsDataset.X6_COMBINED.reduce_player_counts(baseline_black, baseline_white)
-                UtilsDataset.X6_BASELINE.name = '6x6-baseline'
+                # Define a new baseline dataset to match the distribution of the original paper
+                if blunder == 0:
+                    baseline_black = 175968
+                    baseline_white = 111826
+                    UtilsDataset.X6_BASELINE = UtilsDataset.X6_COMBINED.reduce_player_counts(baseline_black, baseline_white)
+                    UtilsDataset.X6_BASELINE.name = '6x6-baseline'
 
-            # Define a new equal dataset to make the win:lose ratio 1:1 for black:white
-            UtilsDataset.X6_EQUAL_UNDER = UtilsDataset.X6_COMBINED.undersample()
-            UtilsDataset.X6_EQUAL_OVER = UtilsDataset.X6_COMBINED.oversample()
-            UtilsDataset.X6_EQUAL_UNDER.name = "6x6-equal_under"
-            UtilsDataset.X6_EQUAL_OVER.name = "6x6-equal_over"
+                # Define a new equal dataset to make the win:lose ratio 1:1 for black:white
+                UtilsDataset.X6_EQUAL_UNDER = UtilsDataset.X6_COMBINED.undersample()
+                UtilsDataset.X6_EQUAL_OVER = UtilsDataset.X6_COMBINED.oversample()
+                UtilsDataset.X6_EQUAL_UNDER.name = "6x6-equal_under"
+                UtilsDataset.X6_EQUAL_OVER.name = "6x6-equal_over"
 
 
     @staticmethod
     def _load_winner_pred_dataset(boardsize: int,
                                   ply: int,
-                                  blunder: float,
+                                  blunder: int,
                                   augmentation: UtilsTM.Literals.Augmentation,
                                   history_type: UtilsTM.Literals.History,
                                   history_size: int) -> Dataset:
