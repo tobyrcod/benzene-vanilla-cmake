@@ -1921,18 +1921,21 @@ class UtilsDataset:
                     game_number = int(row[headers.index('Game#')])
                     if game_number not in game_history:
                         # If we are early in the game, pad the history with empty boards
-                        game_history = {game_number: [UtilsTM.Literals.make_empty_board(boardsize) for _ in range(history_size)]}
+                        game_history = {
+                            game_number: [augmentation.apply(UtilsTM.Literals.make_empty_board(boardsize), boardsize)[0]
+                                          for _ in range(history_size)]
+                        }
 
                     winner = int(row[headers.index('Winner')])
                     literals = [int(l) for l in row[headers.index('x0'):]]
                     assert len(literals) == num_literals
 
                     # We may want to modify the board representation to see if it helps/hinders training
-                    aug_literals, boardsize = augmentation.apply(literals, boardsize)
+                    aug_literals, new_boardsize = augmentation.apply(literals, boardsize)
 
                     # We may also want to modify the board representation by adding the game history
                     history = game_history[game_number]
-                    final_literals = history_type.apply(aug_literals, history, boardsize)
+                    final_literals = history_type.apply(aug_literals, history, new_boardsize)
 
                     # Add this games literals to the game history
                     history.insert(0, aug_literals)
@@ -1947,7 +1950,7 @@ class UtilsDataset:
             return UtilsDataset.Dataset(
                 X=np.array(datasetX),
                 Y=np.array(datasetY),
-                boardsize=boardsize,
+                boardsize=new_boardsize,
                 name=dataset_path.parent.stem,
                 complete=True,
                 augmentation=augmentation,
