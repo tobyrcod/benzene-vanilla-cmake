@@ -176,7 +176,7 @@ class Tests:
                             literals = UtilsTM.Literals.make_empty_board(boardsize)
                             for turn in range(1, boardsize**2):
 
-                                aug_literals = augmentation.apply(literals, boardsize)
+                                aug_literals, _ = augmentation.apply(literals, boardsize)
 
                                 #
                                 # BEGIN TESTS
@@ -218,7 +218,7 @@ class Tests:
 
                             literals = UtilsTM.Literals.make_empty_board(boardsize)
                             for turn in range(1, boardsize ** 2):
-                                aug_literals = augmentation.apply(literals, boardsize)
+                                aug_literals, _ = augmentation.apply(literals, boardsize)
 
                                 #
                                 # BEGIN TESTS
@@ -318,7 +318,7 @@ class Tests:
 
                             literals = before
                             assert literals == before
-                            literals = UtilsTM.Literals.Augmentation.AUG_PADDING.apply(literals, boardsize)
+                            literals, boardsize = UtilsTM.Literals.Augmentation.AUG_PADDING.apply(literals, boardsize)
                             assert literals == after
 
                     def test_pair_position():
@@ -332,7 +332,7 @@ class Tests:
 
                             literals = before
                             assert literals == before
-                            literals = UtilsTM.Literals.Augmentation.AUG_PAIR_POSITIONS.apply(literals, boardsize)
+                            literals, boardsize = UtilsTM.Literals.Augmentation.AUG_PAIR_POSITIONS.apply(literals, boardsize)
                             assert literals == after
 
                     def test_move_counter():
@@ -349,7 +349,7 @@ class Tests:
 
                                 literals = before
                                 assert literals == before
-                                literals = UtilsTM.Literals.Augmentation.AUG_MOVE_COUNTER.apply(literals, boardsize)
+                                literals, boardsize = UtilsTM.Literals.Augmentation.AUG_MOVE_COUNTER.apply(literals, boardsize)
                                 assert literals == after
 
                     def test_turn_indicator():
@@ -363,7 +363,7 @@ class Tests:
 
                                 literals = before
                                 assert literals == before
-                                literals = UtilsTM.Literals.Augmentation.AUG_TURN_INDICATOR.apply(literals, boardsize)
+                                literals, boardsize = UtilsTM.Literals.Augmentation.AUG_TURN_INDICATOR.apply(literals, boardsize)
                                 assert literals == after
 
                     def test_padding_position_pair():
@@ -374,11 +374,11 @@ class Tests:
 
                                 before = UtilsTM.Literals.make_random_board(boardsize, piece_count)
 
-                                mid_step_1 = UtilsTM.Literals.Augmentation.AUG_PADDING.apply(before, boardsize)
-                                final_step = UtilsTM.Literals.Augmentation.AUG_PAIR_POSITIONS.apply(mid_step_1, boardsize+2)
+                                mid_step_1, boardsize = UtilsTM.Literals.Augmentation.AUG_PADDING.apply(before, boardsize)
+                                final_step, boardsize = UtilsTM.Literals.Augmentation.AUG_PAIR_POSITIONS.apply(mid_step_1, boardsize+2)
 
                                 aug = UtilsTM.Literals.Augmentation.AUG_PADDING | UtilsTM.Literals.Augmentation.AUG_PAIR_POSITIONS
-                                all_in_one = aug.apply(before, boardsize)
+                                all_in_one, boardsize = aug.apply(before, boardsize)
 
                                 assert final_step == all_in_one
 

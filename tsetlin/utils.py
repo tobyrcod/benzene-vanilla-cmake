@@ -1280,13 +1280,13 @@ class UtilsTM:
                 # Add any explicit cases that aren't allowed here
                 return True
 
-            def apply(self, literals: List[int], boardsize: int) -> List[int]:
+            def apply(self, literals: List[int], boardsize: int) -> Tuple[List[int], int]:
                 new_boardsize = boardsize
                 new_literals = literals.copy()
 
                 # Check to see this augmentation makes sense
                 if not self._is_valid():
-                    return new_literals
+                    return new_literals, new_boardsize
 
                 if self & UtilsTM.Literals.Augmentation.AUG_PADDING:
                     # Add a border of filled in tiles around the outside of the board,
@@ -1360,7 +1360,7 @@ class UtilsTM:
                     is_blacks_turn = move_count % 2 != 0
                     new_literals.append(int(is_blacks_turn))
 
-                return new_literals
+                return new_literals, new_boardsize
 
 
         @staticmethod
@@ -1928,7 +1928,7 @@ class UtilsDataset:
                     assert len(literals) == num_literals
 
                     # We may want to modify the board representation to see if it helps/hinders training
-                    aug_literals = augmentation.apply(literals, boardsize)
+                    aug_literals, boardsize = augmentation.apply(literals, boardsize)
 
                     # We may also want to modify the board representation by adding the game history
                     history = game_history[game_number]
