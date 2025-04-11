@@ -1690,18 +1690,26 @@ class UtilsDataset:
 
         # TODO: are the literals augmented / only apply all the searches and everything else when unaugmented (assumption right now)
 
-        def __init__(self, X, Y, boardsize: int, name: str, complete: bool = True):
+        def __init__(self, X, Y, boardsize: int, name: str, complete: bool = True,
+                     augmentation: UtilsTM.Literals.Augmentation = UtilsTM.Literals.Augmentation.AUG_NONE,
+                     history: UtilsTM.Literals.History = UtilsTM.Literals.History.HISTORY_NONE,
+                     history_size: int = 0):
             self.X = X
             self.Y = Y
 
             self.boardsize = boardsize
             self.name = name
             self.complete = complete    # Are full games used in this dataset, or are we pulling states randomly?
+            self.augmentation = augmentation
+            self.history = history
+            self.history_size = history_size
 
             self.state_win_counts = Counter(self.Y)
             self.state_num_pieces_counts = Counter([sum(state) for state in self.X])
 
-            if complete:
+            if complete and \
+                    augmentation == UtilsTM.Literals.Augmentation.AUG_NONE and \
+                    history == UtilsTM.Literals.History.HISTORY_NONE:
                 # TODO: remove and impute from states instead (what we need only as technically not games)
                 #  when complete we can claim its valid even if we still use state method
                 X_game, Y_game = self._group_by_game()
