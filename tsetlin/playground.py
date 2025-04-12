@@ -75,7 +75,7 @@ def analyse_matches_in_tm(dir_tm: Path):
                 # print(match_type_score)                             # Total clause weight for each player
                 print(match_type_score / sum(match_type_score))     # Player percentage of clause weight
 
-            analyse_matrix(discrete_clause_discrete_match_matrix)
+            analyse_matrix(weighted_clause_discrete_match_matrix)
 
 
 def analyse_matches_in_dataset(dataset: UtilsDataset.Dataset):
@@ -133,8 +133,19 @@ def analyse_matches_in_dataset(dataset: UtilsDataset.Dataset):
 
 
 if __name__ == '__main__':
-    UtilsDataset.load_raw_datasets()
-    UtilsHex.SearchPattern.initialise()
 
-    analyse_matches_in_tm(Path("models/tmu/standard/6x6-baseline_s300_8limit"))
-    analyse_matches_in_dataset(UtilsDataset.X6_BASELINE)
+    #
+    # Calculate templates in blunder models:
+    UtilsHex.SearchPattern.initialise()
+    analyse_matches_in_tm(Path("models/tmu/standard/blunder/6x6-blunder0"))
+    # analyse_matches_in_tm(Path("models/tmu/standard/blunder/6x6-blunder1"))
+    # analyse_matches_in_tm(Path("models/tmu/standard/blunder/6x6-blunder2"))
+    # analyse_matches_in_tm(Path("models/tmu/standard/blunder/6x6-blunder3"))
+    # analyse_matches_in_tm(Path("models/tmu/standard/blunder/6x6-blunder4"))
+    # analyse_matches_in_tm(Path("models/tmu/standard/blunder/6x6-blunder5"))
+    # analyse_matches_in_tm(Path("models/tmu/standard/blunder/6x6-blunder10"))
+
+    #
+    # Calculate templates in a blunder dataset:
+    # UtilsDataset.load_raw_datasets(boardsize=6, blunder=0)
+    # analyse_matches_in_dataset(UtilsDataset.X6_EQUAL_UNDER)
