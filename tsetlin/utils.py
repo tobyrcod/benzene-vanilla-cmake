@@ -21,13 +21,6 @@ from deprecated import deprecated
 from tqdm import tqdm
 
 
-# TODO: document every method with """ """
-# TODO: actually instantiate & use the types
-# TODO: make literals a type to carry around their augmentation for easy undo
-# TODO: use numpy for hex_grid (current indexing in '_search_hex_grid' is... great)
-# TODO: FIX AWFUL PATHING STUFF GOING ON...
-# TODO: make all the classes going around frozen?
-
 class Helpers:
 
     @staticmethod
@@ -174,12 +167,7 @@ class UtilsHex:
     # Search Patterns           coordinate offsets to have or not have a piece                      Searching for
 
     class HexGrid:
-
-        # TODO: make its own class? (not List[List[int]])
-
         # All under assumption of NO AUGMENTATIONS when plotting!
-        # TODO: see what happens when you try to plot augmented literals
-
         # Grid Value Meanings:
         # 0 for black, 2 for NOT black
         # 1 for white, 3 for NOT white
@@ -780,7 +768,8 @@ class UtilsHex:
         @staticmethod
         def calculate_matches_in_dataset(ds_states: "UtilsDataset.Dataset", filepath: Path=None):
             if not filepath:
-                file_dir: Path = Path("dataset matches")
+                file_dir: Path = Path(f"tournaments/{ds_states.boardsize}/matches")
+                file_dir.mkdir(exist_ok=True, parents=True)
                 filepath: Path = file_dir / f"{ds_states.name}_template_matches.csv"
 
             boardsize = ds_states.boardsize
@@ -828,6 +817,9 @@ class UtilsHex:
                 for board in tqdm(range(start_board, num_boards)):
                     # print(f"Board: {board}, Progress: {100 * board / num_boards:.3f}%")
 
+                    # TODO: PLEASE REMEMBER TO REMOVE '[:2*boardsize**2]' LATER,
+                    #  ITS ONLY FOR MY JANK HISTORY SOLUTION
+                    # literals = ds_states.X[board][:2*boardsize**2]
                     literals = ds_states.X[board]
                     num_pieces = sum(literals)
                     for template_name in UtilsHex.SearchPattern.get_pattern_names():
@@ -845,7 +837,8 @@ class UtilsHex:
         @staticmethod
         def load_matches_in_dataset(ds_states: "UtilsDataset.Dataset", filepath: Path=None):
             if not filepath:
-                file_dir: Path = Path("dataset matches")
+                file_dir: Path = Path(f"tournaments/{ds_states.boardsize}/matches")
+                file_dir.mkdir(exist_ok=True, parents=True)
                 filepath: Path = file_dir / f"{ds_states.name}_template_matches.csv"
 
             return UtilsHex.SearchPattern._load_template_matches(filepath)
@@ -1448,7 +1441,7 @@ class UtilsTM:
             path_tm_data: Path = dir_tm / "tm_data.json"
             with open(path_tm_data, 'r') as file:
                 tm_data = json.load(file)
-            print(tm_data.keys())  # ['tm_args', 'tm_reports', 'tm_best_f1', 'tm_insides']
+            # print(tm_data.keys())  # ['tm_args', 'tm_reports', 'tm_best_f1', 'tm_insides']
 
             # Create datasets from the clauses for each player and polarity
             datasets = {
@@ -1464,30 +1457,39 @@ class UtilsTM:
             }
             for player, player_name in enumerate(['Black', 'White']):
                 for polarity, polarity_name in enumerate(['Negative', 'Positive']):
-                    print(player, player_name, polarity, polarity_name)
+                    # print(player, player_name, polarity, polarity_name)
                     tm_clause_data = tm_data['tm_insides'][player_name][polarity_name]
                     # print(tm_clause_data.keys())  # ['clauses', 'weights', 'precisions', 'recalls']
 
                     # We need to convert from raw text representation of clauses to list form
                     raw_clauses = tm_clause_data['clauses']
+                    # print('raw', len(raw_clauses))
                     clean_clauses = [UtilsTM.Model._raw_to_clean_clause(raw_clause, boardsize) for raw_clause in raw_clauses]
+                    # print('clean', len(clean_clauses))
 
                     # These clauses may still have logical contradictions, so we need to fix those
                     weights = tm_clause_data['weights']
+                    # TODO: PLEASE REMEMBER TO TURN THIS BACK ON, ITS ONLY FOR MY JANK HISTORY SOLUTION
+                    #  WORKS FINE AS NON-NEGATIVE CLAUSE ARE ALREADY SATISFIABLE
                     clean_clauses, weights = UtilsTM.Model._make_model_clauses_satisfiable(clean_clauses, weights)
+                    print('satisfiable', len(clean_clauses))
 
                     # Example of clean clause
-                    print(raw_clauses[c:=0])
-                    print(clean_clauses[c])
+                    print('raw clause', raw_clauses[c:=0])
+                    print('clean clause', clean_clauses[c])
                     # UtilsPlot.plot_clause(clean_clauses[c], 6, dir_tm / f"clause_{player_name}_{polarity_name}_{c}.png")
 
                     # Is the branch factor small enough for us to expand all the clauses into literals?
                     bf = sum([UtilsTM.Model.calculate_clause_branch_factor(clause) for clause in clean_clauses])
-                    print(bf)
+                    print('bf', bf)
 
                     # If yes, perform expansion into literals
+                    # TODO: PLEASE REMEMBER TO TURN THIS BACK ON, ITS ONLY FOR MY JANK HISTORY SOLUTION
+                    #  WORKS FINE AS NON-NEGATIVE CLAUSE ARE ALREADY LITERALS
+                    # literals, weights = clean_clauses, weights
                     literals, weights = UtilsTM.Model._convert_clauses_to_literals(clean_clauses, weights)
-                    print(len(literals), len(weights))
+                    print('num literals', len(literals), 'num weights', len(weights))
+                    print('literal example', literals[0], 'weight example', weights[0])
 
                     # Convert from a list of literals to a dataset we can search through
                     X = np.array(literals)
@@ -1601,6 +1603,8 @@ class UtilsTM:
 
             # print(len(raw_clause))
 
+            # TODO: MORE HISTORY JANK PLEASE IGNORE
+            # clause = UtilsTM.Literals.make_empty_board(boardsize) + UtilsTM.Literals.make_empty_board(boardsize)
             clause = UtilsTM.Literals.make_empty_board(boardsize)
 
             # Raw clauses currently look like this:
@@ -1839,13 +1843,14 @@ class UtilsDataset:
             return UtilsDataset.Dataset(self.X.copy(), self.Y.copy(), self.boardsize, self.name, self.complete)
 
     TOURNAMENTS_DIR = Path("tournaments")
-    X6_PLY_1: "UtilsDataset.Dataset" = None
-    X6_PLY_2: "UtilsDataset.Dataset" = None
-    X6_PLY_3: "UtilsDataset.Dataset" = None
-    X6_PLY_4: "UtilsDataset.Dataset" = None
-    X6_BASELINE: "UtilsDataset.Dataset" = None
-    X6_EQUAL_UNDER: "UtilsDataset.Dataset" = None
-    X6_EQUAL_OVER: "UtilsDataset.Dataset" = None
+    PLY_1: "UtilsDataset.Dataset" = None
+    PLY_2: "UtilsDataset.Dataset" = None
+    PLY_3: "UtilsDataset.Dataset" = None
+    PLY_4: "UtilsDataset.Dataset" = None
+    COMBINED: "UtilsDataset.Dataset" = None
+    BASELINE: "UtilsDataset.Dataset" = None
+    EQUAL_UNDER: "UtilsDataset.Dataset" = None
+    EQUAL_OVER: "UtilsDataset.Dataset" = None
 
     @staticmethod
     def load_raw_datasets(boardsize: int,
@@ -1858,35 +1863,54 @@ class UtilsDataset:
         """
 
         print("Loading Datasets from file...")
+        name_suffix = f"_BLUNDER_{blunder}-{augmentation.name}-{history.name}_{history_size}"
 
         if boardsize == 6:
             if blunder == 10:
                 # Very large so we don't want to load all the time
                 # Fully random is 6-1-10
                 X6_RANDOM = UtilsDataset._load_winner_pred_dataset(6, 1, blunder, augmentation, history, history_size)
-                UtilsDataset.X6_RANDOM_EQUAL_UNDER = X6_RANDOM.reduce_player_counts(250_000, 250_000)
-                UtilsDataset.X6_RANDOM_EQUAL_UNDER.name = "6x6_random"
-            else:
-                X6_PLY_1 = UtilsDataset._load_winner_pred_dataset(6, 1, blunder, augmentation, history, history_size)
-                X6_PLY_2 = UtilsDataset._load_winner_pred_dataset(6, 2, blunder, augmentation, history, history_size)
-                X6_PLY_3 = UtilsDataset._load_winner_pred_dataset(6, 3, blunder, augmentation, history, history_size)
-                X6_PLY_4 = UtilsDataset._load_winner_pred_dataset(6, 4, blunder, augmentation, history, history_size)
+                UtilsDataset.EQUAL_UNDER = X6_RANDOM.reduce_player_counts(250_000, 250_000)
+                UtilsDataset.EQUAL_UNDER.name = "6x6_random" + name_suffix
 
-                # Combine all of these datasets
-                UtilsDataset.X6_COMBINED = X6_PLY_1 + X6_PLY_2 + X6_PLY_3 + X6_PLY_4
+        if boardsize == 6:
+            UtilsDataset.PLY_1 = UtilsDataset._load_winner_pred_dataset(boardsize, 1, blunder, augmentation, history, history_size)
+            UtilsDataset.PLY_2 = UtilsDataset._load_winner_pred_dataset(boardsize, 2, blunder, augmentation, history, history_size)
+            UtilsDataset.PLY_3 = UtilsDataset._load_winner_pred_dataset(boardsize, 3, blunder, augmentation, history, history_size)
+            UtilsDataset.PLY_4 = UtilsDataset._load_winner_pred_dataset(boardsize, 4, blunder, augmentation, history, history_size)
 
-                # Define a new baseline dataset to match the distribution of the original paper
-                if blunder == 0:
-                    baseline_black = 175968
-                    baseline_white = 111826
-                    UtilsDataset.X6_BASELINE = UtilsDataset.X6_COMBINED.reduce_player_counts(baseline_black, baseline_white)
-                    UtilsDataset.X6_BASELINE.name = '6x6-baseline'
+            # Combine all of these datasets
+            UtilsDataset.COMBINED = UtilsDataset.PLY_1 + UtilsDataset.PLY_2 + UtilsDataset.PLY_3 + UtilsDataset.PLY_4
+            UtilsDataset.COMBINED.name = "6x6_combined" + name_suffix
 
-                # Define a new equal dataset to make the win:lose ratio 1:1 for black:white
-                UtilsDataset.X6_EQUAL_UNDER = UtilsDataset.X6_COMBINED.undersample()
-                UtilsDataset.X6_EQUAL_OVER = UtilsDataset.X6_COMBINED.oversample()
-                UtilsDataset.X6_EQUAL_UNDER.name = "6x6-equal_under"
-                UtilsDataset.X6_EQUAL_OVER.name = "6x6-equal_over"
+            # Define a new equal dataset to make the win:lose ratio 1:1 for black:white
+            UtilsDataset.EQUAL_UNDER = UtilsDataset.COMBINED.undersample()
+            UtilsDataset.EQUAL_OVER = UtilsDataset.COMBINED.oversample()
+            UtilsDataset.EQUAL_UNDER.name = "6x6-equal_under" + name_suffix
+            UtilsDataset.EQUAL_OVER.name = "6x6-equal_over" + name_suffix
+
+            # Define a new baseline dataset to match the distribution of the original paper
+            if blunder == 0:
+                baseline_black = 175968
+                baseline_white = 111826
+                UtilsDataset.BASELINE = UtilsDataset.COMBINED.reduce_player_counts(baseline_black, baseline_white)
+                UtilsDataset.BASELINE.name = '6x6-baseline' + name_suffix
+
+        elif boardsize == 7:
+            UtilsDataset.PLY_1 = UtilsDataset._load_winner_pred_dataset(boardsize, 1, blunder, augmentation, history, history_size)
+            UtilsDataset.PLY_2 = UtilsDataset._load_winner_pred_dataset(boardsize, 2, blunder, augmentation, history, history_size)
+            UtilsDataset.PLY_3 = UtilsDataset._load_winner_pred_dataset(boardsize, 3, blunder, augmentation, history, history_size)
+            UtilsDataset.PLY_4 = UtilsDataset._load_winner_pred_dataset(boardsize, 4, blunder, augmentation, history, history_size)
+
+            # Combine all of these datasets
+            UtilsDataset.COMBINED = UtilsDataset.PLY_1 + UtilsDataset.PLY_2 + UtilsDataset.PLY_3 + UtilsDataset.PLY_4
+            UtilsDataset.COMBINED.name = "7x7_combined" + name_suffix
+
+            # Define a new equal dataset to make the win:lose ratio 1:1 for black:white
+            UtilsDataset.EQUAL_UNDER = UtilsDataset.COMBINED.undersample()
+            UtilsDataset.EQUAL_OVER = UtilsDataset.COMBINED.oversample()
+            UtilsDataset.EQUAL_UNDER.name = "7x7-equal_under" + name_suffix
+            UtilsDataset.EQUAL_OVER.name = "7x7-equal_over" + name_suffix
 
 
     @staticmethod
@@ -1917,7 +1941,7 @@ class UtilsDataset:
                 if history_type == UtilsTM.Literals.History.HISTORY_MOVE:
                     history_size += 1  # In order to calculate n moves, we need (n+1) games of history
 
-                for row in reader:
+                for row in tqdm(reader):
                     game_number = int(row[headers.index('Game#')])
                     if game_number not in game_history:
                         # If we are early in the game, pad the history with empty boards
@@ -1971,8 +1995,8 @@ class UtilsPlot:
     COLORMAP = LinearSegmentedColormap.from_list(
         'blue_white_red',
         [(0.0, 'blue'),
-                (0.5, 'lightyellow'),
-                (1.0, 'red')],
+         (0.5, 'lightyellow'),
+         (1.0, 'red')],
         N=256
     )
 
@@ -2331,9 +2355,17 @@ class UtilsPlot:
 
 
 if __name__ == '__main__':
-    UtilsDataset.load_raw_datasets(boardsize=6, blunder=1)
+    # UtilsDataset.load_raw_datasets(boardsize=6, blunder=5)
     # UtilsHex.SearchPattern.initialise()
 
-    print(UtilsDataset.X6_BASELINE)
-    pass
+    # UtilsPlot.plot_dataset_win_rates(UtilsDataset.PLY_1, False)
+    # UtilsPlot.plot_dataset_win_rates(UtilsDataset.PLY_2, False)
+    # UtilsPlot.plot_dataset_win_rates(UtilsDataset.PLY_3, False)
+    # UtilsPlot.plot_dataset_win_rates(UtilsDataset.PLY_4, False)
 
+    boardsize = 6
+    literals = UtilsTM.Literals.make_empty_board(boardsize)
+    padding = UtilsTM.Literals.Augmentation.AUG_PADDING
+    after_literals, after_boardsize = padding.apply(literals, boardsize)
+    UtilsPlot.plot_literals(literals, boardsize, Path("plots/padding_before.png"))
+    UtilsPlot.plot_literals(after_literals, after_boardsize, Path("plots/padding_after.png"))

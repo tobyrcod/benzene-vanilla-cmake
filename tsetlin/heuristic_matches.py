@@ -301,7 +301,7 @@ if __name__ == '__main__':
     UtilsDataset.load_raw_datasets()
     UtilsHex.SearchPattern.initialise()
 
-    dataset = UtilsDataset.X6_EQUAL_UNDER
+    dataset = UtilsDataset.EQUAL_UNDER
     # find_best_type_weights_gp(dataset)
     find_best_type_weights_grid(dataset)
     # find_best_type_weights_ga(dataset)

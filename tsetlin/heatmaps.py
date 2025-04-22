@@ -236,7 +236,7 @@ if __name__ == '__main__':
     # example_random()
     # example_short_diagonal()
 
-    dataset_piece_occurrence(UtilsDataset.X6_BASELINE)
-    dataset_matches_occurrence(UtilsDataset.X6_BASELINE)
-    clause_piece_occurrence(UtilsDataset.X6_BASELINE)
-    clause_matches_occurrence(UtilsDataset.X6_BASELINE)
+    dataset_piece_occurrence(UtilsDataset.BASELINE)
+    dataset_matches_occurrence(UtilsDataset.BASELINE)
+    clause_piece_occurrence(UtilsDataset.BASELINE)
+    clause_matches_occurrence(UtilsDataset.BASELINE)
