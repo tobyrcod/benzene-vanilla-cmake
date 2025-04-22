@@ -1924,7 +1924,7 @@ class UtilsDataset:
             UtilsDataset.EQUAL_OVER = UtilsDataset.COMBINED.oversample()
             UtilsDataset.EQUAL_UNDER.name = "8x8-equal_under" + name_suffix
             UtilsDataset.EQUAL_OVER.name = "8x8-equal_over" + name_suffix
-        elif boardsize == 8:
+        elif boardsize == 9:
             UtilsDataset.PLY_1 = UtilsDataset._load_winner_pred_dataset(boardsize, 1, blunder, augmentation, history, history_size)
             UtilsDataset.PLY_2 = UtilsDataset._load_winner_pred_dataset(boardsize, 2, blunder, augmentation, history, history_size)
             PLY_3b0 = UtilsDataset._load_winner_pred_dataset(boardsize, '3b0', blunder, augmentation, history, history_size)
@@ -2389,7 +2389,8 @@ class UtilsPlot:
 
 
 if __name__ == '__main__':
-    UtilsDataset.load_raw_datasets(boardsize=6, blunder=0)
+    UtilsDataset.load_raw_datasets(boardsize=9, blunder=0)
+    print(UtilsDataset.EQUAL_UNDER)
     UtilsHex.SearchPattern.initialise()
 
     # UtilsPlot.plot_dataset_win_rates(UtilsDataset.PLY_1, False)
