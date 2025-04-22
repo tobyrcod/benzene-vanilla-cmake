@@ -1872,30 +1872,28 @@ class UtilsDataset:
                 X6_RANDOM = UtilsDataset._load_winner_pred_dataset(6, 1, blunder, augmentation, history, history_size)
                 UtilsDataset.EQUAL_UNDER = X6_RANDOM.reduce_player_counts(250_000, 250_000)
                 UtilsDataset.EQUAL_UNDER.name = "6x6_random" + name_suffix
+            else:
+                UtilsDataset.PLY_1 = UtilsDataset._load_winner_pred_dataset(boardsize, 1, blunder, augmentation, history, history_size)
+                UtilsDataset.PLY_2 = UtilsDataset._load_winner_pred_dataset(boardsize, 2, blunder, augmentation, history, history_size)
+                UtilsDataset.PLY_3 = UtilsDataset._load_winner_pred_dataset(boardsize, 3, blunder, augmentation, history, history_size)
+                UtilsDataset.PLY_4 = UtilsDataset._load_winner_pred_dataset(boardsize, 4, blunder, augmentation, history, history_size)
 
-        if boardsize == 6:
-            UtilsDataset.PLY_1 = UtilsDataset._load_winner_pred_dataset(boardsize, 1, blunder, augmentation, history, history_size)
-            UtilsDataset.PLY_2 = UtilsDataset._load_winner_pred_dataset(boardsize, 2, blunder, augmentation, history, history_size)
-            UtilsDataset.PLY_3 = UtilsDataset._load_winner_pred_dataset(boardsize, 3, blunder, augmentation, history, history_size)
-            UtilsDataset.PLY_4 = UtilsDataset._load_winner_pred_dataset(boardsize, 4, blunder, augmentation, history, history_size)
+                # Combine all of these datasets
+                UtilsDataset.COMBINED = UtilsDataset.PLY_1 + UtilsDataset.PLY_2 + UtilsDataset.PLY_3 + UtilsDataset.PLY_4
+                UtilsDataset.COMBINED.name = "6x6_combined" + name_suffix
 
-            # Combine all of these datasets
-            UtilsDataset.COMBINED = UtilsDataset.PLY_1 + UtilsDataset.PLY_2 + UtilsDataset.PLY_3 + UtilsDataset.PLY_4
-            UtilsDataset.COMBINED.name = "6x6_combined" + name_suffix
+                # Define a new equal dataset to make the win:lose ratio 1:1 for black:white
+                UtilsDataset.EQUAL_UNDER = UtilsDataset.COMBINED.undersample()
+                UtilsDataset.EQUAL_OVER = UtilsDataset.COMBINED.oversample()
+                UtilsDataset.EQUAL_UNDER.name = "6x6-equal_under" + name_suffix
+                UtilsDataset.EQUAL_OVER.name = "6x6-equal_over" + name_suffix
 
-            # Define a new equal dataset to make the win:lose ratio 1:1 for black:white
-            UtilsDataset.EQUAL_UNDER = UtilsDataset.COMBINED.undersample()
-            UtilsDataset.EQUAL_OVER = UtilsDataset.COMBINED.oversample()
-            UtilsDataset.EQUAL_UNDER.name = "6x6-equal_under" + name_suffix
-            UtilsDataset.EQUAL_OVER.name = "6x6-equal_over" + name_suffix
-
-            # Define a new baseline dataset to match the distribution of the original paper
-            if blunder == 0:
-                baseline_black = 175968
-                baseline_white = 111826
-                UtilsDataset.BASELINE = UtilsDataset.COMBINED.reduce_player_counts(baseline_black, baseline_white)
-                UtilsDataset.BASELINE.name = '6x6-baseline' + name_suffix
-
+                # Define a new baseline dataset to match the distribution of the original paper
+                if blunder == 0:
+                    baseline_black = 175968
+                    baseline_white = 111826
+                    UtilsDataset.BASELINE = UtilsDataset.COMBINED.reduce_player_counts(baseline_black, baseline_white)
+                    UtilsDataset.BASELINE.name = '6x6-baseline' + name_suffix
         elif boardsize == 7:
             UtilsDataset.PLY_1 = UtilsDataset._load_winner_pred_dataset(boardsize, 1, blunder, augmentation, history, history_size)
             UtilsDataset.PLY_2 = UtilsDataset._load_winner_pred_dataset(boardsize, 2, blunder, augmentation, history, history_size)
@@ -1911,7 +1909,43 @@ class UtilsDataset:
             UtilsDataset.EQUAL_OVER = UtilsDataset.COMBINED.oversample()
             UtilsDataset.EQUAL_UNDER.name = "7x7-equal_under" + name_suffix
             UtilsDataset.EQUAL_OVER.name = "7x7-equal_over" + name_suffix
+        elif boardsize == 8:
+            UtilsDataset.PLY_1 = UtilsDataset._load_winner_pred_dataset(boardsize, 1, blunder, augmentation, history, history_size)
+            UtilsDataset.PLY_2 = UtilsDataset._load_winner_pred_dataset(boardsize, 2, blunder, augmentation, history, history_size)
+            UtilsDataset.PLY_3 = UtilsDataset._load_winner_pred_dataset(boardsize, 3, blunder, augmentation, history, history_size)
+            UtilsDataset.PLY_4 = UtilsDataset._load_winner_pred_dataset(boardsize, 4, blunder, augmentation, history, history_size)
 
+            # Combine all of these datasets
+            UtilsDataset.COMBINED = UtilsDataset.PLY_1 + UtilsDataset.PLY_2 + UtilsDataset.PLY_3 + UtilsDataset.PLY_4
+            UtilsDataset.COMBINED.name = "8x8_combined" + name_suffix
+
+            # Define a new equal dataset to make the win:lose ratio 1:1 for black:white
+            UtilsDataset.EQUAL_UNDER = UtilsDataset.COMBINED.undersample()
+            UtilsDataset.EQUAL_OVER = UtilsDataset.COMBINED.oversample()
+            UtilsDataset.EQUAL_UNDER.name = "8x8-equal_under" + name_suffix
+            UtilsDataset.EQUAL_OVER.name = "8x8-equal_over" + name_suffix
+        elif boardsize == 8:
+            UtilsDataset.PLY_1 = UtilsDataset._load_winner_pred_dataset(boardsize, 1, blunder, augmentation, history, history_size)
+            UtilsDataset.PLY_2 = UtilsDataset._load_winner_pred_dataset(boardsize, 2, blunder, augmentation, history, history_size)
+            PLY_3b0 = UtilsDataset._load_winner_pred_dataset(boardsize, '3b0', blunder, augmentation, history, history_size)
+            PLY_3b1 = UtilsDataset._load_winner_pred_dataset(boardsize, '3b1', blunder, augmentation, history, history_size)
+            PLY_3b2 = UtilsDataset._load_winner_pred_dataset(boardsize, '3b2', blunder, augmentation, history, history_size)
+            PLY_3b3 = UtilsDataset._load_winner_pred_dataset(boardsize, '3b3', blunder, augmentation, history, history_size)
+            PLY_3b5 = UtilsDataset._load_winner_pred_dataset(boardsize, '3b5', blunder, augmentation, history, history_size)
+            UtilsDataset.PLY_3 = PLY_3b0 + PLY_3b1 + PLY_3b2 + PLY_3b3 + PLY_3b5
+            PLY_4b0 = UtilsDataset._load_winner_pred_dataset(boardsize, '4b0', blunder, augmentation, history, history_size)
+            PLY_4b1 = UtilsDataset._load_winner_pred_dataset(boardsize, '4b1', blunder, augmentation, history, history_size)
+            UtilsDataset.PLY_4 = PLY_4b0 + PLY_4b1
+
+            # Combine all of these datasets
+            UtilsDataset.COMBINED = UtilsDataset.PLY_1 + UtilsDataset.PLY_2 + UtilsDataset.PLY_3 + UtilsDataset.PLY_4
+            UtilsDataset.COMBINED.name = "9x9_combined" + name_suffix
+
+            # Define a new equal dataset to make the win:lose ratio 1:1 for black:white
+            UtilsDataset.EQUAL_UNDER = UtilsDataset.COMBINED.undersample()
+            UtilsDataset.EQUAL_OVER = UtilsDataset.COMBINED.oversample()
+            UtilsDataset.EQUAL_UNDER.name = "9x9-equal_under" + name_suffix
+            UtilsDataset.EQUAL_OVER.name = "9x9-equal_over" + name_suffix
 
     @staticmethod
     def _load_winner_pred_dataset(boardsize: int,
@@ -2355,17 +2389,19 @@ class UtilsPlot:
 
 
 if __name__ == '__main__':
-    # UtilsDataset.load_raw_datasets(boardsize=6, blunder=5)
-    # UtilsHex.SearchPattern.initialise()
+    UtilsDataset.load_raw_datasets(boardsize=6, blunder=0)
+    UtilsHex.SearchPattern.initialise()
 
     # UtilsPlot.plot_dataset_win_rates(UtilsDataset.PLY_1, False)
     # UtilsPlot.plot_dataset_win_rates(UtilsDataset.PLY_2, False)
     # UtilsPlot.plot_dataset_win_rates(UtilsDataset.PLY_3, False)
     # UtilsPlot.plot_dataset_win_rates(UtilsDataset.PLY_4, False)
 
-    boardsize = 6
-    literals = UtilsTM.Literals.make_empty_board(boardsize)
-    padding = UtilsTM.Literals.Augmentation.AUG_PADDING
-    after_literals, after_boardsize = padding.apply(literals, boardsize)
-    UtilsPlot.plot_literals(literals, boardsize, Path("plots/padding_before.png"))
-    UtilsPlot.plot_literals(after_literals, after_boardsize, Path("plots/padding_after.png"))
+    # boardsize = 6
+    # literals = UtilsTM.Literals.make_empty_board(boardsize)
+    # padding = UtilsTM.Literals.Augmentation.AUG_PADDING
+    # after_literals, after_boardsize = padding.apply(literals, boardsize)
+    # UtilsPlot.plot_literals(literals, boardsize, Path("plots/padding_before.png"))
+    # UtilsPlot.plot_literals(after_literals, after_boardsize, Path("plots/padding_after.png"))
+
+    pass
