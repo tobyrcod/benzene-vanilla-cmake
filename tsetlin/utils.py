@@ -1794,7 +1794,7 @@ class UtilsDataset:
             # NOTE: takes too long
             tomek = TomekLinks(n_jobs=16)
             X_undersampled, Y_undersampled = tomek.fit_resample(self.X, self.Y)
-            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, self.boardsize,f"{self.name}_under-tomek", False)
+            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, self.boardsize, f"{self.name}_under-tomek", False)
 
         def _undersample_nearest_neighbours(self) -> "UtilsDataset.Dataset":
             # NOTE: takes too long
@@ -1809,7 +1809,14 @@ class UtilsDataset:
 
             rus = RandomUnderSampler(random_state=42, sampling_strategy=sampling_strategy)
             X_undersampled, Y_undersampled = rus.fit_resample(self.X, self.Y)
-            return UtilsDataset.Dataset(X_undersampled, Y_undersampled, self.boardsize,f"{self.name}_under-rand", False)
+
+            selected_indices = rus.sample_indices_
+            sorted_indices = np.sort(selected_indices)
+
+            X_ordered = self.X[sorted_indices]
+            Y_ordered = self.Y[sorted_indices]
+
+            return UtilsDataset.Dataset(X_ordered, Y_ordered, self.boardsize, f"{self.name}_under-rand", False)
 
         def oversample(self) -> "UtilsDataset.Dataset":
             return self._oversample_random()
@@ -2389,8 +2396,9 @@ class UtilsPlot:
 
 
 if __name__ == '__main__':
-    UtilsDataset.load_raw_datasets(boardsize=9, blunder=0)
+    UtilsDataset.load_raw_datasets(boardsize=6, blunder=0)
     print(UtilsDataset.EQUAL_UNDER)
+    print(UtilsDataset.EQUAL_UNDER.Y[:100])
     UtilsHex.SearchPattern.initialise()
 
     # UtilsPlot.plot_dataset_win_rates(UtilsDataset.PLY_1, False)
