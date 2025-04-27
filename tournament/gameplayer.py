@@ -93,16 +93,24 @@ class GamePlayer:
                 # Are we making a blunder this move?
                 if random.random() < self._blunder_rate:
                     # Yes? Pick a random legal move
-                    legal_moves = self._sendCommand(self._black, "all_legal_moves").strip().split(" ")
-                    if 'swap-pieces' in legal_moves:
-                        legal_moves.remove('swap-pieces')
-                    if len(legal_moves) == 1:
-                        # Our only move is to resign
-                        move = legal_moves[0]
+                    # If we can score the game, that means it is over. We need to resign
+                    # This check is needed due to a bug in 'all_legal_moves' that still returns open cells even when the game is over!
+                    final_score = self._sendCommand(self._black, "final_score").strip()
+                    cannot_score = final_score == 'cannot score'
+                    print(cannot_score)
+                    if cannot_score:
+                        legal_moves = self._sendCommand(self._black, "all_legal_moves").strip().split(" ")
+                        if 'swap-pieces' in legal_moves:
+                            legal_moves.remove('swap-pieces')
+                        if len(legal_moves) == 1:
+                            # Our only move is to resign
+                            move = legal_moves[0]
+                        else:
+                            # Remove resigning as a possible blunder
+                            legal_moves = legal_moves[1:]
+                            move = random.choice(legal_moves)
                     else:
-                        # Remove resigning as a possible blunder
-                        legal_moves = legal_moves[1:]
-                        move = random.choice(legal_moves)
+                        move = 'resign'
                     # And make black play it
                     self._sendCommand(self._black, f"play b {move}")
                 else:
@@ -115,16 +123,24 @@ class GamePlayer:
                 # Are we making a blunder this move?
                 if random.random() < self._blunder_rate:
                     # Yes? Pick a random legal move
-                    legal_moves = self._sendCommand(self._white, "all_legal_moves").strip().split(" ")
-                    if 'swap-pieces' in legal_moves:
-                        legal_moves.remove('swap-pieces')
-                    if len(legal_moves) == 1:
-                        # Our only move is to resign
-                        move = legal_moves[0]
+                    # If we can score the game, that means it is over. We need to resign
+                    # This check is needed due to a bug in 'all_legal_moves' that still returns open cells even when the game is over!
+                    final_score = self._sendCommand(self._white, "final_score").strip()
+                    cannot_score = final_score == 'cannot score'
+                    print(cannot_score)
+                    if cannot_score:
+                        legal_moves = self._sendCommand(self._white, "all_legal_moves").strip().split(" ")
+                        if 'swap-pieces' in legal_moves:
+                            legal_moves.remove('swap-pieces')
+                        if len(legal_moves) == 1:
+                            # Our only move is to resign
+                            move = legal_moves[0]
+                        else:
+                            # Remove resigning as a possible blunder
+                            legal_moves = legal_moves[1:]
+                            move = random.choice(legal_moves)
                     else:
-                        # Remove resigning as a possible blunder
-                        legal_moves = legal_moves[1:]
-                        move = random.choice(legal_moves)
+                        move = 'resign'
                     # And make white play it
                     self._sendCommand(self._white, f"play w {move}")
                 else:
